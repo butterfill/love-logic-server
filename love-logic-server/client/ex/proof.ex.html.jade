@@ -1,0 +1,24 @@
+template(name='proof')
+  .section: .container
+    p Complete this proof:
+    p premises (#{premises.length}): 
+      ul
+        each premises
+          li #{this}
+    p conclusion: #{conclusion}
+    
+    textarea#editor #{textareaText}
+      
+
+
+    p#feedback .
+      i.material-icons error_outline
+    
+    
+    .right
+      button#checkLine.btn.waves-effect.grey check line
+      button#checkProof.btn.waves-effect.grey check all
+      button#requestHelp.btn.waves-effect.grey request help
+       i.material-icons.right live_help
+      button#submit.btn.waves-effect.grey(type='submit') submit
+       i.material-icons.right send
