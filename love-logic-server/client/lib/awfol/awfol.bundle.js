@@ -14502,7 +14502,9 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }).call(this,require('_process'))
 },{"_process":4,"fs":1,"path":3}],12:[function(require,module,exports){
-var PREMISE_JUSTIFICATION, _FIND_JUSTIFICATION, _isPremise, cleanNumber, findBlock, findLine, findLineOrBlock, getCitedBlocks, getCitedLines, getRuleName, jp, split, to;
+var PREMISE_JUSTIFICATION, _, _FIND_JUSTIFICATION, _isPremise, cleanNumber, findBlock, findLine, findLineOrBlock, getCitedBlocks, getCitedLines, getRuleName, jp, split, to;
+
+_ = require('lodash');
 
 jp = require('./justification_parser');
 
@@ -14582,14 +14584,14 @@ to = function(block) {
       block.getPremises = function() {
         var premiseLines, x;
         premiseLines = _.filter(block.content, function(item) {
-          var ref;
+          var ref, ref1;
           if (item.type !== 'line') {
             return false;
           }
           if (item.sentence == null) {
             return false;
           }
-          if (((ref = item.justification) != null ? ref.connective : void 0) !== 'premise') {
+          if (((ref = item.justification) != null ? (ref1 = ref.rule) != null ? ref1.connective : void 0 : void 0) !== 'premise') {
             return false;
           }
           return true;
@@ -14754,7 +14756,7 @@ getCitedBlocks = function() {
 };
 
 
-},{"./add_line_numbers":13,"./justification_parser":19}],13:[function(require,module,exports){
+},{"./add_line_numbers":13,"./justification_parser":19,"lodash":10}],13:[function(require,module,exports){
 var _, _DROP_TRAILING_DOTS_AND_BRACKET, _GET_NUMBER, cleanNumber, split, to,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -15600,8 +15602,8 @@ rules = {
   'or': {
     elim: rule.from('φ or ψ').and(rule.subproof('φ', 'χ')).and(rule.subproof('ψ', 'χ')).to('χ'),
     intro: {
-      left: rule.from('φ or ψ').to('φ'),
-      right: rule.from('φ or ψ').to('ψ')
+      left: rule.from('φ').to('φ or ψ'),
+      right: rule.from('φ').to('ψ or φ')
     }
   },
   'not': {
@@ -16478,6 +16480,9 @@ subproof = function(startReq, endReq) {
       result = this.startReq.listMetaVariableNames();
       result = _.defaults(result, this.endReq.listMetaVariableNames());
       return result;
+    },
+    toString: function() {
+      return (startReq.toString()) + " ⊢ " + (endReq.toString());
     }
   };
 };
@@ -16538,6 +16543,9 @@ exports._notImplementedYet = _notImplementedYet;
 
 _parseIfNecessaryAndDecorate = function(requirement) {
   if (!requirement) {
+    return requirement;
+  }
+  if (requirement.type === 'subproof') {
     return requirement;
   }
   if (_.isString(requirement)) {
@@ -16837,7 +16845,7 @@ Pathfinder = (function() {
   };
 
   Pathfinder.prototype.writeMessage = function(reqChecker) {
-    return this.line.status.addMessage("to apply " + (this.line.getRuleName()) + " you need to cite a line with the form ‘" + (reqChecker.theRequirement.toString()) + "’ (‘" + (reqChecker.theRequirement.clone().applyMatches(this.matches)) + "’ in this case).");
+    return this.line.status.addMessage("to apply " + (this.line.getRuleName()) + " you need to cite a " + reqChecker.theRequirement.type + " with the form ‘" + (reqChecker.theRequirement.toString()) + "’.");
   };
 
   return Pathfinder;

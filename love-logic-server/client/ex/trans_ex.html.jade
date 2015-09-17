@@ -1,0 +1,37 @@
+// http://localhost:3000/ex/trans/EnToAWFOL/domain/5things/names/a=thing1%7Cb=thing2/predicates/Fish1%7CPerson2%7CRed1/sentence/At%20least%20two%20people%20are%20not%20fishRouter.route
+
+template(name="trans_ex")
+  .section: .container
+    h2 #{exTitle}
+    .row
+      .col.s6
+        h4 domain
+        ul.collection
+          each domain
+            li.collection-item #{this}
+          
+        h4 names
+        ul.collection
+          each names
+            li.collection-item #{this}
+      .col.s6
+        h4 predicates
+        ul.collection
+          each predicates
+            li.collection-item #{this.description}
+    .row
+      .col.s12
+        h4 sentence
+        ul.collection
+          li.collection-item #{sentence}
+    
+    h4 your answer
+    textarea#editor 
+    
+    p#feedback
+    
+    .right
+      button#requestHelp.btn.waves-effect.grey request help
+       i.material-icons.right live_help
+      button#submit.btn.waves-effect.grey(type='submit') submit
+       i.material-icons.right send

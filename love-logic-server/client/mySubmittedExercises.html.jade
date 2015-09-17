@@ -1,0 +1,11 @@
+template(name='mySubmittedExercises')
+  section: .container
+    h2 Submitted Exercises
+    p #{testd}
+    ul
+      each exercises
+       li 
+         p #{this.answer.type}
+         p #{this.answer.content}
+      
+  

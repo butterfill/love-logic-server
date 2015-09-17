@@ -5,9 +5,10 @@
 # but you can also edit it by hand.
 
 meteor-platform
-autopublish
-insecure
 coffeescript
 mquandalle:jade
 mquandalle:stylus
 iron:router
+useraccounts:materialize
+accounts-password
+useraccounts:iron-routing

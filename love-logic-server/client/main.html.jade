@@ -5,10 +5,20 @@ head
 
   
 body
+
+template(name='ApplicationLayout')
   nav.grey(role='navigation')
     .nav-wrapper.container
+      +atNavButton
+      span #{currentUserEmail}
       a.brand-logo.right(href='/') love*logic
+  
+  .section
+    .content
+      +yield
+
+  footer
+    +yield(region='footer')
 
 template(name='hello')
-  button Click Me
-  p You've pressed the x #{counter} times.
+  p Hello.

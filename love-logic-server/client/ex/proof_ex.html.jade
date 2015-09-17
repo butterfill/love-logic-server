@@ -1,11 +1,16 @@
-template(name='proof')
+template(name='proof_ex')
   .section: .container
-    p Complete this proof:
-    p premises (#{premises.length}): 
-      ul
-        each premises
-          li #{this}
-    p conclusion: #{conclusion}
+    h2 Write a proof
+    .row
+      .col.s6
+        h4 premises (#{premises.length}) 
+        ul.collection
+          each premises
+            li.collection-item #{this}
+      .col.s6
+        h4 conclusion
+        ul.collection
+          li.collection-item #{conclusion}
     
     textarea#editor #{textareaText}
       

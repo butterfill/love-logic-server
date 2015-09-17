@@ -1,0 +1,17 @@
+template(name='exerciseSets')
+  section: .container
+    h2 Select an Exercise Set
+    ul
+      each institutions
+        li: a(href="#{_id}") #{name}
+
+//- template(name='exerciseSet')
+//-   h2 #{exerciseSetName}
+//-   each lectures
+//-     h3 #{@}
+//-     each units
+//-       h4 #{@}
+//-         ul
+//-           each exercises
+//-           li #{@}
+//-
