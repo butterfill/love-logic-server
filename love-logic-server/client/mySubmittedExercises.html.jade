@@ -5,7 +5,8 @@ template(name='mySubmittedExercises')
     ul
       each exercises
        li 
-         p #{this.answer.type}
-         p #{this.answer.content}
+         h5: a(href="#{exerciseId}") #{exerciseId}
+         p #{answer.type}
+         p #{answer.content}
       
   

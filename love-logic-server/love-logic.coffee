@@ -23,6 +23,16 @@ Router.route '/exerciseSets', () ->
     Meteor.subscribe('exercise_sets')
   this.render 'exerciseSets'
 
+Router.route '/exerciseSets/:_id', () ->
+  if Meteor.isClient
+    Meteor.subscribe('exercise_set',@params._id)
+  this.render 'exerciseSetVariants'
+
+Router.route '/exerciseSets/:_id/:_variant', () ->
+  if Meteor.isClient
+    Meteor.subscribe('exercise_set',@params._id)
+    Meteor.subscribe('submitted_exercises')
+  this.render 'listExercises'
 
 
 Router.route '/mySubmittedExercises', () ->

@@ -1,17 +1,41 @@
 template(name='exerciseSets')
   section: .container
-    h2 Select an Exercise Set
-    ul
+    h2 Select an exercise set
+    ul.collection
       each institutions
-        li: a(href="#{_id}") #{name}
+        li.collection-item
+          a(href="{{pathFor 'exerciseSets'}}/#{_id}") #{name}
+          span --- #{description}
 
-//- template(name='exerciseSet')
-//-   h2 #{exerciseSetName}
-//-   each lectures
-//-     h3 #{@}
-//-     each units
-//-       h4 #{@}
-//-         ul
-//-           each exercises
-//-           li #{@}
-//-
+template(name='exerciseSetVariants')
+  section: .container
+    p #{setName} --- #{setDescription}
+    h2 Select a variant
+    ul.collection
+      each variants
+        li.collection-item
+          a(href="#{url}/#{name}") #{name}
+          span --- #{description}
+  
+
+template(name='listExercises')
+  section: .container
+    p #{exerciseSetName} --- #{exerciseSetDescription}
+    
+    h2 #{variantName}
+    //- TODO: remove button if subscribed.
+    button#subscribe.btn.waves-effect.grey subscribe
+  
+    each lectures
+      h4 #{lecture}
+      each units
+        h5 #{unit}
+        ul.collection
+        each exercises
+          li
+            a(href="#{link}") #{link}
+            if isSubmitted
+              span [submitted #{dateSubmitted}]
+            else
+              span [todo]
+          
