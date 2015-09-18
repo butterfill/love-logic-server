@@ -1,49 +1,32 @@
 
 # -------------
-# Template helpers
-
-convertToExerciseId = (exerciseLink) ->
-  return (encodeURIComponent(i) for i in exerciseLink.split('/')).join('/')
-
-isSubmitted = (exerciseLink) ->
-  exerciseId = convertToExerciseId exerciseLink
-  return SubmittedExercises.find({exerciseId}).count() > 0
-
-dateSubmitted = (exerciseLink) ->
-  exerciseId = convertToExerciseId exerciseLink
-  return SubmittedExercises.findOne({exerciseId})?.created
 
 
-Template.exerciseSets.helpers
-  institutions : () -> 
+
+Template.courses.helpers
+  courses : () -> 
+    return Courses.find()
+
+Template.exerciseSetsForCourse.helpers
+  courseName : () ->
+    return Courses.findOne()?.name
+  courseDescription : () ->
+    return Courses.findOne()?.description
+  url : () ->
+    return ix.url()
+  exerciseSets : () -> 
     return ExerciseSets.find()
 
-Template.exerciseSetVariants.helpers
-  setName : () ->
-    return ExerciseSets.findOne()?.name
-  setDescription : () ->
-    return ExerciseSets.findOne()?.description
-  url : () ->
-    return Router.current().location.get().path
-  variants : () -> 
-    variants = ExerciseSets.findOne()?.variants
-    return (v for k,v of variants)
-
-Template.listExercises.helpers
+Template.exerciseSet.helpers
+  courseName : () ->
+    return Courses.findOne()?.name
+  courseDescription : () ->
+    return Courses.findOne()?.description
   exerciseSetName : () ->
-    return ExerciseSets.findOne()?.name
-  exerciseSetDescription : () ->
-    return ExerciseSets.findOne()?.description
-  variantName : () ->
-    controller = Iron.controller()
-    params = controller.getParams()
-    return params._variant
+    return ix.getParams()?._variant or ''
   lectures : () ->
-    controller = Iron.controller()
-    params = controller.getParams()
-    return [] unless params
-    exObj = ExerciseSets.findOne()?.variants[params._variant]?.exercises
-    console.log params._variant
+    exObj = ExerciseSets.findOne()?.exercises
+    return [] if not exObj
     console.log exObj
     lectureList = []
     for lecture of exObj
@@ -51,7 +34,7 @@ Template.listExercises.helpers
       for unit, exercises of exObj[lecture]
         unitList.push {
           unit
-          exercises : ({link:e, isSubmitted:isSubmitted(e), dateSubmitted:dateSubmitted(e)} for e in exercises)
+          exercises : ({name:e, link:ix.convertToExerciseId(e), isSubmitted:ix.isSubmitted(e), dateSubmitted:ix.dateSubmitted(e)} for e in exercises)
         }
       lectureList.push {
         lecture
@@ -61,12 +44,11 @@ Template.listExercises.helpers
     
     return lectureList
         
-    
 
 # -------------
 # User interactions
 
 
-Template.listExercises.events
+Template.exerciseSet.events
   'click button#subscribe' : (event, template) ->
     console.log "not implemented yet."

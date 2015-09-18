@@ -2,10 +2,21 @@ Meteor.publish "submitted_exercises", () ->
   # return SubmittedExercises.find()
   return SubmittedExercises.find({ owner: this.userId })
 
-Meteor.publish "exercise_sets", () ->
+Meteor.publish "courses", () ->
   # return SubmittedExercises.find()
-  return ExerciseSets.find()
+  return Courses.find()
 
-Meteor.publish "exercise_set", (id) ->
+Meteor.publish "course", (courseName) ->
   # return SubmittedExercises.find()
-  return ExerciseSets.find({_id:id})
+  return Courses.find({name:courseName})
+
+Meteor.publish "exercise_sets", (courseName) ->
+  # return SubmittedExercises.find()
+  return ExerciseSets.find({courseName})
+
+Meteor.publish "exercise_set", (courseName, variant) ->
+  # return SubmittedExercises.find()
+  return ExerciseSets.find({courseName, variant})
+
+Meteor.publish "work_in_progress", () ->
+  return WorkInProgress.find({ owner: this.userId })

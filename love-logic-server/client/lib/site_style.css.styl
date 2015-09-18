@@ -1,0 +1,33 @@
+@import nib
+
+font_size = 19pt
+background_color = white
+text_color = black
+
+
+
+/**
+ * huge-glow classes
+ */
+make-huge-glow(class-name, size)
+  {class-name}
+    font-size: size
+    color: background_color
+    text-shadow: 0 0 (size/2) text_color, 0 0 (size/4) text_color, 1px 1px 2px text_color, 1px -1px 2px text_color, -1px 1px 2px text_color, -1px -1px 2px text_color
+    -webkit-text-shadow: 0 0 (size/2) text_color, 0 0 (size/4) text_color, 1px 1px 2px text_color, 1px -1px 2px text_color, -1px 1px 2px text_color, -1px -1px 2px text_color
+    -moz-text-shadow: 0 0 (size/2) text_color, 0 0 (size/4) text_color, 1px 1px 2px text_color, 1px -1px 2px text_color, -1px 1px 2px text_color, -1px -1px 2px text_color
+
+make-huge-glow('.huge-glow', 90pt)
+make-huge-glow('.huge-glow-40', 40pt)
+make-huge-glow('.huge-glow-50', 50pt)
+make-huge-glow('.huge-glow-60', 60pt)
+make-huge-glow('.huge-glow-70', 70pt)
+make-huge-glow('.huge-glow-80', 80pt)
+make-huge-glow('.huge-glow-90', 90pt)
+make-huge-glow('.huge-glow-120', 120pt)
+make-huge-glow('.huge-glow-150', 150pt)
+make-huge-glow('.huge-glow-180', 180pt)
+make-huge-glow('.huge-glow-210', 210pt)
+make-huge-glow('.huge-glow-240', 240pt)
+make-huge-glow('.huge-glow-270', 270pt)
+make-huge-glow('.huge-glow-300', 300pt)

@@ -12,8 +12,7 @@ editor = undefined  #This will be our codemirror thing.
 # sentences cannot be parsed.
 # Return a list of awFOL objects.
 getPremisesFromParams = () ->
-  controller = Iron.controller()
-  params = controller.getParams()
+  params = ix.getParams()
   txtList = decodeURIComponent(params._premises).split('|')
   try
     folList = (fol.parse(t) for t in txtList)
@@ -25,13 +24,19 @@ getPremisesFromParams = () ->
 # Extract the conclusion from the URL.
 # Return it as an awFOL object.
 getConclusionFromParams = () ->
-  controller = Iron.controller()
-  params = controller.getParams()
+  params = ix.getParams()
   try
     e = fol.parse(decodeURIComponent(params._conclusion))
   catch error
     return "Sorry, there is an error with the URL you gave (#{error})."
   return e
+
+# Extract the proof to be written from the params.  
+getProofFromParams = () ->
+  premiseTxt = (t.toString({replaceSymbols:true}) for t in getPremisesFromParams()).join('\n| ')
+  conclusionTxt = getConclusionFromParams().toString({replaceSymbols:true})
+  return "| #{premiseTxt}\n|---\n| \n| \n| #{conclusionTxt}"  
+  
 
 Template.proof_ex.helpers
   conclusion : () ->
@@ -40,9 +45,18 @@ Template.proof_ex.helpers
     folList = getPremisesFromParams()
     return (e.toString({replaceSymbols:true}) for e in folList)
   textareaText : () ->
-    premiseTxt = (t.toString({replaceSymbols:true}) for t in getPremisesFromParams()).join('\n| ')
-    conclusionTxt = getConclusionFromParams().toString({replaceSymbols:true})
-    return "| #{premiseTxt}\n|---\n| \n| \n| #{conclusionTxt}"
+    return getProofFromParams()
+  
+  # Helpers that are common to several templates
+  isSubmitted : () ->
+    return ix.isSubmitted()
+  dateSubmitted : () ->
+    return ix.dateSubmitted()
+  isMachineFeedback : () ->
+    return ix.getSubmission().machineFeedback?
+  machineFeedback : () ->
+    return ix.getSubmission().machineFeedback.comment
+    
     
       
 # -------------
@@ -92,6 +106,8 @@ addMarker = (lineNumber, color = "#822") ->
 
 
 Template.proof_ex.onRendered () ->
+  # configure the modal (uses http://materializecss.com/modals.html)
+  $("#reset").leanModal()
   # Configure the editor
   editor = CodeMirror.fromTextArea($('#editor')[0], {
     theme : 'blackboard'
@@ -105,26 +121,36 @@ Template.proof_ex.onRendered () ->
   proofText  =  Session.get 'proofText'
   if proofText and proofText isnt ''
     editor.setValue(proofText)
+  wip = ix.getWorkInProgress()
+  if wip?.text?
+    console.log "got wip"
+    editor.setValue(wip.text)
 
   editor.on("keyHandled", (instance, name, event) ->
     if name in ['Up']
       lineNumber = getCurrentLineNumberInEditor() 
+      ix.saveWorkInProgress(editor.getValue())
       checkLines(lineNumber, lineNumber+1)
     if name in ['Down','Enter']
       lineNumber = getCurrentLineNumberInEditor() 
+      ix.saveWorkInProgress(editor.getValue())
       checkLines(lineNumber, lineNumber-1)
   )
 
 
 Template.proof_ex.events
-  'click button#checkLine' : (event, template) ->
-    lineNumber = getCurrentLineNumberInEditor()
-    checkLine(lineNumber)
-    
   'click button#checkProof' : (event, template) ->
     theProof = getProof()
     result = theProof.verify()
     giveFeedback "Is your proof correct? #{result}!"
+    
+    # Add the red/green dots to the proof
+    for lineNumber in [1..editor.getValue().split('\n').length]
+      line = theProof.getLine(lineNumber)
+      lineIsCorrect = line.verify()
+      addMarker(lineNumber, 'chartreuse') if lineIsCorrect
+      addMarker(lineNumber, '#FF3300') if not lineIsCorrect
+    
     # Now check the conclusion is what its supposed to be.
     conclusionIsOk = theProof.getConclusion().isIdenticalTo( getConclusionFromParams() )
     if not conclusionIsOk 
@@ -141,13 +167,27 @@ Template.proof_ex.events
       
     
   'click button#submit' : (event, template) ->
-    Meteor.call('submitExercise', {
-      exerciseId : window.location.pathname
+    theProof = getProof()
+    result = theProof.verify()
+    machineFeedback = {
+      isCorrect : result
+      comment : "Your submitted proof is #{('not' if result isnt true) or ''} correct."
+    }
+    ix.submitExercise(
       answer : 
         type : 'proof'
         content : editor.getValue()
-    })
+      machineFeedback : machineFeedback
+    )
     giveFeedback "Your proof has been submitted."
+    Materialize.toast "Your proof has been submitted.", 4000
 
+  'click #view-answer' : (event, template) ->
+    submission = ix.getSubmission()
+    editor.setValue(submission.answer.content)
+  
+  'click #reset-confirm' : (event, template) ->
+    editor.setValue( getProofFromParams() )
+    
 
 

@@ -10,15 +10,9 @@ isTranslationToEn = false
 # -------------
 # Template helpers
 
-getParams = () ->
-  controller = Iron.controller()
-  result = {}
-  for k, v of controller.getParams()
-    result[k] = decodeURIComponent(v)
-  return result
 
 checkIfTranslationToEn = () ->
-  sentence = getParams()._sentence
+  sentence = ix.getParams()._sentence
   try
     fol.parse sentence
     # If we can parse the sentence given, it is an awFOL sentence to be 
@@ -53,12 +47,12 @@ extractPredicteFromParam = (rawPredicate) ->
   return {name, arity, description}
 
 getPredicatesFromParams = () ->
-  raw = getParams()._predicates.split('|')
+  raw = ix.getParams()._predicates.split('|')
   predicates = (extractPredicteFromParam(p) for p in raw)
   return predicates
 
 getDomainFromParams = () ->
-  parts = getParams()._domain.split('|')
+  parts = ix.getParams()._domain.split('|')
   if parts.length > 1
     return parts
   raw = parts[0]
@@ -76,11 +70,20 @@ Template.trans_ex.helpers
   predicates : () -> getPredicatesFromParams()
   sentence : () -> 
     if checkIfTranslationToEn()
-      return fol.parse(getParams()._sentence).toString({replaceSymbols:true})
-    return "#{getParams()._sentence}."
+      return fol.parse(ix.getParams()._sentence).toString({replaceSymbols:true})
+    return "#{ix.getParams()._sentence}."
   domain : () -> getDomainFromParams()
-  names : () -> getParams()._names.replace(/\=/g,' : ').split('|')
+  names : () -> ix.getParams()._names.replace(/\=/g,' : ').split('|')
 
+  # Helpers that are common to several templates
+  isSubmitted : () ->
+    return ix.isSubmitted()
+  dateSubmitted : () ->
+    return ix.dateSubmitted()
+  isMachineFeedback : () ->
+    return ix.getSubmission().machineFeedback?
+  machineFeedback : () ->
+    return ix.getSubmission().machineFeedback.comment
 
 
 # -------------

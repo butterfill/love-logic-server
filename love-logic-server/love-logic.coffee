@@ -4,35 +4,30 @@
 Router.configure
   layoutTemplate: 'ApplicationLayout'
 
-# AccountsTemplates.configure
-#   defaultLayout: 'ApplicationLayout'
-#   defaultLayoutRegions:
-#       nav: 'nav'
-#       footer: 'footer'
-#     defaultContentRegion: 'main'
-#     showForgotPasswordLink: true
-#
-# AccountsTemplates.configureRoute('signIn');
-# AccountsTemplates.configureRoute('signUp');
-
 Router.route '/', () ->
   this.render 'hello'
 
-Router.route '/exerciseSets', () ->
-  if Meteor.isClient
-    Meteor.subscribe('exercise_sets')
-  this.render 'exerciseSets'
 
-Router.route '/exerciseSets/:_id', () ->
-  if Meteor.isClient
-    Meteor.subscribe('exercise_set',@params._id)
-  this.render 'exerciseSetVariants'
+# ------
+# Admin routes for students
 
-Router.route '/exerciseSets/:_id/:_variant', () ->
+Router.route '/courses', () ->
   if Meteor.isClient
-    Meteor.subscribe('exercise_set',@params._id)
+    Meteor.subscribe('courses')
+  this.render 'courses'
+
+Router.route '/course/:_courseName', () ->
+  if Meteor.isClient
+    Meteor.subscribe('course', @params._courseName)
+    Meteor.subscribe('exercise_sets',@params._courseName)
+  this.render 'exerciseSetsForCourse'
+
+Router.route '/course/:_courseName/exercise-set/:_variant', () ->
+  if Meteor.isClient
+    Meteor.subscribe('course', @params._courseName)
+    Meteor.subscribe('exercise_set', @params._courseName, @params._variant)
     Meteor.subscribe('submitted_exercises')
-  this.render 'listExercises'
+  this.render 'exerciseSet'
 
 
 Router.route '/mySubmittedExercises', () ->
@@ -40,18 +35,28 @@ Router.route '/mySubmittedExercises', () ->
     Meteor.subscribe('submitted_exercises')
   this.render 'mySubmittedExercises'
 
+
+
+# ------
+# Exercise routes
+
 Router.route '/ex/proof/from/:_premises/to/:_conclusion', () ->
-  this.render 'proof_ex'#, 
-    # data : () ->
-    #   premises = decodeURIComponent(@params._premises).split('|')
-    #   conclusion = decodeURIComponent @params._conclusion
-    #   return {premises, conclusion}
+  if Meteor.isClient
+    @wait(Meteor.subscribe('submitted_exercises'))
+    @wait(Meteor.subscribe('work_in_progress'))
+  if @ready()
+    @render 'proof_ex'
+  else
+    @render 'loading'
 
 # Example URL:
 # /ex/trans/domain/5things/names/a=thing1%7Cb=thing2/predicates/Fish1%7CPerson2%7CRed1/sentence/At%20least%20two%20people%20are%20not%20fish
-# It will work out what you are translating from by what language `:_sentence` is in.
+# It will work which direction you are translating in by what language `:_sentence` is in.
 Router.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicates/sentence/:_sentence', () ->
-  this.render 'trans_ex'#, 
+  if Meteor.isClient
+    Meteor.subscribe('submitted_exercises')
+    Meteor.subscribe('work_in_progress')
+  this.render 'trans_ex'
 
 
 
@@ -59,6 +64,7 @@ Router.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicates/se
 # Collections
 
 @SubmittedExercises = new Mongo.Collection('submitted_exercises')
+@WorkInProgress = new Mongo.Collection('work_in_progress')
 
 Meteor.methods
   submitExercise : (exercise) ->
@@ -69,3 +75,18 @@ Meteor.methods
       email : Meteor.user().emails[0].address
       created : new Date()
     }))
+
+  saveWorkInProgress : (exerciseId, text) ->
+    userId = Meteor.user()._id
+    if not userId
+      throw new Meteor.Error "not-authorized"
+    wip = WorkInProgress.findOne({$and:[{owner:userId},{exerciseId:exerciseId}]})
+    if wip
+      WorkInProgress.update(wip, $set:{text : text})
+    else 
+      WorkInProgress.insert( {
+        owner : userId
+        exerciseId : exerciseId
+        created : new Date()
+        text : text
+      })

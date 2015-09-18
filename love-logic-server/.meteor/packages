@@ -12,3 +12,4 @@ iron:router
 useraccounts:materialize
 accounts-password
 useraccounts:iron-routing
+momentjs:moment

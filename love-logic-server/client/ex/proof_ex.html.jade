@@ -14,16 +14,43 @@ template(name='proof_ex')
     
     textarea#editor #{textareaText}
       
-
+    if isSubmitted
+      p.right You submitted an answer #{dateSubmitted}.
+        span [
+        a(href='')#view-answer view answer
+        span ]
+        if isMachineFeedback
+          span  Machine says: #{machineFeedback}
+        //- if isTutorFeedback
+        //-   span  #{tutorName} says: #{tutorFeedback}
 
     p#feedback .
       i.material-icons error_outline
     
-    
+
+    .left
+      button#reset.btn.modal-trigger.waves-effect.grey(data-target="reset_modal") reset
+      #reset_modal.modal
+        .modal-content
+          h4 Reset your work on this proof?
+          p You really want to start again?
+        .modal-footer
+          a(href="")#reset-confirm.modal-action.modal-close.waves-effect.waves-grey.btn-flat yes, reset
+          a(href="").reset-abort.modal-action.modal-close.waves-effect.waves-grey.btn-flat no!
+          
+      
     .right
-      button#checkLine.btn.waves-effect.grey check line
       button#checkProof.btn.waves-effect.grey check all
       button#requestHelp.btn.waves-effect.grey request help
        i.material-icons.right live_help
-      button#submit.btn.waves-effect.grey(type='submit') submit
-       i.material-icons.right send
+      if isSubmitted
+        button#submit.btn.waves-effect.grey(type='submit', disabled='true') submit
+      else
+        button#submit.btn.waves-effect.grey(type='submit') submit
+         i.material-icons.right send
+    
+    
+    .center
+      img(src='/images/down.png')
+      p.huge-glow-40(style='margin-top:-3em')
+        a(style='color:white').next-exercise next exercise

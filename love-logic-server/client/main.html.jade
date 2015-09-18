@@ -11,7 +11,7 @@ template(name='ApplicationLayout')
     .nav-wrapper.container
       +atNavButton
       span #{currentUserEmail}
-      a.brand-logo.right(href='/') love*logic
+      a.brand-logo.right.huge-glow-40(href='/') love*logic
   
   .section
     .content
@@ -21,4 +21,11 @@ template(name='ApplicationLayout')
     +yield(region='footer')
 
 template(name='hello')
-  p Hello.
+  section: .container
+    p 
+      a(href="{{pathFor 'courses'}}") Select Your Course
+    p Your current subscriptions ... (TODO)  
+  
+template(name='loading')
+  section: .container
+    p Loading ...

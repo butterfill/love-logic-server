@@ -22,11 +22,12 @@ CodeMirror.defineMode("fol", function(conf, parserConf) {
     return new RegExp("^((" + words.join(")|(") + "))\\b");
   }
 
-  var operators = /^(?:->|=>|\+[+=]?|-[\-=]?|\*[\*=]?|\/[\/=]?|[=!]=|<[><]?=?|>>?=?|%=?|&=?|\|=?|\^=?|\~|!|\?|(or|and|\|\||&&|\?)=)/;
+  var operators = /^(?:->|=>|\+[+=]?|\*[\*=]?|\/[\/=]?|[=!]=|<[><]?=?|>>?=?|%=?|&=?|\^=?|\~|!|\?|(or|and|&&|\?)=)/;
   var moreOperators = /(¬|⊥|∧|→|↔|∨|↓|↑|∀|∃)/
   var delimiters = /^(?:[()\[\]{},:`=;]|\.\.?\.?)/;
   var identifiers = /^[A-Za-z$][A-Za-z$0-9]*/;
   var atProp = /^@[A-Za-z$][A-Za-z$0-9]*/;
+  var structure = /^[\|\-\_\.]+/
 
   
 
@@ -168,6 +169,9 @@ CodeMirror.defineMode("fol", function(conf, parserConf) {
 
     if (stream.match(identifiers)) {
       return "variable";
+    }
+    if (stream.match(structure)) {
+      return "structure";
     }
 
     // Handle non-detected items

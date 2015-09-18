@@ -1,4 +1,5 @@
-// http://localhost:3000/ex/trans/EnToAWFOL/domain/5things/names/a=thing1%7Cb=thing2/predicates/Fish1%7CPerson2%7CRed1/sentence/At%20least%20two%20people%20are%20not%20fishRouter.route
+// e.g.: http://localhost:3000/ex/trans/domain/5things/names/a=thing1%7Cb=thing2/predicates/Fish1%7CPerson2%7CRed1/sentence/At%20least%20two%20people%20are%20not%20fish
+// e.g.: http://localhost:3000/ex/trans/domain/5things/names/a=thing1%7Cb=thing2/predicates/Fish1%7CPerson2%7CRed1/sentence/exists(x) exists(y) (Person(x) and Person(y) and not Fish(x) and not Fish(y) and not x=y)
 
 template(name="trans_ex")
   .section: .container
@@ -28,6 +29,16 @@ template(name="trans_ex")
     h4 your answer
     textarea#editor 
     
+    if isSubmitted
+      p.right You submitted an answer #{dateSubmitted}.
+        span [
+        a(href='') view answer
+        span ]
+        if isMachineFeedback
+          span  Machine says: #{machineFeedback}
+        //- if isTutorFeedback
+        //-   span  #{tutorName} says: #{tutorFeedback}
+      
     p#feedback
     
     .right
