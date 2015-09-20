@@ -1,54 +1,96 @@
 
 # -------------
 
+getExerciseSetName = () ->
+  return decodeURIComponent(FlowRouter.getParam('_variant') or '')
+getCourseName = () ->
+  return Courses.findOne()?.name
+
+Template.courses.onCreated () ->
+  self = this
+  self.autorun () ->
+    self.subscribe('courses')
 
 
 Template.courses.helpers
   courses : () -> 
     return Courses.find()
 
+
+Template.exerciseSetsForCourse.onCreated () ->
+  self = this
+  self.autorun () ->
+    courseName = FlowRouter.getParam('_courseName')
+    self.subscribe('course', courseName)
+    self.subscribe('exercise_sets', courseName)
+
+
 Template.exerciseSetsForCourse.helpers
   courseName : () ->
     return Courses.findOne()?.name
   courseDescription : () ->
     return Courses.findOne()?.description
-  url : () ->
-    return ix.url()
   exerciseSets : () -> 
     return ExerciseSets.find()
 
+
+Template.exerciseSet.onCreated () ->
+  self = this
+  self.autorun () ->
+    courseName = FlowRouter.getParam('_courseName')
+    variant = FlowRouter.getParam('_variant')
+    self.subscribe('course', courseName)
+    self.subscribe('exercise_set', courseName, variant)
+    self.subscribe('submitted_exercises')
+    self.subscribe('subscriptions')
+
 Template.exerciseSet.helpers
   courseName : () ->
-    return Courses.findOne()?.name
+    return getCourseName() 
   courseDescription : () ->
     return Courses.findOne()?.description
   exerciseSetName : () ->
-    return ix.getParams()?._variant or ''
+    return getExerciseSetName()
+  exerciseSetDescription : () ->
+    return ExerciseSets.findOne()?.description
   lectures : () ->
-    exObj = ExerciseSets.findOne()?.exercises
-    return [] if not exObj
-    console.log exObj
-    lectureList = []
-    for lecture of exObj
-      unitList = []
-      for unit, exercises of exObj[lecture]
-        unitList.push {
-          unit
-          exercises : ({name:e, link:ix.convertToExerciseId(e), isSubmitted:ix.isSubmitted(e), dateSubmitted:ix.dateSubmitted(e)} for e in exercises)
-        }
-      lectureList.push {
-        lecture
-        units: unitList
-      }
-
-    
-    return lectureList
-        
+    theLectures = ExerciseSets.findOne()?.lectures
+    return [] if not theLectures
+    for l in theLectures
+      for unit in l.units
+        unit.exercises = (
+          {
+            name:e
+            link:ix.convertToExerciseId(e)
+            isSubmitted:ix.isSubmitted(e)
+            dateSubmitted:ix.dateSubmitted(e)
+          } for e in unit.rawExercises
+        )
+        if unit.rawReading?.length >0
+          unit.reading = "Sections §#{unit.rawReading.join(', §')} of Language, Proof and Logic (Barwise & Etchemendy; the course textbook)."
+        else 
+          unit.reading =""
+    return theLectures
+  isAlreadyFollowing : () ->
+    userId = ix.getUserId()
+    courseName = getCourseName()
+    variant = getExerciseSetName()
+    return false unless userId? and courseName? and variant?
+    test = Subscriptions.findOne({$and:[{owner:userId},{courseName},{variant}]})
+    return test?
 
 # -------------
 # User interactions
 
 
 Template.exerciseSet.events
-  'click button#subscribe' : (event, template) ->
-    console.log "not implemented yet."
+  'click #follow' : (event, template) ->
+    courseName = getCourseName()
+    variant = getExerciseSetName()
+    Meteor.call('subscribeToExerciseSet', courseName, variant, (error,result)->
+      if not error
+        Materialize.toast "You are following #{variant}", 4000
+      else
+        Materialize.toast "Sorry, there was an error signing you up for #{variant}. (#{error.message})", 4000
+    )
+

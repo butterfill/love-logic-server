@@ -1,31 +1,65 @@
-head
-  title love-logic
-  meta( name="viewport", content="width=device-width, initial-scale=1.0" )
-  link(href="https://fonts.googleapis.com/icon?family=Material+Icons",rel="stylesheet")
+
+
+template(name='main')
+  .row
+    if hasNewHelpRequestAnswers
+      .col.s12.m6.l4
+        .card
+          .card-content
+            span.card-title.black-text Help Request
+            p Your request for help with an exercise has been answered.
+            .card-action: .right
+              a.waves-effect.blue-text See answer
+  
+    if hasNewMarks
+      .col.s12.m6.l4
+        .card
+          .card-content
+            span.card-title.black-text Marks 
+            p Some of your work has been marked.
+            .card-action: .right
+              a.waves-effect.blue-text See marks
+  
+    .col.s12.m6.l4
+      .card
+        .card-content
+          span.card-title.black-text Seminar tutor
+          if hasSeminarTutor
+            p #{seminarTutor} is your seminar tutor and will review the exercises you submit.
+          else
+            p You have not assigned yourself to a seminar tutor; no one will review your work.
+          .card-action: .right
+            if hasSeminarTutor
+              a.waves-effect.blue-text Change tutor
+            else
+              a.waves-effect.blue-text Add tutor
+    .col.s12.m6.l4
+      .card
+        .card-content
+          span.card-title.black-text Email 
+          p Your email address is #{emailAddress}.  If this is not your university or college email address, your progress may not be recorded.
+          .card-action: .right
+            a.waves-effect.blue-text Change email 
+    if hasNoSubscriptions
+      .col.s12.m6.l4
+        .card
+          .card-content
+            span.card-title.black-text Exercises
+            p You can follow one or more exercise sets.
+            .card-action: .right
+              a.waves-effect.blue-text(href="/courses")  Select an exercise set
 
   
-body
+  if hasSubscriptions
+    h3 Your exercise sets
+    ul.collection
+    each subscriptions
+      li.collection-item
+        a(href="/course/#{courseName}/exercise-set/#{variant}") The ‘#{variant}’ exercises for #{courseName}
+    
+    .row: .col.s12
+      .right
+        a.btn.waves-effect.grey.darken-1(href="/courses") 
+          | Follow another exercise set
 
-template(name='ApplicationLayout')
-  nav.grey(role='navigation')
-    .nav-wrapper.container
-      +atNavButton
-      span #{currentUserEmail}
-      a.brand-logo.right.huge-glow-40(href='/') love*logic
-  
-  .section
-    .content
-      +yield
 
-  footer
-    +yield(region='footer')
-
-template(name='hello')
-  section: .container
-    p 
-      a(href="{{pathFor 'courses'}}") Select Your Course
-    p Your current subscriptions ... (TODO)  
-  
-template(name='loading')
-  section: .container
-    p Loading ...

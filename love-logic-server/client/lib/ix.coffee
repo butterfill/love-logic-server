@@ -1,24 +1,43 @@
-# Functions used across a various template helpers or event handlers
+# Functions used across a various template helpers or event handlers.
+# Note: this runs on the client only.
 
 @ix = {}
 
 # ----
 # Meteor general
 
-# Decodes and returns the params from the url
-ix.getParams = () ->
-  controller = Iron.controller()
-  result = {}
-  for k, v of controller.getParams()
-    result[k] = decodeURIComponent(v)
-  return result
+# Return the `_id` of the current user.
+ix.getUserId = () ->
+  if Meteor.user()?._id
+    return Meteor.user()._id
+  return undefined
+
+ix.getUserEmail = () ->
+  if Meteor.user()?.emails?[0]?.address?
+    return Meteor.user().emails[0].address
+  return undefined
   
-# Return the current url.
+
+# Return the current url minus any querystring.
 ix.url = () ->
-  return decodeURIComponent(Router.current().location.get().path)
+  # # NOTE: we need this so that updates work properly
+  # FlowRouter.watchPathChange()
+  path = FlowRouter.current().path?.split('?')[0]
+  if path 
+    return decodeURIComponent(path)
+  return undefined
 
-
-
+ix.queryString = () ->
+  # # NOTE: we need this so that updates work properly
+  # FlowRouter.watchPathChange()
+  path = FlowRouter.current().path
+  if path 
+    parts = path.split('?')
+    if parts.length >0
+      return parts[1]
+    return ""
+  return undefined
+  
 
 
 # ----
@@ -28,10 +47,13 @@ ix.url = () ->
 ix.convertToExerciseId = (exerciseLink) ->
   return (encodeURIComponent(i) for i in exerciseLink.split('/')).join('/')
 
-# Get the exerciseId of the current page
+# Get the exerciseId of the current page (when called from a 
+# page like `/ex/proof/from/A%7CB%7CC/to/A%20and%20(B%20and%20C)`)
 ix.getExerciseId = () ->
   exerciseLink = ix.url()
-  return ix.convertToExerciseId(exerciseLink)
+  return undefined unless exerciseLink
+  exerciseLink = exerciseLink.replace /\/grade\/?$/, ''
+  return ix.convertToExerciseId(exerciseLink) 
 
 
 # Returns true if the current user has already submitted the exercise specified by `exerciseLink`
@@ -57,11 +79,10 @@ ix.getSubmission = (exerciseLink) ->
   exerciseId = ix.convertToExerciseId exerciseLink
   return SubmittedExercises.findOne({exerciseId})
 
-ix.submitExercise = (exercise) ->
-    
-    Meteor.call('submitExercise', _.defaults(exercise,
-      exerciseId : ix.convertToExerciseId(ix.url())
-    ))
+ix.submitExercise = (exercise, cb) ->
+  Meteor.call('submitExercise', _.defaults(exercise,
+    exerciseId : ix.convertToExerciseId(ix.url())
+  ), cb)
 
 ix.saveWorkInProgress = (text) ->
   exerciseId = ix.getExerciseId()
@@ -72,6 +93,31 @@ ix.getWorkInProgress = () ->
   exerciseId = ix.getExerciseId()
   console.log "restoring #{exerciseId}"
   return WorkInProgress.findOne({exerciseId})
-  
-  
-  
+
+# Note: this assumes your route has `Meteor.subscribe('subscribed_exercise_sets')`  
+ix.getExerciseContext = () ->
+  currentExLink = decodeURIComponent(ix.getExerciseId())
+  exSet = ExerciseSets.findOne()
+  return undefined unless exSet?.lectures?
+  for lecture, lectureIdx in exSet.lectures
+    for unit, unitIdx in lecture.units
+      for link, linkIdx in unit.rawExercises
+        if link is currentExLink
+          next = undefined
+          if unit.rawExercises.length > linkIdx+1
+            next = unit.rawExercises[linkIdx+1]
+          else
+            if lecture.units.length > unitIdx+1
+              next = lecture.units[unitIdx+1].rawExercises[0]
+            else
+              if exSet.lectures.length > lectureIdx+1
+                next = exSet.lectures[lectureIdx+1].units[0].rawExercises[0]
+          return {
+            lecture
+            unit
+            next
+            exerciseSet : exSet
+          }
+        
+      
+

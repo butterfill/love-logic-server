@@ -4,7 +4,8 @@ font_size = 19pt
 background_color = white
 text_color = black
 
-
+.monospace
+  font-family monospace
 
 /**
  * huge-glow classes
@@ -18,6 +19,8 @@ make-huge-glow(class-name, size)
     -moz-text-shadow: 0 0 (size/2) text_color, 0 0 (size/4) text_color, 1px 1px 2px text_color, 1px -1px 2px text_color, -1px 1px 2px text_color, -1px -1px 2px text_color
 
 make-huge-glow('.huge-glow', 90pt)
+make-huge-glow('.huge-glow-20', 20pt)
+make-huge-glow('.huge-glow-30', 30pt)
 make-huge-glow('.huge-glow-40', 40pt)
 make-huge-glow('.huge-glow-50', 50pt)
 make-huge-glow('.huge-glow-60', 60pt)

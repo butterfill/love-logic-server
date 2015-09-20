@@ -1,8 +1,39 @@
-# TODO: configure so that work in progress is saved.
-Session.setDefault 'proofText', ''
+# Work in progress will be saved in the session and in WorkInProgress.
+# (Should we only save it in the session?  And could make session persistent?)
+# Note: the session is used in two ways: the key `codeMirrorContent` contains 
+# the current values of the editor (and is constantly updated by the CodeMirror component);
+# the key that is the value of `ix.getExerciseId()` contains the student’s current answer.
+# TODO: move saving work in progress to the codemirror template.
+if ix.getExerciseId()
+  Session.setDefault(ix.getExerciseId(), '')
 
-editor = undefined  #This will be our codemirror thing.
+# We will store the editor here.
+# TODO: this is not initialised on first page load!
+# (Will be fine once logic is moved to the template?)
+editorObj = {}
 
+# -------------
+# Subscriptions and setup the editor
+
+
+
+
+Template.proof_ex.onCreated () ->
+  self = this
+  self.autorun () ->
+    # We need this to ensure the CodeMirror thing gets updated.
+    FlowRouter.watchPathChange()
+    
+    courseName = FlowRouter.getQueryParam 'courseName'
+    variant = FlowRouter.getQueryParam 'variant'
+    self.subscribe 'exercise_set', courseName, variant
+    exerciseId = ix.getExerciseId()
+    self.subscribe 'submitted_exercise', exerciseId
+    self.subscribe 'work_in_progress', exerciseId, ()  ->
+      Session.set("codeMirrorContent", getEditorInitialText())
+      Meteor.defer () ->
+        if editorObj.editor? and not editorObj.initDone
+          initCodemirrorEditor()
 
 # -------------
 # Template helpers
@@ -12,8 +43,8 @@ editor = undefined  #This will be our codemirror thing.
 # sentences cannot be parsed.
 # Return a list of awFOL objects.
 getPremisesFromParams = () ->
-  params = ix.getParams()
-  txtList = decodeURIComponent(params._premises).split('|')
+  _premises = FlowRouter.getParam('_premises')
+  txtList = decodeURIComponent(_premises).split('|')
   try
     folList = (fol.parse(t) for t in txtList)
   catch e
@@ -24,9 +55,9 @@ getPremisesFromParams = () ->
 # Extract the conclusion from the URL.
 # Return it as an awFOL object.
 getConclusionFromParams = () ->
-  params = ix.getParams()
+  _conclusion = FlowRouter.getParam('_conclusion')
   try
-    e = fol.parse(decodeURIComponent(params._conclusion))
+    e = fol.parse(decodeURIComponent(_conclusion))
   catch error
     return "Sorry, there is an error with the URL you gave (#{error})."
   return e
@@ -38,15 +69,64 @@ getProofFromParams = () ->
   return "| #{premiseTxt}\n|---\n| \n| \n| #{conclusionTxt}"  
   
 
+
+
+initCodemirrorEditor = () ->
+  editor = editorObj.editor
+  return unless editor
+
+  editor.on("keyHandled", (instance, name, event) ->
+    if name in ['Up']
+      lineNumber = getCurrentLineNumberInEditor(editor) 
+      ix.saveWorkInProgress(editor.getValue())
+      checkLines(lineNumber, lineNumber+1, editor)
+    if name in ['Down','Enter']
+      lineNumber = getCurrentLineNumberInEditor(editor) 
+      ix.saveWorkInProgress(editor.getValue())
+      checkLines(lineNumber, lineNumber-1, editor)
+  )
+  editorObj.initDone = true
+
+getEditorInitialText = () ->
+  proofFromParams = getProofFromParams()
+  proofText  =  Session.get(ix.getExerciseId())
+  if proofText and proofText.trim() isnt ''
+    console.log "proof from session"
+    return proofText
+  else
+    wip = ix.getWorkInProgress()
+    if wip?.text?
+      console.log "proof from wip"
+      return wip.text
+    else
+      console.log "proof from `getProofFromParams()`"
+      return proofFromParams
+
 Template.proof_ex.helpers
   conclusion : () ->
     return getConclusionFromParams().toString({replaceSymbols:true})
   premises : () -> 
     folList = getPremisesFromParams()
     return (e.toString({replaceSymbols:true}) for e in folList)
-  textareaText : () ->
-    return getProofFromParams()
-  
+  hasPremises : () -> 
+    return getPremisesFromParams()?.length > 0
+
+  # Helpers for the CodeMirror editor
+  editorOptions : () ->
+    return {
+      theme : 'blackboard'
+      smartIndent : true
+      tabSize : 2
+      lineNumbers : true
+      autofocus : true
+      matchBrackets : true
+      gutters : ["error-light"]
+    }
+  # This is a crude hack so we can update the editor object
+  # from this template (TODO: )
+  getEditorObj : () ->
+    return editorObj
+    
   # Helpers that are common to several templates
   isSubmitted : () ->
     return ix.isSubmitted()
@@ -57,6 +137,34 @@ Template.proof_ex.helpers
   machineFeedback : () ->
     return ix.getSubmission().machineFeedback.comment
     
+  # Helpers relating to ExerciseSets that are common to several templates
+  courseName : () ->
+    ctx = ix.getExerciseContext()
+    return '' unless ctx
+    return ctx.exerciseSet.courseName
+  variant : () ->
+    ctx = ix.getExerciseContext()
+    return '' unless ctx
+    return ctx.exerciseSet.variant
+  unitTitle : () ->
+    ctx = ix.getExerciseContext()
+    return '' unless ctx
+    return ctx.unit.name
+  slidesForThisUnit : () ->
+    ctx = ix.getExerciseContext()
+    return '' unless ctx
+    return ctx.unit.slides
+  readingForThisUnit : () ->
+    ctx = ix.getExerciseContext()
+    return '' unless ctx
+    return "Sections §#{ctx.unit.rawReading.join(', §')} of Language, Proof and Logic"
+  isNextExercise : () ->
+    ctx = ix.getExerciseContext()
+    return ctx?.next?
+    
+
+    
+    
     
       
 # -------------
@@ -64,7 +172,7 @@ Template.proof_ex.helpers
 
 # Extract the proof from the editor and parse it.
 getProof = () ->
-  proofText = editor.getValue()
+  proofText = getEditorText()
   theProof = proof.parse(proofText)
   return theProof
 
@@ -74,14 +182,14 @@ giveFeedback = (message) ->
 giveMoreFeedback = (message) ->
   $('#feedback').text("#{$('#feedback').text()}  #{message}")
 
-getCurrentLineNumberInEditor = () ->
+getCurrentLineNumberInEditor = (editor) ->
   {line, ch} = editor.getCursor()
   lineNumber = line+1
   return lineNumber
 
-checkLines = (currentLineNumber, prevLineNumber) ->
+checkLines = (currentLineNumber, prevLineNumber, editor) ->
   # Save the proof in the session.
-  Session.set 'proofText', editor.getValue()
+  Session.set(ix.getExerciseId(), getEditorText())
   theProof = getProof()
   # Are there errors in parsing the proof?
   if _.isString(theProof)
@@ -92,11 +200,13 @@ checkLines = (currentLineNumber, prevLineNumber) ->
   giveFeedback "Line #{currentLineNumber}: #{("no errors found" if lineIsCorrect) or "not correct"}.  #{aLine.status.getMessage()}"
   prevLine = theProof.getLine(prevLineNumber)
   prevLineIsCorrect = prevLine.verify()
-  addMarker(prevLineNumber, 'chartreuse') if prevLineIsCorrect
-  addMarker(prevLineNumber, '#FF3300') if not prevLineIsCorrect
+  addMarker(prevLineNumber, 'chartreuse', editor) if prevLineIsCorrect
+  addMarker(prevLineNumber, '#FF3300', editor) if not prevLineIsCorrect
 
 # Make a dot to show whether a line of the proof is correct.
-addMarker = (lineNumber, color = "#822") ->
+addMarker = (lineNumber, color = "#822", editor) ->
+  if not editor?
+    editor = editorObj.editor
   marker = document.createElement("div")
   marker.style.color = color
   marker.style.marginLeft = '15px'
@@ -104,39 +214,15 @@ addMarker = (lineNumber, color = "#822") ->
   # `-1` because `.setGutterMarker` expects 0-based line numbers
   editor.setGutterMarker(lineNumber-1, "error-light", marker)
 
+setEditorText = (text) ->
+  Session.set("codeMirrorContent", text)
 
+getEditorText = () ->
+  return Session.get("codeMirrorContent")
+  
 Template.proof_ex.onRendered () ->
   # configure the modal (uses http://materializecss.com/modals.html)
   $("#reset").leanModal()
-  # Configure the editor
-  editor = CodeMirror.fromTextArea($('#editor')[0], {
-    theme : 'blackboard'
-    smartIndent : true
-    tabSize : 2
-    lineNumbers : true
-    autofocus : true
-    matchBrackets : true
-    gutters : ["error-light"]
-  })
-  proofText  =  Session.get 'proofText'
-  if proofText and proofText isnt ''
-    editor.setValue(proofText)
-  wip = ix.getWorkInProgress()
-  if wip?.text?
-    console.log "got wip"
-    editor.setValue(wip.text)
-
-  editor.on("keyHandled", (instance, name, event) ->
-    if name in ['Up']
-      lineNumber = getCurrentLineNumberInEditor() 
-      ix.saveWorkInProgress(editor.getValue())
-      checkLines(lineNumber, lineNumber+1)
-    if name in ['Down','Enter']
-      lineNumber = getCurrentLineNumberInEditor() 
-      ix.saveWorkInProgress(editor.getValue())
-      checkLines(lineNumber, lineNumber-1)
-  )
-
 
 Template.proof_ex.events
   'click button#checkProof' : (event, template) ->
@@ -145,7 +231,7 @@ Template.proof_ex.events
     giveFeedback "Is your proof correct? #{result}!"
     
     # Add the red/green dots to the proof
-    for lineNumber in [1..editor.getValue().split('\n').length]
+    for lineNumber in [1..getEditorText().split('\n').length]
       line = theProof.getLine(lineNumber)
       lineIsCorrect = line.verify()
       addMarker(lineNumber, 'chartreuse') if lineIsCorrect
@@ -173,21 +259,33 @@ Template.proof_ex.events
       isCorrect : result
       comment : "Your submitted proof is #{('not' if result isnt true) or ''} correct."
     }
-    ix.submitExercise(
-      answer : 
-        type : 'proof'
-        content : editor.getValue()
-      machineFeedback : machineFeedback
+    ix.submitExercise({
+        answer : 
+          type : 'proof'
+          content : getEditorText()
+        machineFeedback : machineFeedback
+      }, () ->
+        giveFeedback "Your proof has been submitted."
+        Materialize.toast "Your proof has been submitted.", 4000
     )
-    giveFeedback "Your proof has been submitted."
-    Materialize.toast "Your proof has been submitted.", 4000
 
   'click #view-answer' : (event, template) ->
     submission = ix.getSubmission()
-    editor.setValue(submission.answer.content)
+    setEditorText(submission.answer.content)
   
   'click #reset-confirm' : (event, template) ->
-    editor.setValue( getProofFromParams() )
+    setEditorText( getProofFromParams() )
+  
+  'click .next-exercise' : (event, template) ->
+    ctx = ix.getExerciseContext()
+    return unless ctx?.next?
+    qs = ix.queryString()
+    if qs
+      queryString = "?#{qs}"
+    else
+      queryString = ""
+    FlowRouter.go("#{ctx.next}#{queryString}")
+    
     
 
 

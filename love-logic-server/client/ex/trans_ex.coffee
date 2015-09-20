@@ -5,14 +5,28 @@ Session.setDefault 'answer', ''
 
 editor = undefined  #This will be our codemirror thing.
 
+# This will be configured `.onRender`
 isTranslationToEn = false
 
-# -------------
-# Template helpers
+
+# ========
+# Template: trans_ex_question
+# (This is a fragment that is used both for students and graders)
+
+Template.trans_ex_question.helpers
+  isTranslationToEn : () ->
+    return checkIfTranslationToEn()
+  predicates : () -> getPredicatesFromParams()
+  sentence : () -> 
+    if checkIfTranslationToEn()
+      return fol.parse(decodeURIComponent(FlowRouter.getParam('_sentence'))).toString({replaceSymbols:true})
+    return "#{decodeURIComponent(FlowRouter.getParam('_sentence'))}."
+  domain : () -> getDomainFromParams()
+  names : () -> decodeURIComponent(FlowRouter.getParam('_names')).replace(/\=/g,' : ').split('|')
 
 
 checkIfTranslationToEn = () ->
-  sentence = ix.getParams()._sentence
+  sentence = decodeURIComponent(FlowRouter.getParam('_sentence'))
   try
     fol.parse sentence
     # If we can parse the sentence given, it is an awFOL sentence to be 
@@ -47,12 +61,12 @@ extractPredicteFromParam = (rawPredicate) ->
   return {name, arity, description}
 
 getPredicatesFromParams = () ->
-  raw = ix.getParams()._predicates.split('|')
+  raw = decodeURIComponent(FlowRouter.getParam('_predicates')).split('|')
   predicates = (extractPredicteFromParam(p) for p in raw)
   return predicates
 
 getDomainFromParams = () ->
-  parts = ix.getParams()._domain.split('|')
+  parts = decodeURIComponent(FlowRouter.getParam('_domain')).split('|')
   if parts.length > 1
     return parts
   raw = parts[0]
@@ -61,20 +75,27 @@ getDomainFromParams = () ->
     return [raw]
   [_ignore, number, type, _plural] = checkFormat
   return ("#{type}-#{i}" for i in [1..number])
+
+
+
+
+# ========
+# Template: trans_ex
+
+
+Template.trans_ex.onCreated () ->
+  self = this
+  self.autorun () ->
+    exerciseId = ix.getExerciseId()
+    self.subscribe 'submitted_exercise', exerciseId
+
+
+
+# -------------
+# Template helpers
+
   
 Template.trans_ex.helpers
-  exTitle : () -> 
-    if checkIfTranslationToEn()
-      return "Translate awFOL to English"
-    return "Translate English to awFOL"
-  predicates : () -> getPredicatesFromParams()
-  sentence : () -> 
-    if checkIfTranslationToEn()
-      return fol.parse(ix.getParams()._sentence).toString({replaceSymbols:true})
-    return "#{ix.getParams()._sentence}."
-  domain : () -> getDomainFromParams()
-  names : () -> ix.getParams()._names.replace(/\=/g,' : ').split('|')
-
   # Helpers that are common to several templates
   isSubmitted : () ->
     return ix.isSubmitted()
@@ -95,19 +116,31 @@ giveFeedback = (message) ->
 giveMoreFeedback = (message) ->
   $('#feedback').text("#{$('#feedback').text()}  #{message}")
 
+isAnswerFOLsentence = () ->
+  rawAnswer = editor.getValue()
+  try 
+    answer = fol.parse( rawAnswer.replace(/\n/g,' ') )
+    return true
+  catch error
+    return false
+
+getAnswerAsFOLsentence = () ->
+  rawAnswer = editor.getValue()
+  try 
+    answer = fol.parse( rawAnswer.replace(/\n/g,' ') )
+    return answer
+  catch error
+    return undefined
+
 checkAnswer = () ->
   # Save the answer in the session.
   rawAnswer = editor.getValue()
   Session.set 'answer', rawAnswer
   if not isTranslationToEn
-    try 
-      answer = fol.parse( rawAnswer.replace(/\n/g,' ') )
-    catch error
+    if not isAnswerFOLsentence()
       giveFeedback "Your answer is not a correct sentence of awFOL. (#{error})"
-      return
-    giveFeedback ""
-  
-  
+  return undefined
+
 
 
 Template.trans_ex.onRendered () ->
@@ -129,3 +162,85 @@ Template.trans_ex.onRendered () ->
     if name in ['Down','Up','Enter']
       checkAnswer()
 
+
+
+Template.trans_ex.events 
+  'click button#submit' : (event, template) ->
+    answer = editor.getValue()
+    isFOLsentence = isAnswerFOLsentence()
+    answerFOL = undefined
+    answerPNFSimplifiedSorted = undefined
+    machineFeedback = {
+      isFOLsentence : isFOLsentence
+    }
+    if machineFeedback.isFOLsentence
+      answerFOLobject = getAnswerAsFOLsentence()
+      answerPNFsimplifiedSorted = answerFOLobject.convertToPNFsimplifyAndSort().toString({replaceSymbols:true})
+      answerFOL = answerFOLobject.toString({replaceSymbols:true})
+      machineFeedback.comment = "Your answer is a sentence of awFOL. I couldn’t tell whether it is correct."
+    else
+      machineFeedback.comment = "Your answer is incorrect because it is not a sentence of awFOL."
+    ix.submitExercise({
+        answer : 
+          type : 'trans'
+          content : editor.getValue()
+          answerFOL : answerFOL
+          answerPNFsimplifiedSorted : answerPNFsimplifiedSorted
+        machineFeedback : machineFeedback
+      }, () ->
+        giveFeedback "Your translation has been submitted."
+        Materialize.toast "Your translation has been submitted.", 4000
+    )
+
+  'click #view-answer' : (event, template) ->
+    submission = ix.getSubmission()
+    editor.setValue(submission.answer.content)
+
+  'click #convert-to-symbols' : (event, template) ->
+    answer = editor.getValue()
+    try
+      answerFOL = fol.parse( answer.replace(/\n/g,' ') )
+    catch error
+      giveFeedback "Your answer is not a correct sentence of awFOL. (#{error})"
+      return
+    giveFeedback ""
+    editor.setValue( answerFOL.toString({replaceSymbols:true}) )
+  
+  'click .next-exercise' : (event, template) ->
+    ctx = ix.getExerciseContext()
+    return unless ctx?.next?
+    qs = ix.queryString()
+    if qs
+      queryString = "?#{qs}"
+    else
+      queryString = ""
+    Router.go("#{ctx.next}#{queryString}")
+
+
+
+# =====================
+# Template; trans_ex_grade
+
+
+Template.trans_ex_grade.onCreated () ->
+  self = this
+  self.autorun () ->
+    exerciseId = ix.getExerciseId()
+    self.subscribe 'submitted_answers', exerciseId
+    self.subscribe 'courses'
+
+  
+Template.trans_ex_grade.helpers
+  isAnswers : () ->
+    return SubmittedExercises.find().count() >0
+  
+  answers : () ->
+    return SubmittedExercises.find()
+
+
+Template.trans_ex_grade.events
+  "blur .human-comment" : (event, template) ->
+    console.log this #template.currentData().answer.answerFOL
+    console.log "blur"
+
+    

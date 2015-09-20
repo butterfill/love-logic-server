@@ -1,7 +1,3 @@
-Meteor.publish "submitted_exercises", () ->
-  # return SubmittedExercises.find()
-  return SubmittedExercises.find({ owner: this.userId })
-
 Meteor.publish "courses", () ->
   # return SubmittedExercises.find()
   return Courses.find()
@@ -18,5 +14,23 @@ Meteor.publish "exercise_set", (courseName, variant) ->
   # return SubmittedExercises.find()
   return ExerciseSets.find({courseName, variant})
 
-Meteor.publish "work_in_progress", () ->
-  return WorkInProgress.find({ owner: this.userId })
+Meteor.publish "subscriptions", ->
+  return Subscriptions.find({ owner:@userId })
+
+Meteor.publish "work_in_progress", (exerciseId) ->
+  return WorkInProgress.find({ $and:[{owner:@userId},{exerciseId:exerciseId}] })
+
+Meteor.publish "submitted_exercises", () ->
+  # if(Meteor.isServer)
+  #   Meteor._sleepForMs(10000)
+  return SubmittedExercises.find({ owner:@userId })
+
+Meteor.publish "submitted_exercise", (exerciseId) ->
+  # if(Meteor.isServer)
+  #   Meteor._sleepForMs(10000)
+  return SubmittedExercises.find({ $and:[{owner:@userId},{exerciseId:exerciseId}] })
+
+Meteor.publish "submitted_answers", (exerciseId) ->
+  #TODO restrict to TA’s own students
+  return SubmittedExercises.find({exerciseId:exerciseId})
+  

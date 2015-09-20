@@ -1,56 +1,83 @@
 template(name='proof_ex')
-  .section: .container
-    h2 Write a proof
-    .row
-      .col.s6
-        h4 premises (#{premises.length}) 
+  if variant
+    p Topic:
+      em #{unitTitle}
+      span --- #{variant} exercises for #{courseName}
+  h2 Write a proof
+  
+  .row
+    .col.s6
+      h4 premises (#{premises.length}) 
+      if hasPremises
         ul.collection
           each premises
             li.collection-item #{this}
-      .col.s6
-        h4 conclusion
+      else
         ul.collection
-          li.collection-item #{conclusion}
-    
-    textarea#editor #{textareaText}
+          li.collection-item [No premises]
       
-    if isSubmitted
-      p.right You submitted an answer #{dateSubmitted}.
-        span [
-        a(href='')#view-answer view answer
-        span ]
-        if isMachineFeedback
-          span  Machine says: #{machineFeedback}
-        //- if isTutorFeedback
-        //-   span  #{tutorName} says: #{tutorFeedback}
-
-    p#feedback .
-      i.material-icons error_outline
+    .col.s6
+      h4 conclusion
+      ul.collection
+        li.collection-item #{conclusion}
+  
+  if Template.subscriptionsReady 
+    | {{> CodeMirror id="editor"  name="editor" options=editorOptions editorCode=editorContent reactiveVar="codeMirrorContent" getEditorObj=getEditorObj}}
+  else
+    p loading ...
     
+  .row
+    .col.s6
+      p#feedback .
+        i.material-icons error_outline
+  
+    if Template.subscriptionsReady
+      .col.s6
+        if isSubmitted
+          p.right You submitted an answer #{dateSubmitted}.
+            span [
+            a#view-answer.waves-effect load answer
+            span ]
+            if isMachineFeedback
+              span  Machine says: #{machineFeedback}
+            //- if isTutorFeedback
+            //-   span  #{tutorName} says: #{tutorFeedback}
 
-    .left
-      button#reset.btn.modal-trigger.waves-effect.grey(data-target="reset_modal") reset
-      #reset_modal.modal
-        .modal-content
-          h4 Reset your work on this proof?
-          p You really want to start again?
-        .modal-footer
-          a(href="")#reset-confirm.modal-action.modal-close.waves-effect.waves-grey.btn-flat yes, reset
-          a(href="").reset-abort.modal-action.modal-close.waves-effect.waves-grey.btn-flat no!
-          
-      
-    .right
-      button#checkProof.btn.waves-effect.grey check all
-      button#requestHelp.btn.waves-effect.grey request help
-       i.material-icons.right live_help
+  .help
+    if slidesForThisUnit
+      h4 Help with this exercise
+      p 
+        span Review the 
+        a(href="#{slidesForThisUnit}", target="_blank") lecture slides
+        if readingForThisUnit
+          span  and read #{readingForThisUnit}
+        span .
+  
+
+  .left
+    button#reset.btn.modal-trigger.waves-effect.grey(data-target="reset_modal") reset
+    #reset_modal.modal
+      .modal-content
+        h4 Reset your work on this proof?
+        p You really want to start again?
+      .modal-footer
+        a(href="")#reset-confirm.modal-action.modal-close.waves-effect.waves-grey.btn-flat yes, reset
+        a(href="").reset-abort.modal-action.modal-close.waves-effect.waves-grey.btn-flat no!
+        
+  
+  .right
+    button#checkProof.btn.waves-effect.grey check all
+    button#request-help.btn.waves-effect.grey request help
+     i.material-icons.right live_help
+    if Template.subscriptionsReady
       if isSubmitted
         button#submit.btn.waves-effect.grey(type='submit', disabled='true') submit
       else
         button#submit.btn.waves-effect.grey(type='submit') submit
          i.material-icons.right send
-    
-    
-    .center
-      img(src='/images/down.png')
-      p.huge-glow-40(style='margin-top:-3em')
-        a(style='color:white').next-exercise next exercise
+  
+  if Template.subscriptionsReady
+    if isNextExercise
+      .right
+        p.huge-glow-20
+          p.next-exercise.btn-flat.waves-effect(style="color:white;") next exercise >

@@ -1,31 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
 },{}],2:[function(require,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-},{}],3:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -253,7 +228,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":4}],4:[function(require,module,exports){
+},{"_process":3}],3:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -346,604 +321,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],5:[function(require,module,exports){
-module.exports = function isBuffer(arg) {
-  return arg && typeof arg === 'object'
-    && typeof arg.copy === 'function'
-    && typeof arg.fill === 'function'
-    && typeof arg.readUInt8 === 'function';
-}
-},{}],6:[function(require,module,exports){
-(function (process,global){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var formatRegExp = /%[sdj%]/g;
-exports.format = function(f) {
-  if (!isString(f)) {
-    var objects = [];
-    for (var i = 0; i < arguments.length; i++) {
-      objects.push(inspect(arguments[i]));
-    }
-    return objects.join(' ');
-  }
-
-  var i = 1;
-  var args = arguments;
-  var len = args.length;
-  var str = String(f).replace(formatRegExp, function(x) {
-    if (x === '%%') return '%';
-    if (i >= len) return x;
-    switch (x) {
-      case '%s': return String(args[i++]);
-      case '%d': return Number(args[i++]);
-      case '%j':
-        try {
-          return JSON.stringify(args[i++]);
-        } catch (_) {
-          return '[Circular]';
-        }
-      default:
-        return x;
-    }
-  });
-  for (var x = args[i]; i < len; x = args[++i]) {
-    if (isNull(x) || !isObject(x)) {
-      str += ' ' + x;
-    } else {
-      str += ' ' + inspect(x);
-    }
-  }
-  return str;
-};
-
-
-// Mark that a method should not be used.
-// Returns a modified function which warns once by default.
-// If --no-deprecation is set, then it is a no-op.
-exports.deprecate = function(fn, msg) {
-  // Allow for deprecating things in the process of starting up.
-  if (isUndefined(global.process)) {
-    return function() {
-      return exports.deprecate(fn, msg).apply(this, arguments);
-    };
-  }
-
-  if (process.noDeprecation === true) {
-    return fn;
-  }
-
-  var warned = false;
-  function deprecated() {
-    if (!warned) {
-      if (process.throwDeprecation) {
-        throw new Error(msg);
-      } else if (process.traceDeprecation) {
-        console.trace(msg);
-      } else {
-        console.error(msg);
-      }
-      warned = true;
-    }
-    return fn.apply(this, arguments);
-  }
-
-  return deprecated;
-};
-
-
-var debugs = {};
-var debugEnviron;
-exports.debuglog = function(set) {
-  if (isUndefined(debugEnviron))
-    debugEnviron = process.env.NODE_DEBUG || '';
-  set = set.toUpperCase();
-  if (!debugs[set]) {
-    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-      var pid = process.pid;
-      debugs[set] = function() {
-        var msg = exports.format.apply(exports, arguments);
-        console.error('%s %d: %s', set, pid, msg);
-      };
-    } else {
-      debugs[set] = function() {};
-    }
-  }
-  return debugs[set];
-};
-
-
-/**
- * Echos the value of a value. Trys to print the value out
- * in the best way possible given the different types.
- *
- * @param {Object} obj The object to print out.
- * @param {Object} opts Optional options object that alters the output.
- */
-/* legacy: obj, showHidden, depth, colors*/
-function inspect(obj, opts) {
-  // default options
-  var ctx = {
-    seen: [],
-    stylize: stylizeNoColor
-  };
-  // legacy...
-  if (arguments.length >= 3) ctx.depth = arguments[2];
-  if (arguments.length >= 4) ctx.colors = arguments[3];
-  if (isBoolean(opts)) {
-    // legacy...
-    ctx.showHidden = opts;
-  } else if (opts) {
-    // got an "options" object
-    exports._extend(ctx, opts);
-  }
-  // set default options
-  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-  if (isUndefined(ctx.depth)) ctx.depth = 2;
-  if (isUndefined(ctx.colors)) ctx.colors = false;
-  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-  if (ctx.colors) ctx.stylize = stylizeWithColor;
-  return formatValue(ctx, obj, ctx.depth);
-}
-exports.inspect = inspect;
-
-
-// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-inspect.colors = {
-  'bold' : [1, 22],
-  'italic' : [3, 23],
-  'underline' : [4, 24],
-  'inverse' : [7, 27],
-  'white' : [37, 39],
-  'grey' : [90, 39],
-  'black' : [30, 39],
-  'blue' : [34, 39],
-  'cyan' : [36, 39],
-  'green' : [32, 39],
-  'magenta' : [35, 39],
-  'red' : [31, 39],
-  'yellow' : [33, 39]
-};
-
-// Don't use 'blue' not visible on cmd.exe
-inspect.styles = {
-  'special': 'cyan',
-  'number': 'yellow',
-  'boolean': 'yellow',
-  'undefined': 'grey',
-  'null': 'bold',
-  'string': 'green',
-  'date': 'magenta',
-  // "name": intentionally not styling
-  'regexp': 'red'
-};
-
-
-function stylizeWithColor(str, styleType) {
-  var style = inspect.styles[styleType];
-
-  if (style) {
-    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
-           '\u001b[' + inspect.colors[style][1] + 'm';
-  } else {
-    return str;
-  }
-}
-
-
-function stylizeNoColor(str, styleType) {
-  return str;
-}
-
-
-function arrayToHash(array) {
-  var hash = {};
-
-  array.forEach(function(val, idx) {
-    hash[val] = true;
-  });
-
-  return hash;
-}
-
-
-function formatValue(ctx, value, recurseTimes) {
-  // Provide a hook for user-specified inspect functions.
-  // Check that value is an object with an inspect function on it
-  if (ctx.customInspect &&
-      value &&
-      isFunction(value.inspect) &&
-      // Filter out the util module, it's inspect function is special
-      value.inspect !== exports.inspect &&
-      // Also filter out any prototype objects using the circular check.
-      !(value.constructor && value.constructor.prototype === value)) {
-    var ret = value.inspect(recurseTimes, ctx);
-    if (!isString(ret)) {
-      ret = formatValue(ctx, ret, recurseTimes);
-    }
-    return ret;
-  }
-
-  // Primitive types cannot have properties
-  var primitive = formatPrimitive(ctx, value);
-  if (primitive) {
-    return primitive;
-  }
-
-  // Look up the keys of the object.
-  var keys = Object.keys(value);
-  var visibleKeys = arrayToHash(keys);
-
-  if (ctx.showHidden) {
-    keys = Object.getOwnPropertyNames(value);
-  }
-
-  // IE doesn't make error fields non-enumerable
-  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-  if (isError(value)
-      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-    return formatError(value);
-  }
-
-  // Some type of object without properties can be shortcutted.
-  if (keys.length === 0) {
-    if (isFunction(value)) {
-      var name = value.name ? ': ' + value.name : '';
-      return ctx.stylize('[Function' + name + ']', 'special');
-    }
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    }
-    if (isDate(value)) {
-      return ctx.stylize(Date.prototype.toString.call(value), 'date');
-    }
-    if (isError(value)) {
-      return formatError(value);
-    }
-  }
-
-  var base = '', array = false, braces = ['{', '}'];
-
-  // Make Array say that they are Array
-  if (isArray(value)) {
-    array = true;
-    braces = ['[', ']'];
-  }
-
-  // Make functions say that they are functions
-  if (isFunction(value)) {
-    var n = value.name ? ': ' + value.name : '';
-    base = ' [Function' + n + ']';
-  }
-
-  // Make RegExps say that they are RegExps
-  if (isRegExp(value)) {
-    base = ' ' + RegExp.prototype.toString.call(value);
-  }
-
-  // Make dates with properties first say the date
-  if (isDate(value)) {
-    base = ' ' + Date.prototype.toUTCString.call(value);
-  }
-
-  // Make error with message first say the error
-  if (isError(value)) {
-    base = ' ' + formatError(value);
-  }
-
-  if (keys.length === 0 && (!array || value.length == 0)) {
-    return braces[0] + base + braces[1];
-  }
-
-  if (recurseTimes < 0) {
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    } else {
-      return ctx.stylize('[Object]', 'special');
-    }
-  }
-
-  ctx.seen.push(value);
-
-  var output;
-  if (array) {
-    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-  } else {
-    output = keys.map(function(key) {
-      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-    });
-  }
-
-  ctx.seen.pop();
-
-  return reduceToSingleString(output, base, braces);
-}
-
-
-function formatPrimitive(ctx, value) {
-  if (isUndefined(value))
-    return ctx.stylize('undefined', 'undefined');
-  if (isString(value)) {
-    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-                                             .replace(/'/g, "\\'")
-                                             .replace(/\\"/g, '"') + '\'';
-    return ctx.stylize(simple, 'string');
-  }
-  if (isNumber(value))
-    return ctx.stylize('' + value, 'number');
-  if (isBoolean(value))
-    return ctx.stylize('' + value, 'boolean');
-  // For some reason typeof null is "object", so special case here.
-  if (isNull(value))
-    return ctx.stylize('null', 'null');
-}
-
-
-function formatError(value) {
-  return '[' + Error.prototype.toString.call(value) + ']';
-}
-
-
-function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  for (var i = 0, l = value.length; i < l; ++i) {
-    if (hasOwnProperty(value, String(i))) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          String(i), true));
-    } else {
-      output.push('');
-    }
-  }
-  keys.forEach(function(key) {
-    if (!key.match(/^\d+$/)) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          key, true));
-    }
-  });
-  return output;
-}
-
-
-function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-  var name, str, desc;
-  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-  if (desc.get) {
-    if (desc.set) {
-      str = ctx.stylize('[Getter/Setter]', 'special');
-    } else {
-      str = ctx.stylize('[Getter]', 'special');
-    }
-  } else {
-    if (desc.set) {
-      str = ctx.stylize('[Setter]', 'special');
-    }
-  }
-  if (!hasOwnProperty(visibleKeys, key)) {
-    name = '[' + key + ']';
-  }
-  if (!str) {
-    if (ctx.seen.indexOf(desc.value) < 0) {
-      if (isNull(recurseTimes)) {
-        str = formatValue(ctx, desc.value, null);
-      } else {
-        str = formatValue(ctx, desc.value, recurseTimes - 1);
-      }
-      if (str.indexOf('\n') > -1) {
-        if (array) {
-          str = str.split('\n').map(function(line) {
-            return '  ' + line;
-          }).join('\n').substr(2);
-        } else {
-          str = '\n' + str.split('\n').map(function(line) {
-            return '   ' + line;
-          }).join('\n');
-        }
-      }
-    } else {
-      str = ctx.stylize('[Circular]', 'special');
-    }
-  }
-  if (isUndefined(name)) {
-    if (array && key.match(/^\d+$/)) {
-      return str;
-    }
-    name = JSON.stringify('' + key);
-    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-      name = name.substr(1, name.length - 2);
-      name = ctx.stylize(name, 'name');
-    } else {
-      name = name.replace(/'/g, "\\'")
-                 .replace(/\\"/g, '"')
-                 .replace(/(^"|"$)/g, "'");
-      name = ctx.stylize(name, 'string');
-    }
-  }
-
-  return name + ': ' + str;
-}
-
-
-function reduceToSingleString(output, base, braces) {
-  var numLinesEst = 0;
-  var length = output.reduce(function(prev, cur) {
-    numLinesEst++;
-    if (cur.indexOf('\n') >= 0) numLinesEst++;
-    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-  }, 0);
-
-  if (length > 60) {
-    return braces[0] +
-           (base === '' ? '' : base + '\n ') +
-           ' ' +
-           output.join(',\n  ') +
-           ' ' +
-           braces[1];
-  }
-
-  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
-}
-
-
-// NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-function isArray(ar) {
-  return Array.isArray(ar);
-}
-exports.isArray = isArray;
-
-function isBoolean(arg) {
-  return typeof arg === 'boolean';
-}
-exports.isBoolean = isBoolean;
-
-function isNull(arg) {
-  return arg === null;
-}
-exports.isNull = isNull;
-
-function isNullOrUndefined(arg) {
-  return arg == null;
-}
-exports.isNullOrUndefined = isNullOrUndefined;
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-exports.isNumber = isNumber;
-
-function isString(arg) {
-  return typeof arg === 'string';
-}
-exports.isString = isString;
-
-function isSymbol(arg) {
-  return typeof arg === 'symbol';
-}
-exports.isSymbol = isSymbol;
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-exports.isUndefined = isUndefined;
-
-function isRegExp(re) {
-  return isObject(re) && objectToString(re) === '[object RegExp]';
-}
-exports.isRegExp = isRegExp;
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-exports.isObject = isObject;
-
-function isDate(d) {
-  return isObject(d) && objectToString(d) === '[object Date]';
-}
-exports.isDate = isDate;
-
-function isError(e) {
-  return isObject(e) &&
-      (objectToString(e) === '[object Error]' || e instanceof Error);
-}
-exports.isError = isError;
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-exports.isFunction = isFunction;
-
-function isPrimitive(arg) {
-  return arg === null ||
-         typeof arg === 'boolean' ||
-         typeof arg === 'number' ||
-         typeof arg === 'string' ||
-         typeof arg === 'symbol' ||  // ES6 symbol
-         typeof arg === 'undefined';
-}
-exports.isPrimitive = isPrimitive;
-
-exports.isBuffer = require('./support/isBuffer');
-
-function objectToString(o) {
-  return Object.prototype.toString.call(o);
-}
-
-
-function pad(n) {
-  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-}
-
-
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-              'Oct', 'Nov', 'Dec'];
-
-// 26 Feb 16:19:34
-function timestamp() {
-  var d = new Date();
-  var time = [pad(d.getHours()),
-              pad(d.getMinutes()),
-              pad(d.getSeconds())].join(':');
-  return [d.getDate(), months[d.getMonth()], time].join(' ');
-}
-
-
-// log is just a thin wrapper to console.log that prepends a timestamp
-exports.log = function() {
-  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-};
-
-
-/**
- * Inherit the prototype methods from one constructor into another.
- *
- * The Function.prototype.inherits from lang.js rewritten as a standalone
- * function (not on Function.prototype). NOTE: If this file is to be loaded
- * during bootstrapping this function needs to be rewritten using some native
- * functions as prototype setup using normal JavaScript does not work as
- * expected during bootstrapping (see mirror.js in r114903).
- *
- * @param {function} ctor Constructor function which needs to inherit the
- *     prototype.
- * @param {function} superCtor Constructor function to inherit prototype from.
- */
-exports.inherits = require('inherits');
-
-exports._extend = function(origin, add) {
-  // Don't do anything if add isn't an object
-  if (!add || !isObject(add)) return origin;
-
-  var keys = Object.keys(add);
-  var i = keys.length;
-  while (i--) {
-    origin[keys[i]] = add[keys[i]];
-  }
-  return origin;
-};
-
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":5,"_process":4,"inherits":2}],7:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 (function (global){
 var fol, proof;
 
@@ -957,8 +335,8 @@ global.proof = proof;
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../fol":8,"../proofs/proof":20}],8:[function(require,module,exports){
-var _, _decorate, awFOL, match, parse, substitute, util;
+},{"../fol":5,"../proofs/proof":18}],5:[function(require,module,exports){
+var _, _decorate, awFOL, match, normalForm, parse, substitute, util;
 
 _ = require('lodash');
 
@@ -969,6 +347,8 @@ util = require('./util');
 match = require('./match');
 
 substitute = require('./substitute');
+
+normalForm = require('./normal_form');
 
 parse = function(text) {
   var e;
@@ -1052,7 +432,7 @@ _decorate = function(expression) {
       e.walk(nameFinder);
       return _names;
     };
-    return e.getSentenceLetters = function() {
+    e.getSentenceLetters = function() {
       var _letters, letterFinder;
       _letters = [];
       letterFinder = function(expression) {
@@ -1065,6 +445,12 @@ _decorate = function(expression) {
       e.walk(letterFinder);
       return _letters.sort();
     };
+    return e.convertToPNFsimplifyAndSort = function() {
+      var newE;
+      newE = normalForm.convertToPNFsimplifyAndSort(expression);
+      _decorate(newE);
+      return newE;
+    };
   };
   util.walk(expression, walker);
   return expression;
@@ -1073,7 +459,7 @@ _decorate = function(expression) {
 exports._decorate = _decorate;
 
 
-},{"./match":9,"./parser/awFOL":11,"./substitute":22,"./util":23,"lodash":10}],9:[function(require,module,exports){
+},{"./match":6,"./normal_form":8,"./parser/awFOL":9,"./substitute":20,"./util":21,"lodash":7}],6:[function(require,module,exports){
 var _, _addSubToEverySentence, _addSubToEveryTerm, _addSubToEveryX, _applyOneSubstitution, _applyOrSkipSubstitutions, _canApplySubAtInnermostPoint, _isTermSub, _moveAllSubsInwards, _pullSub, _removeInefficaciousSubs, _skipOneSubstitution, apply, doAfterApplyingSubstitutions, find, findWithoutApplyingSubs, util,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -1399,7 +785,7 @@ apply = function(pattern, matches, o) {
 exports.apply = apply;
 
 
-},{"./util":23,"lodash":10}],10:[function(require,module,exports){
+},{"./util":21,"lodash":7}],7:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -13754,7 +13140,494 @@ exports.apply = apply;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
+var _, _getVariableOrder, areExpressionsEquivalent, arePNFExpressionsEquivalent, arePrefixedQuantifiersEquivalent, attachExpressionToQuantifiers, convertToPNFsimplifyAndSort, eliminateRedundancyInPNF, getPrefixedQuantifiers, isPNF, isVariableFree, listJuncts, listQuants, match, prenexNormalForm, rebuildExpression, removeQuantifiers, removeQuantifiersThatBindNothing, renameVariables, sortIdentityStatements, sortJuncts, sortListOfJuncts, sortPNFExpression, substitute, util,
+  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+_ = require('lodash');
+
+util = require('./util');
+
+match = require('./match');
+
+substitute = require('./substitute');
+
+prenexNormalForm = function(expression) {
+  var pnf, result;
+  result = util.cloneExpression(expression);
+  result = substitute.doSubRecursive(result, substitute.subsForPNF.replace_arrow);
+  result = substitute.doSubRecursive(result, substitute.subsForPNF.replace_double_arrow);
+  result = renameVariables(result);
+  pnf = function(e) {
+    var name, ref, sub;
+    ref = substitute.subsForPNF;
+    for (name in ref) {
+      sub = ref[name];
+      if (!(name === 'replace_arrow' || name === 'replace_double_arrow')) {
+        e = substitute.doSubRecursive(e, sub);
+      }
+    }
+    return e;
+  };
+  result = util.exhaust(result, pnf);
+  return result;
+};
+
+exports.prenexNormalForm = prenexNormalForm;
+
+isPNF = function(expression) {
+  var conjuncts, core, disjunct, i, j, junct, len, len1, nestedDisjuncts, ref, ref1, someDisjuncts;
+  core = removeQuantifiers(expression);
+  conjuncts = listJuncts(core, 'and');
+  nestedDisjuncts = (function() {
+    var i, len, results;
+    results = [];
+    for (i = 0, len = conjuncts.length; i < len; i++) {
+      junct = conjuncts[i];
+      results.push(listJuncts(junct, 'or'));
+    }
+    return results;
+  })();
+  for (i = 0, len = nestedDisjuncts.length; i < len; i++) {
+    someDisjuncts = nestedDisjuncts[i];
+    for (j = 0, len1 = someDisjuncts.length; j < len1; j++) {
+      disjunct = someDisjuncts[j];
+      if (!((ref = disjunct.type) === 'not' || ref === 'sentence_letter' || ref === 'predicate')) {
+        return false;
+      }
+      if (disjunct.type === 'not') {
+        if ((ref1 = disjunct.left.type) !== 'sentence_letter' && ref1 !== 'predicate') {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+};
+
+exports.isPNF = isPNF;
+
+renameVariables = function(expression, newVariableBaseName) {
+  var _newVarIdx, _newVarNames, _oldVarNames, getReplacementName, newVariableType, ref, setNewReplacementName, topDownWalker;
+  if (newVariableBaseName == null) {
+    newVariableBaseName = 'xx';
+  }
+  newVariableType = ((ref = newVariableBaseName[0]) === 'α' || ref === 'β' || ref === 'γ' || ref === 'τ' ? 'term_metavariable' : void 0) || 'variable';
+  _newVarIdx = 0;
+  _newVarNames = {};
+  _oldVarNames = {};
+  getReplacementName = function(variable) {
+    var newName;
+    if (_newVarNames[variable.name] == null) {
+      _newVarIdx += 1;
+      newName = "" + newVariableBaseName + _newVarIdx;
+      _newVarNames[variable.name] = newName;
+    }
+    return _newVarNames[variable.name];
+  };
+  setNewReplacementName = function(variable) {
+    if (_newVarNames[variable.name] != null) {
+      return delete _newVarNames[variable.name];
+    }
+  };
+  topDownWalker = function(expression) {
+    var variable;
+    if (expression === null) {
+      return expression;
+    }
+    if (!(((expression != null ? expression.boundVariable : void 0) != null) || (((expression != null ? expression.type : void 0) != null) && expression.type === 'variable'))) {
+      return expression;
+    }
+    if (expression.boundVariable != null) {
+      setNewReplacementName(expression.boundVariable);
+    }
+    if (((expression != null ? expression.type : void 0) != null) && expression.type === 'variable') {
+      variable = expression;
+      variable.name = getReplacementName(variable);
+      variable.type = newVariableType;
+    }
+    return expression;
+  };
+  return util.walkMutate(expression, topDownWalker, {
+    topDown: true
+  });
+};
+
+exports.renameVariables = renameVariables;
+
+convertToPNFsimplifyAndSort = function(expression) {
+  expression = prenexNormalForm(expression);
+  expression = eliminateRedundancyInPNF(expression);
+  expression = sortPNFExpression(expression);
+  sortIdentityStatements(expression);
+  return expression;
+};
+
+exports.convertToPNFsimplifyAndSort = convertToPNFsimplifyAndSort;
+
+areExpressionsEquivalent = function(left, right) {
+  left = prenexNormalForm(left);
+  right = prenexNormalForm(right);
+  return arePNFExpressionsEquivalent(left, right);
+};
+
+exports.areExpressionsEquivalent = areExpressionsEquivalent;
+
+arePNFExpressionsEquivalent = function(left, right) {
+  var matches, modifiedLeft, pattern, patternCore, rightCore;
+  left = eliminateRedundancyInPNF(left);
+  left = sortPNFExpression(left);
+  sortIdentityStatements(left);
+  right = eliminateRedundancyInPNF(right);
+  right = sortPNFExpression(right);
+  sortIdentityStatements(right);
+  pattern = renameVariables(left, 'τ');
+  patternCore = removeQuantifiers(pattern);
+  rightCore = removeQuantifiers(right);
+  matches = match.find(rightCore, patternCore);
+  if (matches === false) {
+    return false;
+  }
+  modifiedLeft = match.apply(pattern, matches);
+  return arePrefixedQuantifiersEquivalent(modifiedLeft, right);
+};
+
+exports.arePNFExpressionsEquivalent = arePNFExpressionsEquivalent;
+
+sortPNFExpression = function(expression) {
+  var conjuncts, core, i, j, junct, junctList, len, len1, nestedDisjuncts, rebuiltConjuncts, rebuiltCore, theQuantifiers;
+  theQuantifiers = getPrefixedQuantifiers(expression);
+  core = removeQuantifiers(expression);
+  conjuncts = listJuncts(core, 'and');
+  nestedDisjuncts = (function() {
+    var i, len, results;
+    results = [];
+    for (i = 0, len = conjuncts.length; i < len; i++) {
+      junct = conjuncts[i];
+      results.push(listJuncts(junct, 'or'));
+    }
+    return results;
+  })();
+  for (i = 0, len = nestedDisjuncts.length; i < len; i++) {
+    junctList = nestedDisjuncts[i];
+    sortJuncts(junctList);
+  }
+  sortListOfJuncts(nestedDisjuncts);
+  rebuiltConjuncts = [];
+  for (j = 0, len1 = nestedDisjuncts.length; j < len1; j++) {
+    junctList = nestedDisjuncts[j];
+    rebuiltConjuncts.push(rebuildExpression(junctList, 'or'));
+  }
+  rebuiltCore = rebuildExpression(rebuiltConjuncts, 'and');
+  return attachExpressionToQuantifiers(rebuiltCore, theQuantifiers);
+};
+
+exports.sortPNFExpression = sortPNFExpression;
+
+removeQuantifiers = function(expression) {
+  if (expression.boundVariable != null) {
+    return removeQuantifiers(expression.left);
+  }
+  return expression;
+};
+
+exports.removeQuantifiers = removeQuantifiers;
+
+listJuncts = function(expression, type) {
+  var _juncts;
+  if ((expression.type != null) && expression.type !== type) {
+    return [expression];
+  }
+  if ((expression.type != null) && expression.type === type) {
+    _juncts = [];
+    _juncts.push.apply(_juncts, listJuncts(expression.left, type));
+    _juncts.push.apply(_juncts, listJuncts(expression.right, type));
+    return _juncts;
+  }
+  throw new Error("listJuncts called with type = " + type + " and unrecognized expression = " + (JSON.stringify(expression, null, 4)));
+};
+
+exports.listJuncts = listJuncts;
+
+sortJuncts = function(listOfJuncts) {
+  return listOfJuncts.sort(util.atomicExpressionComparator);
+};
+
+exports.sortJuncts = sortJuncts;
+
+sortListOfJuncts = function(listOfListOfJuncts) {
+  return listOfListOfJuncts.sort(util.listOfAtomicExpressionsComparator);
+};
+
+exports.sortListOfJuncts = sortListOfJuncts;
+
+rebuildExpression = function(listOfJuncts, type) {
+  var head, right, tail;
+  if (!listOfJuncts || (listOfJuncts.length == null) || listOfJuncts.length === 0) {
+    throw new Error("rebuildExpression called with listOfJuncts = " + listOfJuncts);
+  }
+  if (listOfJuncts.length === 1) {
+    return listOfJuncts[0];
+  }
+  head = listOfJuncts.shift();
+  tail = listOfJuncts;
+  right = rebuildExpression(tail, type);
+  return {
+    type: type,
+    left: head,
+    right: right
+  };
+};
+
+exports.rebuildExpression = rebuildExpression;
+
+listQuants = function(expression, type) {
+  var result;
+  if ((expression.type != null) && expression.type !== type) {
+    return {
+      quantifiedExpression: expression
+    };
+  }
+  if ((expression.type != null) && expression.type === type) {
+    result = listQuants(expression.left, type);
+    if (result.boundVariables == null) {
+      result.boundVariables = [];
+    }
+    result.boundVariables.push(expression.boundVariable);
+    return result;
+  }
+  throw new Error("listQuants called with type = " + type + " and unrecognized expression = " + (JSON.stringify(expression, null, 4)));
+};
+
+exports.listQuants = listQuants;
+
+getPrefixedQuantifiers = function(expression) {
+  var quantifier, theRest;
+  theRest = null;
+  if (expression.boundVariable != null) {
+    quantifier = expression;
+    theRest = getPrefixedQuantifiers(quantifier.left);
+    return {
+      type: quantifier.type,
+      symbol: quantifier.symbol,
+      location: quantifier.location,
+      boundVariable: quantifier.boundVariable,
+      left: theRest,
+      right: null
+    };
+  } else {
+    return null;
+  }
+};
+
+exports.getPrefixedQuantifiers = getPrefixedQuantifiers;
+
+attachExpressionToQuantifiers = function(expression, quantifiers) {
+  if (quantifiers === null) {
+    return expression;
+  }
+  if (quantifiers.left !== null) {
+    attachExpressionToQuantifiers(expression, quantifiers.left);
+  } else {
+    quantifiers.left = expression;
+  }
+  return quantifiers;
+};
+
+exports.attachExpressionToQuantifiers = attachExpressionToQuantifiers;
+
+arePrefixedQuantifiersEquivalent = function(left, right, _inProgress) {
+  var quantifierType;
+  if (_inProgress == null) {
+    _inProgress = {
+      quantifierType: null,
+      leftBoundVariables: [],
+      rightBoundVariables: []
+    };
+  }
+  quantifierType = (left != null ? left.type : void 0) || null;
+  if (_inProgress.quantifierType !== quantifierType) {
+    _inProgress.leftBoundVariables.sort();
+    _inProgress.rightBoundVariables.sort();
+    if (!_.isEqual(_inProgress.leftBoundVariables, _inProgress.rightBoundVariables)) {
+      return false;
+    }
+    _inProgress.leftBoundVariables = [];
+    _inProgress.rightBoundVariables = [];
+    _inProgress.quantifierType = quantifierType;
+  }
+  if (left === null) {
+    if (right === null) {
+      return true;
+    }
+    if (right.boundVariable == null) {
+      return true;
+    }
+    return false;
+  }
+  if (left.boundVariable == null) {
+    if (right === null) {
+      return true;
+    }
+    if (right.boundVariable == null) {
+      return true;
+    }
+    return false;
+  }
+  if (right === null) {
+    return false;
+  }
+  if (right.type == null) {
+    return false;
+  }
+  if (right.type !== quantifierType) {
+    return false;
+  }
+  _inProgress.leftBoundVariables.push(left.boundVariable.name);
+  _inProgress.rightBoundVariables.push(right.boundVariable.name);
+  return arePrefixedQuantifiersEquivalent(left.left, right.left, _inProgress);
+};
+
+exports.arePrefixedQuantifiersEquivalent = arePrefixedQuantifiersEquivalent;
+
+sortIdentityStatements = function(expression, _variableOrder) {
+  var identity, left, leftRank, ref, ref1, right, rightRank;
+  if (_variableOrder === void 0) {
+    _variableOrder = _getVariableOrder(expression);
+  }
+  if ((expression != null ? expression.type : void 0) == null) {
+    return expression;
+  }
+  if (expression.type !== 'identity') {
+    if (expression.left != null) {
+      sortIdentityStatements(expression.left, _variableOrder);
+    }
+    if (expression.right != null) {
+      sortIdentityStatements(expression.right, _variableOrder);
+    }
+    return expression;
+  }
+  identity = expression;
+  left = expression.termlist[0];
+  right = expression.termlist[1];
+  if (util.termComparator(left, right) === 1) {
+    ref = [right, left], left = ref[0], right = ref[1];
+  }
+  if (left.type === 'variable' && right.type === 'variable') {
+    leftRank = _variableOrder.indexOf(left.name);
+    rightRank = _variableOrder.indexOf(right.name);
+    if (leftRank > rightRank) {
+      ref1 = [right, left], left = ref1[0], right = ref1[1];
+    }
+  }
+  expression.termlist = [left, right];
+  return expression;
+};
+
+exports.sortIdentityStatements = sortIdentityStatements;
+
+_getVariableOrder = function(expression, _inProgress) {
+  var quantifierType, ref;
+  if (_inProgress == null) {
+    _inProgress = {
+      quantifierType: null,
+      thisTypeBoundVariables: [],
+      allBoundVariables: []
+    };
+  }
+  quantifierType = (expression != null ? expression.type : void 0) || null;
+  if (_inProgress.quantifierType !== quantifierType) {
+    _inProgress.thisTypeBoundVariables.sort();
+    (ref = _inProgress.allBoundVariables).push.apply(ref, _inProgress.thisTypeBoundVariables);
+    _inProgress.thisTypeBoundVariables = [];
+    _inProgress.quantifierType = quantifierType;
+  }
+  if (quantifierType === null || (expression.boundVariable == null)) {
+    return _inProgress.allBoundVariables;
+  }
+  _inProgress.thisTypeBoundVariables.push(expression.boundVariable.name);
+  return _getVariableOrder(expression.left, _inProgress);
+};
+
+exports._getVariableOrder = _getVariableOrder;
+
+eliminateRedundancyInPNF = function(expression) {
+  var fn, result;
+  fn = function(expression) {
+    var name, ref, sub;
+    ref = substitute.subs_eliminate_redundancy;
+    for (name in ref) {
+      sub = ref[name];
+      expression = substitute.doSubRecursive(expression, sub);
+    }
+    return expression = sortPNFExpression(expression);
+  };
+  result = util.exhaust(expression, fn);
+  result = removeQuantifiersThatBindNothing(result);
+  return result;
+};
+
+exports.eliminateRedundancyInPNF = eliminateRedundancyInPNF;
+
+isVariableFree = function(variableName, expression) {
+  var t, termNames;
+  if (expression.termlist != null) {
+    termNames = (function() {
+      var i, len, ref, results;
+      ref = expression.termlist;
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        t = ref[i];
+        results.push(t.name);
+      }
+      return results;
+    })();
+    if (indexOf.call(termNames, variableName) >= 0) {
+      return true;
+    }
+  }
+  if (expression.boundVariable != null) {
+    if (expression.boundVariable.name === variableName) {
+      return false;
+    }
+  }
+  if (expression.left != null) {
+    if (isVariableFree(variableName, expression.left)) {
+      return true;
+    }
+  }
+  if (expression.right != null) {
+    if (isVariableFree(variableName, expression.right)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+exports.isVariableFree = isVariableFree;
+
+removeQuantifiersThatBindNothing = function(expression) {
+  var e, walker;
+  walker = function(expression) {
+    var quantifiedExpression, quantifier;
+    if ((expression != null ? expression.boundVariable : void 0) == null) {
+      return expression;
+    }
+    quantifier = expression;
+    quantifiedExpression = expression.left;
+    if (isVariableFree(quantifier.boundVariable.name, quantifiedExpression)) {
+      return expression;
+    }
+    return quantifier.left;
+  };
+  e = util.cloneExpression(expression);
+  return util.walkMutate(e, walker);
+};
+
+exports.removeQuantifiersThatBindNothing = removeQuantifiersThatBindNothing;
+
+
+},{"./match":6,"./substitute":20,"./util":21,"lodash":7}],9:[function(require,module,exports){
 (function (process){
 /* parser generated by jison 0.4.15 */
 /*
@@ -14501,7 +14374,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }
 }).call(this,require('_process'))
-},{"_process":4,"fs":1,"path":3}],12:[function(require,module,exports){
+},{"_process":3,"fs":1,"path":2}],10:[function(require,module,exports){
 var PREMISE_JUSTIFICATION, _, _FIND_JUSTIFICATION, _isPremise, cleanNumber, findBlock, findLine, findLineOrBlock, getCitedBlocks, getCitedLines, getRuleName, jp, split, to;
 
 _ = require('lodash');
@@ -14756,7 +14629,7 @@ getCitedBlocks = function() {
 };
 
 
-},{"./add_line_numbers":13,"./justification_parser":19,"lodash":10}],13:[function(require,module,exports){
+},{"./add_line_numbers":11,"./justification_parser":17,"lodash":7}],11:[function(require,module,exports){
 var _, _DROP_TRAILING_DOTS_AND_BRACKET, _GET_NUMBER, cleanNumber, split, to,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -14854,7 +14727,7 @@ to = function(block) {
 exports.to = to;
 
 
-},{"lodash":10}],14:[function(require,module,exports){
+},{"lodash":7}],12:[function(require,module,exports){
 var fol, substitute, to, util;
 
 fol = require('../fol');
@@ -14892,7 +14765,7 @@ to = function(block) {
 exports.to = to;
 
 
-},{"../fol":8,"../substitute":22,"../util":23}],15:[function(require,module,exports){
+},{"../fol":5,"../substitute":20,"../util":21}],13:[function(require,module,exports){
 var LineStatus, fol, substitute, to, util;
 
 fol = require('../fol');
@@ -15001,7 +14874,7 @@ LineStatus = (function() {
 })();
 
 
-},{"../fol":8,"../substitute":22,"../util":23}],16:[function(require,module,exports){
+},{"../fol":5,"../substitute":20,"../util":21}],14:[function(require,module,exports){
 var _, _linesCitedAreOk, _parseProof, addJustification, addLineNumbers, addSentences, addStatus, blockParser, checkItAccordsWithTheRules, checkThisRule, theRules, to, verifyLine,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -15223,7 +15096,7 @@ checkThisRule = function(rule, line, result) {
 };
 
 
-},{"./add_justification":12,"./add_line_numbers":13,"./add_sentences":14,"./add_status":15,"./block_parser":17,"./fitch_rules":18,"lodash":10}],17:[function(require,module,exports){
+},{"./add_justification":10,"./add_line_numbers":11,"./add_sentences":12,"./add_status":13,"./block_parser":15,"./fitch_rules":16,"lodash":7}],15:[function(require,module,exports){
 var Block, _, _INDENTATION_AT_START_OF_LINE, _SPLIT_LINE_WHEN_INDENTATION_FIRST, _SPLIT_LINE_WHEN_NUMBER_FIRST, areLinesFormattedIndentationFirst, clean, extractIndentationAndContentFrom, isBlank, isDivider, parse, removeIndentationFrom, removeNumberFrom, split, util,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -15583,7 +15456,7 @@ Block = (function() {
 exports.Block = Block;
 
 
-},{"../util":23,"lodash":10}],18:[function(require,module,exports){
+},{"../util":21,"lodash":7}],16:[function(require,module,exports){
 var rule, rules;
 
 rule = require('./rule');
@@ -15645,7 +15518,7 @@ rules = {
 exports.rules = rules;
 
 
-},{"./rule":21}],19:[function(require,module,exports){
+},{"./rule":19}],17:[function(require,module,exports){
 (function (process){
 /* parser generated by jison 0.4.15 */
 /*
@@ -16376,7 +16249,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }
 }).call(this,require('_process'))
-},{"_process":4,"fs":1,"path":3}],20:[function(require,module,exports){
+},{"_process":3,"fs":1,"path":2}],18:[function(require,module,exports){
 var addJustification, addLineNumbers, addSentences, addStatus, addVerification, blockParser, parse;
 
 blockParser = require('./block_parser');
@@ -16410,11 +16283,9 @@ parse = function(proofText) {
 exports.parse = parse;
 
 
-},{"./add_justification":12,"./add_line_numbers":13,"./add_sentences":14,"./add_status":15,"./add_verification":16,"./block_parser":17}],21:[function(require,module,exports){
-var LineChecker, Pathfinder, RequirementChecker, _, _From, _notImplementedYet, _parseIfNecessaryAndDecorate, combinations, fol, from, nodeutil, numberToWords, permutations, premise, subproof, to, truthtable, util,
+},{"./add_justification":10,"./add_line_numbers":11,"./add_sentences":12,"./add_status":13,"./add_verification":14,"./block_parser":15}],19:[function(require,module,exports){
+var LineChecker, Pathfinder, RequirementChecker, _, _From, _notImplementedYet, _parseIfNecessaryAndDecorate, combinations, fol, from, numberToWords, permutations, premise, subproof, to, truthtable, util,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
-
-nodeutil = require('util');
 
 _ = require('lodash');
 
@@ -16936,7 +16807,7 @@ exports.Pathfinder = Pathfinder;
 exports.LineChecker = LineChecker;
 
 
-},{"../fol":8,"../util":23,"lodash":10,"util":6}],22:[function(require,module,exports){
+},{"../fol":5,"../util":21,"lodash":7}],20:[function(require,module,exports){
 var _, _subsForPNF, _subs_eliminate_redundancy, applySubstitutions, doSub, doSubRecursive, fol, from, k, match, replace, subsForPNF, subs_eliminate_redundancy, theSub, to, util, v;
 
 _ = require('lodash');
@@ -17231,7 +17102,7 @@ applySubstitutions = function(expression) {
 exports.applySubstitutions = applySubstitutions;
 
 
-},{"./match":9,"./parser/awFOL":11,"./util":23,"lodash":10}],23:[function(require,module,exports){
+},{"./match":6,"./parser/awFOL":9,"./util":21,"lodash":7}],21:[function(require,module,exports){
 var SYMBOLS, _, _delExtraneousProperties, _typeComparator, areIdenticalExpressions, atomicExpressionComparator, atomicSentenceTypes, cloneExpression, delExtraneousProperties, exhaust, expressionContainsSubstitutions, expressionHasSub, expressionToString, expressionTypes, find, listMetaVariableNames, listOfAtomicExpressionsComparator, listTerms, matchesToString, max, termComparator, termTypes, walk, walkCompare, walkMutate, walkMutateFindOne,
   hasProp = {}.hasOwnProperty;
 
@@ -17926,4 +17797,4 @@ expressionHasSub = function(expression, sub) {
 exports.expressionHasSub = expressionHasSub;
 
 
-},{"lodash":10}]},{},[7]);
+},{"lodash":7}]},{},[4]);

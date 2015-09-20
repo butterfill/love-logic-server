@@ -2,47 +2,104 @@
 // e.g.: http://localhost:3000/ex/trans/domain/5things/names/a=thing1%7Cb=thing2/predicates/Fish1%7CPerson2%7CRed1/sentence/exists(x) exists(y) (Person(x) and Person(y) and not Fish(x) and not Fish(y) and not x=y)
 
 template(name="trans_ex")
-  .section: .container
-    h2 #{exTitle}
-    .row
-      .col.s6
-        h4 domain
-        ul.collection
-          each domain
-            li.collection-item #{this}
-          
-        h4 names
-        ul.collection
-          each names
-            li.collection-item #{this}
-      .col.s6
-        h4 predicates
-        ul.collection
-          each predicates
-            li.collection-item #{this.description}
-    .row
-      .col.s12
-        h4 sentence
-        ul.collection
-          li.collection-item #{sentence}
-    
-    h4 your answer
-    textarea#editor 
-    
+
+  +trans_ex_question
+
+  h4 your answer
+  textarea#editor 
+
+  .row
+    .col.s12
+      p#feedback
+  
+  if Template.subscriptionsReady 
     if isSubmitted
       p.right You submitted an answer #{dateSubmitted}.
         span [
-        a(href='') view answer
+        a#view-answer.waves-effect load answer
         span ]
         if isMachineFeedback
-          span  Machine says: #{machineFeedback}
-        //- if isTutorFeedback
-        //-   span  #{tutorName} says: #{tutorFeedback}
-      
-    p#feedback
+          br
+          span.right  Machine says: #{machineFeedback}
+          //- if isTutorFeedback
+          //-   span  #{tutorName} says: #{tutorFeedback}
     
+  .row: .col.s12
+    .left
+      button#convert-to-symbols.btn.waves-effect.grey convert to symbols
     .right
-      button#requestHelp.btn.waves-effect.grey request help
+      button#request-help.btn.waves-effect.grey request help
        i.material-icons.right live_help
-      button#submit.btn.waves-effect.grey(type='submit') submit
-       i.material-icons.right send
+      if isSubmitted
+        button#submit.btn.waves-effect.grey(type='submit', disabled='true') submit
+      else
+        button#submit.btn.waves-effect.grey(type='submit') submit
+         i.material-icons.right send
+  
+    if isNextExercise
+      .right
+        p.huge-glow-20
+          p.next-exercise.btn-flat.waves-effect(style="color:white;") next exercise >
+
+
+
+
+template(name="trans_ex_grade")
+
+  +trans_ex_question
+
+  if Template.subscriptionsReady
+    if isAnswers
+      each answers
+        h4 #{ownerName} &lsaquo;#{email}&rsaquo;
+        p.monospace #{answer.answerFOL}
+        if isMachineFeedback
+          p Machine says: #{machineFeedback.comment}
+        +grading_form
+    else
+      h4 None of your students have answered this question yet.
+  else
+    p loading submitted answers ...
+
+template(name='grading_form')    
+  form
+    p #{ownerName}’s answer is:
+      input.with-gap.grey.waves-effect(name="grade", type="radio",id="correct")
+      label(for="correct") correct
+      input.with-gap.grey.waves-effect(name="grade", type="radio",id="incorrect")
+      label(for="incorrect") incorrect
+      input.with-gap.grey.waves-effect(name="grade", type="radio",id="dontknow")
+      label(for="dontknow") I don’t know
+    .input-field
+      textarea.materialize-textarea.human-comment(data-submission-id="#{_id}",id="comment_for_#{#{_id}}") 
+      label(for="comment_for_#{#{_id}}") Comments to #{ownerName}:
+  
+                
+template(name="trans_ex_question")
+  if isTranslateToEn
+    h2 Translate awFOL to English
+  else
+    h2 Translate English to awFOL
+  .row
+    .col.s6
+      h4 domain
+      ul.collection
+        li.collection-item 
+          each domain
+            span #{this}, 
+        
+      h4 names
+      ul.collection
+        each names
+          li.collection-item #{this}
+    .col.s6
+      h4 predicates
+      ul.collection
+        each predicates
+          li.collection-item #{this.description}
+  .row
+    .col.s12
+      h4 sentence
+      ul.collection
+        li.collection-item #{sentence}
+  

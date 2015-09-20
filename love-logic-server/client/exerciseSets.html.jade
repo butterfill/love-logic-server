@@ -1,44 +1,53 @@
 template(name='courses')
-  section: .container
-    h2 Select a course
-    ul.collection
-      each courses
-        li.collection-item
-          a(href="/course/#{name}") #{name}
-          span --- #{description}
+  h2 Select a course
+  ul.collection
+    each courses
+      li.collection-item
+        a(href="/course/#{name}") #{name}
+        span --- #{description}
 
 template(name='exerciseSetsForCourse')
-  section: .container
-    p #{courseName} --- #{courseDescription}
-    h2 Select a variant
-    ul.collection
-      each exerciseSets
-        li.collection-item
-          a(href="#{url}/exercise-set/#{variant}") #{variant}
-          span --- #{description}
+  p #{courseName} --- #{courseDescription}
+  h2 Select a variant
+  ul.collection
+    each exerciseSets
+      li.collection-item
+        a(href="/course/#{courseName}/exercise-set/#{variant}") #{variant}
+        span --- #{description}
   
 
 template(name='exerciseSet')
-  section: .container
-    p #{courseName} --- #{courseDescription}
-    
-    h2 #{exerciseSetName}
-    //- TODO: remove button if subscribed.
-    button#subscribe.btn.waves-effect.grey subscribe
+  p #{courseName} --- #{courseDescription}
   
-  
-  
+  h2 #{exerciseSetName}
+  p #{exerciseSetDescription}
+  if isAlreadyFollowing
+    a#unfollowDialog.btn.waves-effect.grey stop following ‘#{exerciseSetName}’
+  else
+    a#follow.btn.waves-effect.grey follow ‘#{exerciseSetName}’
 
-    each lectures
-      h4 #{lecture}
-      each units
-        h5 #{unit}
-        ul.collection
-        each exercises
-          li
-            a(href="#{link}") #{name}
-            if isSubmitted
-              span [submitted #{dateSubmitted}]
-            else
-              span [todo]
-          
+  each lectures
+    h4 #{name}
+    p
+      span [
+      a(href="#{slides}", target="_blank") slides
+      span ] [
+      a(href="#{handout}", target="_blank") handout
+      span ] 
+    each units
+      h5 #{name}
+      if reading
+        p Reading: #{reading}
+      p 
+        span [
+        a(href="#{slides}", target="_blank") slides
+        span ] 
+      ul.collection
+      each exercises
+        li
+          a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}") #{name}
+          if isSubmitted
+            span [submitted #{dateSubmitted}]
+          else
+            span [todo]
+

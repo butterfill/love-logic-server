@@ -2,20 +2,50 @@
 # See https://github.com/meteor-useraccounts/core/blob/master/Guide.md
 # See https://github.com/meteor-useraccounts/iron-routing
 
+
+# AccountsTemplates.addField({
+#   _id: 'email'
+#   type: 'email'
+#   placeholder:
+#     signUp: "Email (your university email)"
+#     signIn: "Email (your university email)"
+#   required: true
+# });
+
+AccountsTemplates.addField({
+  _id: 'name'
+  type: 'text'
+  placeholder: 
+    signUp: "Full name"
+  required: true
+});
+
+AccountsTemplates.addField({
+  _id: 'seminar_tutor'
+  type: 'email'
+  placeholder: 
+    signUp: "Your seminar tutor’s email"
+  required: false
+});
+
 AccountsTemplates.configure
   defaultLayout: 'ApplicationLayout'
+  defaultLayoutRegions : {}
+  defaultContentRegion: 'main'
   enablePasswordChange: true
-  
-  # defaultLayoutRegions:
-  #     nav: 'nav'
-  #     footer: 'footer'
-  #   defaultContentRegion: 'main'
   #   showForgotPasswordLink: true
 
 AccountsTemplates.configureRoute('signIn')
 AccountsTemplates.configureRoute('signUp')
 AccountsTemplates.configureRoute('changePwd')
 
-Router.plugin('ensureSignedIn', {
-  except: _.pluck(AccountsTemplates.routes, 'name').concat(['home', 'contacts'])
-});
+# See https://github.com/meteor-useraccounts/flow-routing
+FlowRouter.triggers.enter [AccountsTemplates.ensureSignedIn], 
+  except: [ 
+    'signIn'
+    'signUp'
+    'forgotPwd'
+    'resetPwd'
+    'verifyEmail'
+    'resendVerificationEmail'
+  ]

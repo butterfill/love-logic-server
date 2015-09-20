@@ -8,8 +8,9 @@ meteor-platform
 coffeescript
 mquandalle:jade
 mquandalle:stylus
-iron:router
 useraccounts:materialize
 accounts-password
-useraccounts:iron-routing
 momentjs:moment
+kadira:blaze-layout
+kadira:flow-router
+useraccounts:flow-routing
