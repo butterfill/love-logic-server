@@ -1,12 +1,12 @@
+//- TODO Update so that it uses the proper template to display each answer.
+
 template(name='mySubmittedExercises')
-  section: .container
-    h2 Submitted Exercises
-    p #{testd}
-    ul
-      each exercises
-       li 
-         h5: a(href="#{exerciseId}") #{exerciseId}
-         p #{answer.type}
-         p #{answer.content}
-      
-  
+  h2 Submitted Exercises
+  each exercises
+    section
+      div
+        a(href="#{exerciseId}") #{exerciseLink}
+        span ---  #{date}
+      each answerLines
+        .grey.monospace.lighten-2(style='padding-left:2px;padding-right:2px;margin-bottom:-4px;') #{line}
+      .divider(style="margin-top:2em;")

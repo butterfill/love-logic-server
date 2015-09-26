@@ -445,6 +445,33 @@ _decorate = function(expression) {
       e.walk(letterFinder);
       return _letters.sort();
     };
+    e.getFreeVariableNames = function() {
+      var allTerms, allVariableNames, t, unboundVariables, v;
+      allTerms = util.listTerms(e);
+      allVariableNames = _.uniq((function() {
+        var i, len, results;
+        results = [];
+        for (i = 0, len = allTerms.length; i < len; i++) {
+          t = allTerms[i];
+          if (t.type === 'variable') {
+            results.push(t.name);
+          }
+        }
+        return results;
+      })());
+      unboundVariables = (function() {
+        var i, len, results;
+        results = [];
+        for (i = 0, len = allVariableNames.length; i < len; i++) {
+          v = allVariableNames[i];
+          if (normalForm.isVariableFree(v, expression)) {
+            results.push(v);
+          }
+        }
+        return results;
+      })();
+      return unboundVariables;
+    };
     return e.convertToPNFsimplifyAndSort = function() {
       var newE;
       newE = normalForm.convertToPNFsimplifyAndSort(expression);
@@ -17701,11 +17728,11 @@ listTerms = function(expression) {
   fn = function(expression) {
     var ref;
     if ((ref = expression.type) === 'variable' || ref === 'name' || ref === 'term_metavariable') {
-      terms.push(expression);
+      return terms.push(expression);
     }
-    return terms;
   };
-  return walk(expression, fn);
+  walk(expression, fn);
+  return terms;
 };
 
 exports.listTerms = listTerms;

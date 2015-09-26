@@ -1,5 +1,3 @@
-# Work in progress will be saved in the session and in WorkInProgress.
-# (Should we only save it in the session?  And could make session persistent?)
 # Note: the session is used in two ways: the key `codeMirrorContent` contains 
 # the current values of the editor (and is constantly updated by the CodeMirror component);
 # the key that is the value of `ix.getExerciseId()` contains the student’s current answer.
@@ -15,25 +13,16 @@ editorObj = {}
 # -------------
 # Subscriptions and setup the editor
 
-
-
-
 Template.proof_ex.onCreated () ->
   self = this
   self.autorun () ->
-    # We need this to ensure the CodeMirror thing gets updated.
+    # We need to `watchPathChange` so that the CodeMirror thing gets updated.
     FlowRouter.watchPathChange()
-    
-    courseName = FlowRouter.getQueryParam 'courseName'
-    variant = FlowRouter.getQueryParam 'variant'
-    self.subscribe 'exercise_set', courseName, variant
     exerciseId = ix.getExerciseId()
-    self.subscribe 'submitted_exercise', exerciseId
-    self.subscribe 'work_in_progress', exerciseId, ()  ->
-      Session.set("codeMirrorContent", getEditorInitialText())
-      Meteor.defer () ->
-        if editorObj.editor? and not editorObj.initDone
-          initCodemirrorEditor()
+    Session.set("codeMirrorContent", getEditorInitialText())
+    Meteor.defer () ->
+      if editorObj.editor? and not editorObj.initDone
+        initCodemirrorEditor()
 
 # -------------
 # Template helpers
@@ -78,11 +67,9 @@ initCodemirrorEditor = () ->
   editor.on("keyHandled", (instance, name, event) ->
     if name in ['Up']
       lineNumber = getCurrentLineNumberInEditor(editor) 
-      ix.saveWorkInProgress(editor.getValue())
       checkLines(lineNumber, lineNumber+1, editor)
     if name in ['Down','Enter']
       lineNumber = getCurrentLineNumberInEditor(editor) 
-      ix.saveWorkInProgress(editor.getValue())
       checkLines(lineNumber, lineNumber-1, editor)
   )
   editorObj.initDone = true
@@ -94,15 +81,11 @@ getEditorInitialText = () ->
     console.log "proof from session"
     return proofText
   else
-    wip = ix.getWorkInProgress()
-    if wip?.text?
-      console.log "proof from wip"
-      return wip.text
-    else
-      console.log "proof from `getProofFromParams()`"
-      return proofFromParams
+    console.log "proof from `getProofFromParams()`"
+    return proofFromParams
 
-Template.proof_ex.helpers
+
+Template.proof_ex_display_question.helpers
   conclusion : () ->
     return getConclusionFromParams().toString({replaceSymbols:true})
   premises : () -> 
@@ -111,6 +94,8 @@ Template.proof_ex.helpers
   hasPremises : () -> 
     return getPremisesFromParams()?.length > 0
 
+
+Template.proof_ex.helpers
   # Helpers for the CodeMirror editor
   editorOptions : () ->
     return {
@@ -127,42 +112,6 @@ Template.proof_ex.helpers
   getEditorObj : () ->
     return editorObj
     
-  # Helpers that are common to several templates
-  isSubmitted : () ->
-    return ix.isSubmitted()
-  dateSubmitted : () ->
-    return ix.dateSubmitted()
-  isMachineFeedback : () ->
-    return ix.getSubmission().machineFeedback?
-  machineFeedback : () ->
-    return ix.getSubmission().machineFeedback.comment
-    
-  # Helpers relating to ExerciseSets that are common to several templates
-  courseName : () ->
-    ctx = ix.getExerciseContext()
-    return '' unless ctx
-    return ctx.exerciseSet.courseName
-  variant : () ->
-    ctx = ix.getExerciseContext()
-    return '' unless ctx
-    return ctx.exerciseSet.variant
-  unitTitle : () ->
-    ctx = ix.getExerciseContext()
-    return '' unless ctx
-    return ctx.unit.name
-  slidesForThisUnit : () ->
-    ctx = ix.getExerciseContext()
-    return '' unless ctx
-    return ctx.unit.slides
-  readingForThisUnit : () ->
-    ctx = ix.getExerciseContext()
-    return '' unless ctx
-    return "Sections §#{ctx.unit.rawReading.join(', §')} of Language, Proof and Logic"
-  isNextExercise : () ->
-    ctx = ix.getExerciseContext()
-    return ctx?.next?
-    
-
     
     
     
@@ -252,6 +201,7 @@ Template.proof_ex.events
       giveMoreFeedback "#{('And' unless result or not conclusionIsOk) or 'But'} your premises (#{proofPremisesStr.join(', ')}) are not the ones you were supposed to start from---you added #{proofPremisesNotInActualPremises.join(', ')}."
       
     
+  # The html is in the `submit_btn` template
   'click button#submit' : (event, template) ->
     theProof = getProof()
     result = theProof.verify()
@@ -269,23 +219,18 @@ Template.proof_ex.events
         Materialize.toast "Your proof has been submitted.", 4000
     )
 
+  # The html is from a sub-template (`submitted_answer`) in which the data context is a `SubmittedExercise`
   'click #view-answer' : (event, template) ->
-    submission = ix.getSubmission()
-    setEditorText(submission.answer.content)
+    setEditorText(@answer.content)
   
   'click #reset-confirm' : (event, template) ->
+    giveFeedback ""
     setEditorText( getProofFromParams() )
   
-  'click .next-exercise' : (event, template) ->
-    ctx = ix.getExerciseContext()
-    return unless ctx?.next?
-    qs = ix.queryString()
-    if qs
-      queryString = "?#{qs}"
-    else
-      queryString = ""
-    FlowRouter.go("#{ctx.next}#{queryString}")
-    
-    
 
 
+
+
+Template.proof_ex_display_answer.helpers
+  answerLines : () ->
+    return ({line:x} for x in @answer.content.split('\n'))

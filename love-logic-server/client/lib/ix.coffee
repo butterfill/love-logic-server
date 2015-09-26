@@ -1,4 +1,4 @@
-# Functions used across a various template helpers or event handlers.
+# Functions used across various template helpers or event handlers.
 # Note: this runs on the client only.
 
 @ix = {}
@@ -20,7 +20,7 @@ ix.getUserEmail = () ->
 
 # Return the current url minus any querystring.
 ix.url = () ->
-  # # NOTE: we need this so that updates work properly
+  # # NOTE: this would make calls to ix.url reactive
   # FlowRouter.watchPathChange()
   path = FlowRouter.current().path?.split('?')[0]
   if path 
@@ -28,7 +28,7 @@ ix.url = () ->
   return undefined
 
 ix.queryString = () ->
-  # # NOTE: we need this so that updates work properly
+  # # NOTE: this would make calls to ix.url reactive
   # FlowRouter.watchPathChange()
   path = FlowRouter.current().path
   if path 
@@ -45,6 +45,8 @@ ix.queryString = () ->
 
 # Converts a link specifying an exercise to the `exerciseId` used in the database
 ix.convertToExerciseId = (exerciseLink) ->
+  # Remove any trailing slash
+  exerciseLink = exerciseLink.replace /\/?$/, ''
   return (encodeURIComponent(i) for i in exerciseLink.split('/')).join('/')
 
 # Get the exerciseId of the current page (when called from a 
@@ -52,6 +54,9 @@ ix.convertToExerciseId = (exerciseLink) ->
 ix.getExerciseId = () ->
   exerciseLink = ix.url()
   return undefined unless exerciseLink
+  # Remove any trailing slash
+  exerciseLink = exerciseLink.replace /\/$/, ''
+  # Remove the extra bit added when grading
   exerciseLink = exerciseLink.replace /\/grade\/?$/, ''
   return ix.convertToExerciseId(exerciseLink) 
 
@@ -60,41 +65,22 @@ ix.getExerciseId = () ->
 # If `exerciseLink` is not given, uses the current url.
 ix.isSubmitted = (exerciseLink) ->
   if not exerciseLink?
-    exerciseLink = ix.url()
-  exerciseId = ix.convertToExerciseId exerciseLink
+    exerciseId = ix.getExerciseId()
+  else
+    exerciseId = ix.convertToExerciseId exerciseLink
   return SubmittedExercises.find({exerciseId}).count() > 0
-
-# Returns the date the user submitted the specified exercise.
-ix.dateSubmitted = (exerciseLink) ->
-  if not exerciseLink?
-    exerciseLink = ix.url()
-  exerciseId = ix.convertToExerciseId exerciseLink
-  return moment(SubmittedExercises.findOne({exerciseId})?.created).fromNow()
-
-
-# Returns the answer submitted by the current user 
-ix.getSubmission = (exerciseLink) ->
-  if not exerciseLink?
-    exerciseLink = ix.url()
-  exerciseId = ix.convertToExerciseId exerciseLink
-  return SubmittedExercises.findOne({exerciseId})
 
 ix.submitExercise = (exercise, cb) ->
   Meteor.call('submitExercise', _.defaults(exercise,
     exerciseId : ix.convertToExerciseId(ix.url())
   ), cb)
 
-ix.saveWorkInProgress = (text) ->
-  exerciseId = ix.getExerciseId()
-  console.log "saving #{exerciseId}"
-  Meteor.call('saveWorkInProgress', exerciseId, text)
 
-ix.getWorkInProgress = () ->
-  exerciseId = ix.getExerciseId()
-  console.log "restoring #{exerciseId}"
-  return WorkInProgress.findOne({exerciseId})
-
-# Note: this assumes your route has `Meteor.subscribe('subscribed_exercise_sets')`  
+# Return an object specifying the lecture and unit in which the present 
+# exercise occurs, and also the next exercise in the series (if any).
+# Used by the `next_exercise` template.
+# Note: this should be called in a context where there is a subscription to a 
+# single `ExerciseSet`.
 ix.getExerciseContext = () ->
   currentExLink = decodeURIComponent(ix.getExerciseId())
   exSet = ExerciseSets.findOne()
@@ -118,6 +104,4 @@ ix.getExerciseContext = () ->
             next
             exerciseSet : exSet
           }
-        
-      
 

@@ -58,13 +58,25 @@ FlowRouter.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicate
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'trans_ex'
 
-FlowRouter.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicates/sentence/:_sentence/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'trans_ex_grade'
-
 
 # ------
-# Marking routes
+# Grading (=marking) routes
+
+FlowRouter.route '/myTutees',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'myTutees'
+
+FlowRouter.route '/exercisesToGrade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'exercisesToGrade'
+
+FlowRouter.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicates/sentence/:_sentence/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+FlowRouter.route '/ex/proof/from/:_premises/to/:_conclusion/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
 
 # ------
@@ -73,38 +85,41 @@ FlowRouter.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicate
 # Each time a student submits an exercise, store it here.  Update when it is marked.
 @SubmittedExercises = new Mongo.Collection('submitted_exercises')
 
-# Save a student’s work, but don’t let anybody see it.
-@WorkInProgress = new Mongo.Collection('work_in_progress')
-
 # Record which exercise sets a student has subscribed to.
 @Subscriptions = new Mongo.Collection('subscriptions')
 
 Meteor.methods
+  # TODO: Change email.  Do not allow user to change email to
+  # an email already used, nor to an email used as a supervisor email.
+  
   submitExercise : (exercise) ->
-    if not Meteor.userId() or 'userId' of exercise
+    userId = Meteor.user()?._id
+    if not userId or 'userId' of exercise
       throw new Meteor.Error "not-authorized"
-    SubmittedExercises.insert( _.defaults(exercise, {
-      owner : Meteor.user()._id
+    if 'humanFeedback' of exercise
+      throw new Meteor.Error "Human feedback provided with submission (cheating?)."
+    newDoc = _.defaults(exercise, {
+      owner : userId
       ownerName : Meteor.user().profile?.name
       email : Meteor.user().emails[0].address
       created : new Date()
-    }))
+    })
+    if Meteor.isClient
+      return undefined
+    # Update exercise if not already graded by a human
+    # This is a tiny bit tricky because Meteor doesn’t wrap `findAndModify` for us.
+    # The following follows the core of https://github.com/fongandrew/meteor-find-and-modify/blob/master/find_and_modify.js
+    # (except that their code doesn’t work because they add a `$setOnInsert`.)
+    rawSubmittedExercises = SubmittedExercises.rawCollection()
+    findAndModify = Meteor.wrapAsync(rawSubmittedExercises.findAndModify, rawSubmittedExercises)
+    query = { $and:[
+      {owner : userId}
+      {exerciseId : exercise.exerciseId}
+      {humanFeedback : {$exists:false}}
+    ] }
+    findAndModify(query, {}, newDoc, {upsert: true})
+    # SubmittedExercises.insert( newDoc )
 
-  saveWorkInProgress : (exerciseId, text) ->
-    userId = Meteor.user()._id
-    if not userId
-      throw new Meteor.Error "not-authorized"
-    wip = WorkInProgress.findOne({$and:[{owner:userId},{exerciseId:exerciseId}]})
-    if wip
-      WorkInProgress.update(wip, $set:{text : text})
-    else 
-      WorkInProgress.insert( {
-        owner : userId
-        exerciseId : exerciseId
-        created : new Date()
-        text : text
-      })
-  
   subscribeToExerciseSet : (courseName, variant) ->
     userId = Meteor.user()._id
     if not userId
@@ -119,5 +134,67 @@ Meteor.methods
         courseName
         variant
       })
-      
+
+  addHumanFeedback : (submission, humanFeedback) ->
+    if not Meteor.userId() 
+      throw new Meteor.Error "not-authorized"
+    # Check that the owner of the submission has not changed
+    oldOwner = SubmittedExercises.findOne({_id:submission._id})?.owner
+    if oldOwner isnt submission.owner
+      throw new Meteor.Error "The owner (author) of a submitted exercise may not be changed."
+    # Check that the current user is the tutor of the owner of `submission`.
+    # (Only do this on the server because `Meteor.users` gives the only the current user on the client!)
+    if Meteor.isServer
+      tutorEmail = Meteor.users.findOne(submission.owner)?.profile?.seminar_tutor
+      if not tutorEmail
+        throw new Meteor.Error "not-authorized (no supervisor for this student)"
+      userEmails = (x.address for x in Meteor.user().emails)
+      if not( tutorEmail in userEmails )
+        throw new Meteor.Error "not-authorized (not the supervisor of this student)"
+    humanFeedback.studentSeen = false
+    SubmittedExercises.update(submission, $set:{humanFeedback: humanFeedback})
+  
+  studentSeenFeedback : (exercise) ->
+    userId = Meteor.user()._id
+    if not userId or exercise.owner isnt userId
+      throw new Meteor.Error "not-authorized"
+    SubmittedExercises.update(exercise, $set:{'humanFeedback.studentSeen':true, 'humanFeedback.studentEverSeen':true})
+  
     
+# -----
+# Methods for getting data
+Meteor.methods
+
+  # Return a list of exerciseIds for which students have submitted work.
+  getExercisesToGrade : () ->
+    if not Meteor.userId() 
+      throw new Meteor.Error "not-authorized"
+    if Meteor.isClient
+      # We are going to use `.aggregate` which only works on the server
+      return []
+    tutor_email = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+    if not tutor_email
+      console.log "Current user has no email address!"
+      return [] 
+    tuteeIds = wy.getTuteeIds(tutor_email)
+    pipeline = []
+    needsFeedback = 
+      $or:[
+        # Correctness has not yet been determined
+        $and: [
+          {"humanFeedback.isCorrect":{$exists:false}}
+          {"machineFeedback.isCorrect":{$exists:false}}
+        ]
+        # Machine has marked the exercise false---would expect a human comment in this case.
+        $and: [
+          {"machineFeedback.isCorrect":{$ne:true}}
+          {"humanFeedback":{$exists:false} }
+        ]
+      ]
+    pipeline.push $match: { $and:[{owner:{$in:tuteeIds}}, needsFeedback] }
+    pipeline.push $project: {exerciseId:1}
+    pipeline.push $group: { _id: "$exerciseId" }
+    pipeline.push $project: {exerciseId: "$_id", _id:0}
+    result = SubmittedExercises.aggregate(pipeline)
+    return result
+

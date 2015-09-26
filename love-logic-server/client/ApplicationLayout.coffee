@@ -1,5 +1,5 @@
 
-Template.ApplicationLayout.helpers
+Template.header.helpers
   currentUserEmail : () ->
     u = Meteor.user()
     return '' if u is null

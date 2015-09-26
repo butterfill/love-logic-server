@@ -1,0 +1,32 @@
+//- If you use this template, you need to handle the `#view-answer` clicks
+//- which require you to display the answer from the current data context.
+template(name="submitted_answer")
+  if Template.subscriptionsReady 
+    if isSubmitted
+      each submittedAnswers
+        .row: .col.s12: .right You submitted an answer #{dateSubmitted}.
+          span [
+          a#view-answer.waves-effect load answer
+          span ]
+          if isCorrectnessDetermined
+            span Your answer is #{rightOrWrong}.
+           
+          if machineFeedback
+            br
+            span.right  Machine says: #{machineFeedback.comment}
+          if humanFeedback
+            br
+            span.right #{humanFeedback.comment}
+
+
+//- If you use this template, you need to handle `#submit` clicks
+//- which require you to submit the student’s work.
+template(name="submit_btn")
+  if Template.subscriptionsReady
+    if isSubmitted
+      button#submit.btn.waves-effect.grey(type='submit') re-submit
+       i.material-icons.right send
+      button#submit.btn.waves-effect.grey(type='submit', disabled='true') submit
+    else
+      button#submit.btn.waves-effect.grey(type='submit') submit
+       i.material-icons.right send    

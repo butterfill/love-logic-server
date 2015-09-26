@@ -10,10 +10,10 @@ isTranslationToEn = false
 
 
 # ========
-# Template: trans_ex_question
+# Template: trans_ex_display_question
 # (This is a fragment that is used both for students and graders)
 
-Template.trans_ex_question.helpers
+Template.trans_ex_display_question.helpers
   isTranslationToEn : () ->
     return checkIfTranslationToEn()
   predicates : () -> getPredicatesFromParams()
@@ -34,6 +34,11 @@ checkIfTranslationToEn = () ->
     return true
   catch error
     return false
+
+getPredicatesFromParams = () ->
+  raw = decodeURIComponent(FlowRouter.getParam('_predicates')).split('|')
+  predicates = (extractPredicteFromParam(p) for p in raw)
+  return predicates
 
 # Predicates are like `Red1` (arity=1, uses the default descriptino)
 # or `Between3-xIsBetweenYAndZ`
@@ -60,11 +65,6 @@ extractPredicteFromParam = (rawPredicate) ->
   description = "#{name}(#{variables[0..arity-1]}) : #{predicateDescription}"
   return {name, arity, description}
 
-getPredicatesFromParams = () ->
-  raw = decodeURIComponent(FlowRouter.getParam('_predicates')).split('|')
-  predicates = (extractPredicteFromParam(p) for p in raw)
-  return predicates
-
 getDomainFromParams = () ->
   parts = decodeURIComponent(FlowRouter.getParam('_domain')).split('|')
   if parts.length > 1
@@ -81,31 +81,6 @@ getDomainFromParams = () ->
 
 # ========
 # Template: trans_ex
-
-
-Template.trans_ex.onCreated () ->
-  self = this
-  self.autorun () ->
-    exerciseId = ix.getExerciseId()
-    self.subscribe 'submitted_exercise', exerciseId
-
-
-
-# -------------
-# Template helpers
-
-  
-Template.trans_ex.helpers
-  # Helpers that are common to several templates
-  isSubmitted : () ->
-    return ix.isSubmitted()
-  dateSubmitted : () ->
-    return ix.dateSubmitted()
-  isMachineFeedback : () ->
-    return ix.getSubmission().machineFeedback?
-  machineFeedback : () ->
-    return ix.getSubmission().machineFeedback.comment
-
 
 # -------------
 # User interactions
@@ -138,13 +113,14 @@ checkAnswer = () ->
   Session.set 'answer', rawAnswer
   if not isTranslationToEn
     if not isAnswerFOLsentence()
-      giveFeedback "Your answer is not a correct sentence of awFOL. (#{error})"
+      giveFeedback "Your answer is not a correct sentence of awFOL."
   return undefined
 
 
 
 Template.trans_ex.onRendered () ->
   # Configure the editor
+  # TODO : switch to a component (this isn’t destroyed properly!)
   editor = CodeMirror.fromTextArea($('#editor')[0], {
     theme : 'blackboard'
     smartIndent : true
@@ -168,23 +144,30 @@ Template.trans_ex.events
   'click button#submit' : (event, template) ->
     answer = editor.getValue()
     isFOLsentence = isAnswerFOLsentence()
-    answerFOL = undefined
+    answerFOLstring = undefined
     answerPNFSimplifiedSorted = undefined
     machineFeedback = {
       isFOLsentence : isFOLsentence
     }
     if machineFeedback.isFOLsentence
       answerFOLobject = getAnswerAsFOLsentence()
-      answerPNFsimplifiedSorted = answerFOLobject.convertToPNFsimplifyAndSort().toString({replaceSymbols:true})
-      answerFOL = answerFOLobject.toString({replaceSymbols:true})
-      machineFeedback.comment = "Your answer is a sentence of awFOL. I couldn’t tell whether it is correct."
+      answerFOLstring = answerFOLobject.toString({replaceSymbols:true})
+      freeVariables = answerFOLobject.getFreeVariableNames()
+      machineFeedback.hasFreeVariables = (freeVariables.length isnt 0)
+      if not machineFeedback.hasFreeVariables
+        answerPNFsimplifiedSorted = answerFOLobject.convertToPNFsimplifyAndSort().toString({replaceSymbols:true})
+        machineFeedback.comment = "Your answer is a sentence of awFOL. I couldn’t tell whether it is correct."
+      else 
+        machineFeedback.comment = "Your answer is a sentence of awFOL but it cannot be correct because it contains free variables (#{freeVariables}).  Have you forgotten a quantifier or made a mistake with brackets?"
+        machineFeedback.isCorrect = false
     else
       machineFeedback.comment = "Your answer is incorrect because it is not a sentence of awFOL."
+      machineFeedback.isCorrect = false
     ix.submitExercise({
         answer : 
           type : 'trans'
           content : editor.getValue()
-          answerFOL : answerFOL
+          answerFOL : answerFOLstring
           answerPNFsimplifiedSorted : answerPNFsimplifiedSorted
         machineFeedback : machineFeedback
       }, () ->
@@ -192,9 +175,10 @@ Template.trans_ex.events
         Materialize.toast "Your translation has been submitted.", 4000
     )
 
+  # This is called from a sub-template in which the data context is a `SubmittedExercise`
   'click #view-answer' : (event, template) ->
-    submission = ix.getSubmission()
-    editor.setValue(submission.answer.content)
+    giveFeedback ""
+    editor.setValue(@answer.content)
 
   'click #convert-to-symbols' : (event, template) ->
     answer = editor.getValue()
@@ -205,42 +189,5 @@ Template.trans_ex.events
       return
     giveFeedback ""
     editor.setValue( answerFOL.toString({replaceSymbols:true}) )
-  
-  'click .next-exercise' : (event, template) ->
-    ctx = ix.getExerciseContext()
-    return unless ctx?.next?
-    qs = ix.queryString()
-    if qs
-      queryString = "?#{qs}"
-    else
-      queryString = ""
-    Router.go("#{ctx.next}#{queryString}")
 
 
-
-# =====================
-# Template; trans_ex_grade
-
-
-Template.trans_ex_grade.onCreated () ->
-  self = this
-  self.autorun () ->
-    exerciseId = ix.getExerciseId()
-    self.subscribe 'submitted_answers', exerciseId
-    self.subscribe 'courses'
-
-  
-Template.trans_ex_grade.helpers
-  isAnswers : () ->
-    return SubmittedExercises.find().count() >0
-  
-  answers : () ->
-    return SubmittedExercises.find()
-
-
-Template.trans_ex_grade.events
-  "blur .human-comment" : (event, template) ->
-    console.log this #template.currentData().answer.answerFOL
-    console.log "blur"
-
-    

@@ -1,0 +1,49 @@
+
+//- Although this isn’t strictly a help template, it uses the same data and helpers.
+template(name='topic_header')
+  if variant
+    p Topic:
+      em #{unitTitle}
+      span --- 
+      a(href='/course/#{courseName}/exercise-set/#{variant}')  #{variant} exercises for #{courseName}
+
+
+template(name="help_with_this_exercise")
+  if slidesForThisUnit
+    h4 Help with this exercise
+    p 
+      span Review the 
+      a(href="#{slidesForThisUnit}", target="_blank") lecture slides on 
+        em #{unitTitle}
+      if readingForThisUnit
+        span  and read #{readingForThisUnit}
+      span .
+
+
+template(name="ask_for_help")
+  button#request-help.btn.waves-effect.grey(data-target="request-help_modal") ask for help
+   i.material-icons.right live_help
+
+  #request-help_modal.modal
+    .modal-content
+      h4 Ask for help
+      form
+        if slidesForThisUnit
+          p 
+            input(type='checkbox', id='reviewed-lecture-slides')
+            label(for='reviewed-lecture-slides') I have reviewed the 
+              a(href="#{slidesForThisUnit}", target="_blank") lecture slides on 
+                em #{unitTitle}
+        if readingForThisUnit
+          p 
+            input(type='checkbox', id='read-textbook')
+            label(for='read-textbook') I have read #{readingForThisUnit}
+        .input-field
+          textarea.materialize-textarea(id='request-for-help-description')
+          label(for='request-for-help-description') Please describe what you are stuck on.
+        p
+          em Please note that requests for help may go unanswered outside of the weeks in which lectures are given for your course.
+    .modal-footer
+      a(href="").modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel
+      a(href="")#confirm-request-help.modal-action.modal-close.waves-effect.waves-grey.btn-flat send
+

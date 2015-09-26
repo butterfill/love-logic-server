@@ -1,6 +1,21 @@
 
 
 template(name='main')
+  if hasSubscriptions
+    h3 Exercises
+    ul.collection
+    each subscriptions
+      li.collection-item
+        a(href="/course/#{courseName}/exercise-set/#{variant}") The ‘#{variant}’ exercises for #{courseName}
+    
+    .row: .col.s12
+      .right
+        a.btn.waves-effect.grey.darken-1(href="/courses") 
+          | Follow another exercise set
+
+    .divider
+    
+
   .row
     if hasNewHelpRequestAnswers
       .col.s12.m6.l4
@@ -11,14 +26,14 @@ template(name='main')
             .card-action: .right
               a.waves-effect.blue-text See answer
   
-    if hasNewMarks
+    if hasNewGrades
       .col.s12.m6.l4
         .card
           .card-content
-            span.card-title.black-text Marks 
-            p Some of your work has been marked.
+            span.card-title.black-text Grades 
+            p Some of your work has been graded.
             .card-action: .right
-              a.waves-effect.blue-text See marks
+              a(href="#{nextUnseenFeedbackLink}").waves-effect.blue-text See grades
   
     .col.s12.m6.l4
       .card
@@ -40,6 +55,13 @@ template(name='main')
           p Your email address is #{emailAddress}.  If this is not your university or college email address, your progress may not be recorded.
           .card-action: .right
             a.waves-effect.blue-text Change email 
+    .col.s12.m6.l4
+      .card
+        .card-content
+          span.card-title.black-text Backup 
+          p Please print or otherwise store a copy of the work you have submitted in case this service fails.
+          .card-action: .right
+            a(href='/mySubmittedExercises').waves-effect.blue-text View work
     if hasNoSubscriptions
       .col.s12.m6.l4
         .card
@@ -50,16 +72,3 @@ template(name='main')
               a.waves-effect.blue-text(href="/courses")  Select an exercise set
 
   
-  if hasSubscriptions
-    h3 Your exercise sets
-    ul.collection
-    each subscriptions
-      li.collection-item
-        a(href="/course/#{courseName}/exercise-set/#{variant}") The ‘#{variant}’ exercises for #{courseName}
-    
-    .row: .col.s12
-      .right
-        a.btn.waves-effect.grey.darken-1(href="/courses") 
-          | Follow another exercise set
-
-

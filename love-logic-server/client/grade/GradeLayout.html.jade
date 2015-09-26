@@ -1,0 +1,77 @@
+template(name="GradeLayout")
+
+  //- Display something like ‘Topic: Rules of Proof for Identity --- normal exercises for UK_W20_PH126’
+  +topic_header
+  
+  //- +trans_ex_question
+  +Template.dynamic(template=displayQuestion)
+
+  if Template.subscriptionsReady
+    if isAnswers
+      each answers
+        h4 #{ownerName} &lsaquo;#{email}&rsaquo;
+        p Submitted #{dateSubmitted}:
+        +Template.dynamic(template=displayAnswer)
+        //- p.monospace.grey.lighten-2
+        //-   if answer.answerFOL
+        //-     | #{answer.answerFOL}
+        //-   else
+        //-     | #{answer.content}
+          
+        if isMachineFeedback
+          p Machine says: #{machineFeedback.comment}
+        +grading_form
+        .divider
+    else
+      h4 None of your students have answered this question yet.
+  else
+    p loading submitted answers ...
+    
+  +next_exercise
+  
+template(name='grading_form')    
+  form
+    p #{ownerName}’s answer is:
+      if isCorrectnessDetermined
+        span #{rightOrWrong}
+        if canDeleteCorrectness
+          a.changeCorrectness.waves-effect 
+            i.material-icons mode_edit
+      else
+        ul
+          li
+            input.correct.markCorrectness.with-gap.grey.waves-effect(name="grade", type="radio",id="correct_for_#{theId}")
+            label(for="correct_for_#{theId}") correct
+          li
+            input.incorrect.markCorrectness.with-gap.grey.waves-effect(name="grade", type="radio",id="incorrect_for_#{theId}")
+            label(for="incorrect_for_#{theId}") incorrect
+          li
+            input.dontknow.with-gap.grey.waves-effect(name="grade", type="radio",id="dontknow_for_#{theId}")
+            label(for="dontknow_for_#{theId}") I don’t know
+      if isHumanFeedbackComment
+        p #{humanFeedback.comment}
+          if canDeleteHumanFeedbackComment
+            a.editComment.waves-effect 
+              i.material-icons mode_edit
+          else
+            a.addComment.modal-trigger.waves-effect(data-target="modal_add_comment_for_#{theId}") 
+              i.material-icons add_circle_outline
+            div(id="modal_add_comment_for_#{theId}").modal
+              .modal-content
+                h4 Add comment
+                p #{humanFeedback.comment}
+                .input-field
+                  label(for="add_comment_for_#{#{theId}}") Comments to #{ownerName}:
+                  textarea.materialize-textarea(id="add_comment_for_#{theId}") 
+                p
+                  em You cannot delete the existing comment because the student has seen it.
+              .modal-footer
+                a.add-human-comment.modal-action.modal-close.waves-effect.waves-grey.btn-flat(data-textarea="add_comment_for_#{theId}") done
+                a.modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel
+      else
+        //- humanFeedback not yet given
+        .input-field
+          label(for="comment_for_#{theId}") Comments to #{ownerName}:
+          textarea.materialize-textarea.human-comment(id="comment_for_#{theId}") #{feedbackTextareaContent}
+      
+  

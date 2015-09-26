@@ -7,6 +7,10 @@ Template.main.onCreated () ->
   self = this
   self.autorun () ->
     self.subscribe('subscriptions')
+    self.subscribe('next_exercise_with_unseen_feedback')
+
+getNextExercisesWithUnseenFeedback = () ->
+  return SubmittedExercises.findOne({ $and:[{owner:Meteor.userId()}, {'humanFeedback.studentSeen':false}] })
 
 Template.main.helpers
   hasSubscriptions : () ->
@@ -21,8 +25,13 @@ Template.main.helpers
   seminarTutor : () ->
     return "Ayesha Beatrix"
   
-  hasNewMarks : () ->
-    return true
+  hasNewGrades : () ->
+    return getNextExercisesWithUnseenFeedback()?
+  nextUnseenFeedbackLink : () ->
+    ex = getNextExercisesWithUnseenFeedback()
+    link = ex.exerciseId
+    return link
+  
   hasNewHelpRequestAnswers : () ->
     return true
   

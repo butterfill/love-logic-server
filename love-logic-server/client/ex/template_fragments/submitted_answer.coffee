@@ -1,0 +1,47 @@
+
+doSubscriptions = (self, onReady) ->
+  self ?= this
+  onReady ?= () ->
+  self.autorun () ->
+    # We need to `watchPathChange` so that the CodeMirror thing gets updated.
+    FlowRouter.watchPathChange()
+    exerciseId = ix.getExerciseId()
+    self.subscribe 'submitted_exercise', exerciseId, {onReady}
+
+Template.submit_btn.onCreated doSubscriptions
+Template.submitted_answer.onCreated () ->
+  doSubscriptions(this, ()->
+    # Record that the user has seen the feedback (or at least opened the page containing it)
+    exerciseId = ix.getExerciseId()
+    q = $and:[
+      {exerciseId}
+      {'humanFeedback.studentSeen':false}
+    ]
+    exWithUnseenFeedback = SubmittedExercises.find(q)
+    if exWithUnseenFeedback.count() > 0 
+      for ex in exWithUnseenFeedback.fetch()
+        Meteor.call "studentSeenFeedback", ex
+  )
+
+isSubmitted = () ->
+  exerciseId = ix.getExerciseId()
+  return SubmittedExercises.find({exerciseId}).count() > 0
+
+
+Template.submitted_answer.helpers    
+  isSubmitted : isSubmitted 
+  submittedAnswers : () ->
+    exerciseId = ix.getExerciseId()
+    return SubmittedExercises.find({exerciseId}, {sort:{'created':-1}})
+  dateSubmitted : () ->
+    return moment(@created).fromNow()
+  isCorrectnessDetermined : () ->
+    return @humanFeedback?.isCorrect? or @machineFeedback?.isCorrect?
+  # Only call this after establishing `isCorrectnessDetermined`
+  rightOrWrong : () ->
+    if @humanFeedback?.isCorrect?
+      return ("correct" if @humanFeedback.isCorrect) or "incorrect"
+    return ("correct" if @machineFeedback.isCorrect) or "incorrect"
+
+Template.submit_btn.helpers    
+  isSubmitted : isSubmitted 

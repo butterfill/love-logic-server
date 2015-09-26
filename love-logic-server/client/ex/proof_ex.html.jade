@@ -1,8 +1,41 @@
 template(name='proof_ex')
-  if variant
-    p Topic:
-      em #{unitTitle}
-      span --- #{variant} exercises for #{courseName}
+
+  //- Display something like ‘Topic: Rules of Proof for Identity --- normal exercises for UK_W20_PH126’
+  +topic_header
+  
+  +proof_ex_display_question
+  
+  if Template.subscriptionsReady 
+    | {{> CodeMirror id="editor"  name="editor" options=editorOptions editorCode=editorContent reactiveVar="codeMirrorContent" getEditorObj=getEditorObj}}
+  else
+    p loading ...
+    
+  p#feedback .
+    i.material-icons error_outline
+
+  +submitted_answer
+
+  +help_with_this_exercise
+
+  .left
+    button#reset.btn.modal-trigger.waves-effect.grey(data-target="reset_modal") reset
+    #reset_modal.modal
+      .modal-content
+        h4 Reset your work on this proof?
+        p You really want to start again?
+      .modal-footer
+        a(href="")#reset-confirm.modal-action.modal-close.waves-effect.waves-grey.btn-flat yes, reset
+        a(href="").reset-abort.modal-action.modal-close.waves-effect.waves-grey.btn-flat no!
+        
+  
+  .right
+    button#checkProof.btn.waves-effect.grey check all
+    +ask_for_help
+    +submit_btn
+        
+  +next_exercise
+
+template(name="proof_ex_display_question")
   h2 Write a proof
   
   .row
@@ -20,64 +53,10 @@ template(name='proof_ex')
       h4 conclusion
       ul.collection
         li.collection-item #{conclusion}
-  
-  if Template.subscriptionsReady 
-    | {{> CodeMirror id="editor"  name="editor" options=editorOptions editorCode=editorContent reactiveVar="codeMirrorContent" getEditorObj=getEditorObj}}
-  else
-    p loading ...
+
+
+template(name="proof_ex_display_answer")
+  p.monospace.grey.lighten-2 
+    each answerLines
+      .grey.lighten-2(style='padding-left:2px;padding-right:2px;margin-bottom:-4px;') #{line}
     
-  .row
-    .col.s6
-      p#feedback .
-        i.material-icons error_outline
-  
-    if Template.subscriptionsReady
-      .col.s6
-        if isSubmitted
-          p.right You submitted an answer #{dateSubmitted}.
-            span [
-            a#view-answer.waves-effect load answer
-            span ]
-            if isMachineFeedback
-              span  Machine says: #{machineFeedback}
-            //- if isTutorFeedback
-            //-   span  #{tutorName} says: #{tutorFeedback}
-
-  .help
-    if slidesForThisUnit
-      h4 Help with this exercise
-      p 
-        span Review the 
-        a(href="#{slidesForThisUnit}", target="_blank") lecture slides
-        if readingForThisUnit
-          span  and read #{readingForThisUnit}
-        span .
-  
-
-  .left
-    button#reset.btn.modal-trigger.waves-effect.grey(data-target="reset_modal") reset
-    #reset_modal.modal
-      .modal-content
-        h4 Reset your work on this proof?
-        p You really want to start again?
-      .modal-footer
-        a(href="")#reset-confirm.modal-action.modal-close.waves-effect.waves-grey.btn-flat yes, reset
-        a(href="").reset-abort.modal-action.modal-close.waves-effect.waves-grey.btn-flat no!
-        
-  
-  .right
-    button#checkProof.btn.waves-effect.grey check all
-    button#request-help.btn.waves-effect.grey request help
-     i.material-icons.right live_help
-    if Template.subscriptionsReady
-      if isSubmitted
-        button#submit.btn.waves-effect.grey(type='submit', disabled='true') submit
-      else
-        button#submit.btn.waves-effect.grey(type='submit') submit
-         i.material-icons.right send
-  
-  if Template.subscriptionsReady
-    if isNextExercise
-      .right
-        p.huge-glow-20
-          p.next-exercise.btn-flat.waves-effect(style="color:white;") next exercise >

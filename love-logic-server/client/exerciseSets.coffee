@@ -44,6 +44,14 @@ Template.exerciseSet.onCreated () ->
     self.subscribe('submitted_exercises')
     self.subscribe('subscriptions')
 
+
+isSubmitted = (exerciseLink) ->
+  exerciseId = ix.convertToExerciseId(exerciseLink)
+  return ( SubmittedExercises.find({exerciseId}).count() > 0 )
+dateSubmitted = (exerciseLink) ->
+  exerciseId = ix.convertToExerciseId(exerciseLink)
+  return SubmittedExercises.findOne({exerciseId}, {sort:{created:-1}}).created
+
 Template.exerciseSet.helpers
   courseName : () ->
     return getCourseName() 
@@ -62,8 +70,8 @@ Template.exerciseSet.helpers
           {
             name:e
             link:ix.convertToExerciseId(e)
-            isSubmitted:ix.isSubmitted(e)
-            dateSubmitted:ix.dateSubmitted(e)
+            isSubmitted:isSubmitted(e)
+            dateSubmitted:(moment(dateSubmitted(e)).fromNow() if isSubmitted(e))
           } for e in unit.rawExercises
         )
         if unit.rawReading?.length >0

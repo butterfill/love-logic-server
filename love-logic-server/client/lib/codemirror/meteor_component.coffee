@@ -2,7 +2,6 @@
 #
 # Modified from https://github.com/perak/codemirror/blob/master/lib/component/component.js
 
-# TODO: move the subscription to workinprogress here (if we're using that)
 # Template.CodeMirror.onCreated = ->
 
 Template.CodeMirror.rendered = () ->
@@ -35,6 +34,9 @@ Template.CodeMirror.helpers
     @id or 'code-mirror-textarea'
   'editorName': () ->
     @name or 'code-mirror-textarea'
+
+
+
 
 
 # TODO: enchanced for sentences of FOL: includes a feedback line

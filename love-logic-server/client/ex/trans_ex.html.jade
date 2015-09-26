@@ -3,7 +3,7 @@
 
 template(name="trans_ex")
 
-  +trans_ex_question
+  +trans_ex_display_question
 
   h4 your answer
   textarea#editor 
@@ -11,71 +11,22 @@ template(name="trans_ex")
   .row
     .col.s12
       p#feedback
-  
-  if Template.subscriptionsReady 
-    if isSubmitted
-      p.right You submitted an answer #{dateSubmitted}.
-        span [
-        a#view-answer.waves-effect load answer
-        span ]
-        if isMachineFeedback
-          br
-          span.right  Machine says: #{machineFeedback}
-          //- if isTutorFeedback
-          //-   span  #{tutorName} says: #{tutorFeedback}
-    
+
+  +submitted_answer  
+
+  +help_with_this_exercise
+
   .row: .col.s12
     .left
       button#convert-to-symbols.btn.waves-effect.grey convert to symbols
     .right
-      button#request-help.btn.waves-effect.grey request help
-       i.material-icons.right live_help
-      if isSubmitted
-        button#submit.btn.waves-effect.grey(type='submit', disabled='true') submit
-      else
-        button#submit.btn.waves-effect.grey(type='submit') submit
-         i.material-icons.right send
+      +ask_for_help
+      +submit_btn
   
-    if isNextExercise
-      .right
-        p.huge-glow-20
-          p.next-exercise.btn-flat.waves-effect(style="color:white;") next exercise >
+  +next_exercise
 
-
-
-
-template(name="trans_ex_grade")
-
-  +trans_ex_question
-
-  if Template.subscriptionsReady
-    if isAnswers
-      each answers
-        h4 #{ownerName} &lsaquo;#{email}&rsaquo;
-        p.monospace #{answer.answerFOL}
-        if isMachineFeedback
-          p Machine says: #{machineFeedback.comment}
-        +grading_form
-    else
-      h4 None of your students have answered this question yet.
-  else
-    p loading submitted answers ...
-
-template(name='grading_form')    
-  form
-    p #{ownerName}’s answer is:
-      input.with-gap.grey.waves-effect(name="grade", type="radio",id="correct")
-      label(for="correct") correct
-      input.with-gap.grey.waves-effect(name="grade", type="radio",id="incorrect")
-      label(for="incorrect") incorrect
-      input.with-gap.grey.waves-effect(name="grade", type="radio",id="dontknow")
-      label(for="dontknow") I don’t know
-    .input-field
-      textarea.materialize-textarea.human-comment(data-submission-id="#{_id}",id="comment_for_#{#{_id}}") 
-      label(for="comment_for_#{#{_id}}") Comments to #{ownerName}:
-  
                 
-template(name="trans_ex_question")
+template(name="trans_ex_display_question")
   if isTranslateToEn
     h2 Translate awFOL to English
   else
@@ -103,3 +54,13 @@ template(name="trans_ex_question")
       ul.collection
         li.collection-item #{sentence}
   
+
+
+template(name="trans_ex_display_answer")
+  p.monospace.grey.lighten-2 
+    if answer.answerFOL
+      | #{answer.answerFOL}
+    else
+      | #{answer.content}
+    
+

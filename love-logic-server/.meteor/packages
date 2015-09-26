@@ -14,3 +14,5 @@ momentjs:moment
 kadira:blaze-layout
 kadira:flow-router
 useraccounts:flow-routing
+reactive-var
+meteorhacks:aggregate
