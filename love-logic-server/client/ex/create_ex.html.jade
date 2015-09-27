@@ -1,0 +1,65 @@
+template(name='create_ex')
+  +topic_header
+
+  +create_ex_display_question
+
+  h4 ... by creating a possible situation.
+
+  .grey(style='padding:10px')
+    .grid-stack
+      .grid-stack-item(data-gs-x="1", data-gs-y="1", data-gs-width="2", data-gs-height="4", data-gs-max-width="4")
+        .grid-stack-item-content.white 
+          .face 
+            span.eyes :
+            span.nose -
+            span.mouth )
+          .center 
+            .input-field
+              input(placeholder="[no name]", type="text") 
+      .grid-stack-item(data-gs-x="4", data-gs-y="1", data-gs-width="2", data-gs-height="2")
+        .grid-stack-item-content.yellow.lighten-2 
+          .face 
+            span.eyes :
+            span.nose -
+            span.mouth ()
+          .input-field
+            input(placeholder="[no name]", type="text") 
+      .grid-stack-item(data-gs-x="4", data-gs-y="1", data-gs-width="2", data-gs-height="2")
+        .grid-stack-item-content.green.lighten-2
+          .face 
+            span.eyes {;
+            span.nose -
+            span.mouth {}
+          .input-field
+            input(placeholder="[no name]", type="text") 
+            label name
+            
+  p#feedback .
+    i.material-icons error_outline
+      
+  +submitted_answer
+
+  +help_with_this_exercise
+
+  .right
+    +ask_for_help
+    +submit_btn
+        
+  +next_exercise
+
+template(name="create_ex_display_question")
+  h2 Create a possible situation
+  
+  h4 Make these sentences true ...
+  ul.collection
+    each sentences
+      li.collection-item 
+        span #{theSentence}
+        span ---
+        span.sentenceIsTrue.red-text F
+
+
+template(name="create_ex_display_answer")
+  p.monospace.grey.lighten-2 
+    p TODO!
+    

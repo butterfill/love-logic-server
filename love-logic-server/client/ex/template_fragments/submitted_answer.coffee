@@ -45,3 +45,10 @@ Template.submitted_answer.helpers
 
 Template.submit_btn.helpers    
   isSubmitted : isSubmitted 
+
+Template.submitted_answer.events
+  # This is called from a sub-template in which the data context is a `SubmittedExercise`
+  'click #view-answer' : (event, template) ->
+    # The special session variable holds the value displayed in an editor
+    ix.setAnswer(@answer.content)
+

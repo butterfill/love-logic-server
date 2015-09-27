@@ -335,8 +335,136 @@ global.proof = proof;
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../fol":5,"../proofs/proof":18}],5:[function(require,module,exports){
-var _, _decorate, awFOL, match, normalForm, parse, substitute, util;
+},{"../fol":6,"../proofs/proof":19}],5:[function(require,module,exports){
+var Evaluator, _, evaluate, fol;
+
+_ = require('lodash');
+
+fol = require('./parser/awFOL');
+
+evaluate = function(sentenceText, world) {
+  var e;
+  e = new Evaluator(sentenceText, world);
+  return e.evaluate();
+};
+
+Evaluator = function(sentenceText, world1) {
+  this.world = world1;
+  if (_.isString(sentenceText)) {
+    this.sentence = fol.parse(sentenceText);
+  } else {
+    this.sentence = sentenceText;
+  }
+  this.varStack = {};
+  return this;
+};
+
+Evaluator.prototype.logSentence = function() {
+  return console.log("sentence " + (JSON.stringify(this.sentence, null, 4)));
+};
+
+Evaluator.prototype.evaluate = function(sentence) {
+  var boundVariable, predicate, predicateExtension, self, test, theTest, valuesOfPredicateTerms, variableName, x;
+  sentence = sentence != null ? sentence : this.sentence;
+  if (sentence.type === 'value') {
+    return sentence.value;
+  }
+  if (sentence.type === 'and') {
+    return this.evaluate(sentence.left) && this.evaluate(sentence.right);
+  }
+  if (sentence.type === 'nand') {
+    return !(this.evaluate(sentence.left) && this.evaluate(sentence.right));
+  }
+  if (sentence.type === 'or') {
+    return this.evaluate(sentence.left) || this.evaluate(sentence.right);
+  }
+  if (sentence.type === 'nor') {
+    return !(this.evaluate(sentence.left) || this.evaluate(sentence.right));
+  }
+  if (sentence.type === 'not') {
+    return !this.evaluate(sentence.left);
+  }
+  if (sentence.type === 'arrow') {
+    return (!this.evaluate(sentence.left)) || this.evaluate(sentence.right);
+  }
+  if (sentence.type === 'double_arrow') {
+    return this.evaluate(sentence.left) === this.evaluate(sentence.right);
+  }
+  if (sentence.type === 'sentence_letter') {
+    return this.world[sentence.letter];
+  }
+  if (sentence.type === 'predicate' || sentence.type === 'identity') {
+    predicate = sentence;
+    if (predicate.type === 'identity') {
+      predicateExtension = (function() {
+        var i, len, ref, results;
+        ref = this.world.domain;
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          x = ref[i];
+          results.push([x, x]);
+        }
+        return results;
+      }).call(this);
+    } else {
+      predicateExtension = this.world.predicates[predicate.name];
+    }
+    valuesOfPredicateTerms = this.instantiate_terms(predicate.termlist);
+    test = _.where(predicateExtension, valuesOfPredicateTerms);
+    return test.length > 0;
+  }
+  if (sentence.type === 'existential_quantifier' || sentence.type === 'universal_quantifier') {
+    boundVariable = sentence.boundVariable;
+    variableName = boundVariable.name;
+    if (!(variableName in this.varStack)) {
+      this.varStack[variableName] = [];
+    }
+    self = this;
+    if (sentence.type === 'existential_quantifier') {
+      theTest = _.some;
+    }
+    if (sentence.type === 'universal_quantifier') {
+      theTest = _.all;
+    }
+    return theTest(this.world.domain, function(object) {
+      var res;
+      self.varStack[variableName].push(object);
+      res = self.evaluate(sentence.left);
+      self.varStack[variableName].pop();
+      return res;
+    });
+  }
+  throw new Error("e (evaluate inner) could not evaluate sentence " + (JSON.stringify(sentence, null, 4)));
+};
+
+Evaluator.prototype.instantiate_terms = function(termlist) {
+  var i, len, res, term, variable;
+  res = [];
+  for (i = 0, len = termlist.length; i < len; i++) {
+    term = termlist[i];
+    if (term.type === 'name') {
+      if (!(term.name in this.world.names)) {
+        throw new Error("The name " + term.name + " is not defined in this world.");
+      }
+      res.push(this.world.names[term.name]);
+    } else if (term.type === 'variable') {
+      variable = term;
+      if (!(variable.name in this.varStack)) {
+        throw new Error("The variable " + variable.name + " is not bound by any quantifier.");
+      }
+      res.push(_.last(this.varStack[variable.name]));
+    } else {
+      throw new Error("Encountered a term of unknown type: " + (JSON.stringify(term, null, 4)));
+    }
+  }
+  return res;
+};
+
+exports.evaluate = evaluate;
+
+
+},{"./parser/awFOL":10,"lodash":8}],6:[function(require,module,exports){
+var _, _decorate, awFOL, evaluate, match, normalForm, parse, substitute, util;
 
 _ = require('lodash');
 
@@ -349,6 +477,8 @@ match = require('./match');
 substitute = require('./substitute');
 
 normalForm = require('./normal_form');
+
+evaluate = require('./evaluate');
 
 parse = function(text) {
   var e;
@@ -472,11 +602,14 @@ _decorate = function(expression) {
       })();
       return unboundVariables;
     };
-    return e.convertToPNFsimplifyAndSort = function() {
+    e.convertToPNFsimplifyAndSort = function() {
       var newE;
       newE = normalForm.convertToPNFsimplifyAndSort(expression);
       _decorate(newE);
       return newE;
+    };
+    return e.evaluate = function(world) {
+      return evaluate.evaluate(e, world);
     };
   };
   util.walk(expression, walker);
@@ -486,7 +619,7 @@ _decorate = function(expression) {
 exports._decorate = _decorate;
 
 
-},{"./match":6,"./normal_form":8,"./parser/awFOL":9,"./substitute":20,"./util":21,"lodash":7}],6:[function(require,module,exports){
+},{"./evaluate":5,"./match":7,"./normal_form":9,"./parser/awFOL":10,"./substitute":21,"./util":22,"lodash":8}],7:[function(require,module,exports){
 var _, _addSubToEverySentence, _addSubToEveryTerm, _addSubToEveryX, _applyOneSubstitution, _applyOrSkipSubstitutions, _canApplySubAtInnermostPoint, _isTermSub, _moveAllSubsInwards, _pullSub, _removeInefficaciousSubs, _skipOneSubstitution, apply, doAfterApplyingSubstitutions, find, findWithoutApplyingSubs, util,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -812,7 +945,7 @@ apply = function(pattern, matches, o) {
 exports.apply = apply;
 
 
-},{"./util":21,"lodash":7}],7:[function(require,module,exports){
+},{"./util":22,"lodash":8}],8:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -13167,7 +13300,7 @@ exports.apply = apply;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var _, _getVariableOrder, areExpressionsEquivalent, arePNFExpressionsEquivalent, arePrefixedQuantifiersEquivalent, attachExpressionToQuantifiers, convertToPNFsimplifyAndSort, eliminateRedundancyInPNF, getPrefixedQuantifiers, isPNF, isVariableFree, listJuncts, listQuants, match, prenexNormalForm, rebuildExpression, removeQuantifiers, removeQuantifiersThatBindNothing, renameVariables, sortIdentityStatements, sortJuncts, sortListOfJuncts, sortPNFExpression, substitute, util,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -13654,7 +13787,7 @@ removeQuantifiersThatBindNothing = function(expression) {
 exports.removeQuantifiersThatBindNothing = removeQuantifiersThatBindNothing;
 
 
-},{"./match":6,"./substitute":20,"./util":21,"lodash":7}],9:[function(require,module,exports){
+},{"./match":7,"./substitute":21,"./util":22,"lodash":8}],10:[function(require,module,exports){
 (function (process){
 /* parser generated by jison 0.4.15 */
 /*
@@ -14401,7 +14534,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }
 }).call(this,require('_process'))
-},{"_process":3,"fs":1,"path":2}],10:[function(require,module,exports){
+},{"_process":3,"fs":1,"path":2}],11:[function(require,module,exports){
 var PREMISE_JUSTIFICATION, _, _FIND_JUSTIFICATION, _isPremise, cleanNumber, findBlock, findLine, findLineOrBlock, getCitedBlocks, getCitedLines, getRuleName, jp, split, to;
 
 _ = require('lodash');
@@ -14656,7 +14789,7 @@ getCitedBlocks = function() {
 };
 
 
-},{"./add_line_numbers":11,"./justification_parser":17,"lodash":7}],11:[function(require,module,exports){
+},{"./add_line_numbers":12,"./justification_parser":18,"lodash":8}],12:[function(require,module,exports){
 var _, _DROP_TRAILING_DOTS_AND_BRACKET, _GET_NUMBER, cleanNumber, split, to,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -14754,7 +14887,7 @@ to = function(block) {
 exports.to = to;
 
 
-},{"lodash":7}],12:[function(require,module,exports){
+},{"lodash":8}],13:[function(require,module,exports){
 var fol, substitute, to, util;
 
 fol = require('../fol');
@@ -14792,7 +14925,7 @@ to = function(block) {
 exports.to = to;
 
 
-},{"../fol":5,"../substitute":20,"../util":21}],13:[function(require,module,exports){
+},{"../fol":6,"../substitute":21,"../util":22}],14:[function(require,module,exports){
 var LineStatus, fol, substitute, to, util;
 
 fol = require('../fol');
@@ -14901,7 +15034,7 @@ LineStatus = (function() {
 })();
 
 
-},{"../fol":5,"../substitute":20,"../util":21}],14:[function(require,module,exports){
+},{"../fol":6,"../substitute":21,"../util":22}],15:[function(require,module,exports){
 var _, _linesCitedAreOk, _parseProof, addJustification, addLineNumbers, addSentences, addStatus, blockParser, checkItAccordsWithTheRules, checkThisRule, theRules, to, verifyLine,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -15123,7 +15256,7 @@ checkThisRule = function(rule, line, result) {
 };
 
 
-},{"./add_justification":10,"./add_line_numbers":11,"./add_sentences":12,"./add_status":13,"./block_parser":15,"./fitch_rules":16,"lodash":7}],15:[function(require,module,exports){
+},{"./add_justification":11,"./add_line_numbers":12,"./add_sentences":13,"./add_status":14,"./block_parser":16,"./fitch_rules":17,"lodash":8}],16:[function(require,module,exports){
 var Block, _, _INDENTATION_AT_START_OF_LINE, _SPLIT_LINE_WHEN_INDENTATION_FIRST, _SPLIT_LINE_WHEN_NUMBER_FIRST, areLinesFormattedIndentationFirst, clean, extractIndentationAndContentFrom, isBlank, isDivider, parse, removeIndentationFrom, removeNumberFrom, split, util,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -15483,7 +15616,7 @@ Block = (function() {
 exports.Block = Block;
 
 
-},{"../util":21,"lodash":7}],16:[function(require,module,exports){
+},{"../util":22,"lodash":8}],17:[function(require,module,exports){
 var rule, rules;
 
 rule = require('./rule');
@@ -15545,7 +15678,7 @@ rules = {
 exports.rules = rules;
 
 
-},{"./rule":19}],17:[function(require,module,exports){
+},{"./rule":20}],18:[function(require,module,exports){
 (function (process){
 /* parser generated by jison 0.4.15 */
 /*
@@ -16276,7 +16409,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }
 }).call(this,require('_process'))
-},{"_process":3,"fs":1,"path":2}],18:[function(require,module,exports){
+},{"_process":3,"fs":1,"path":2}],19:[function(require,module,exports){
 var addJustification, addLineNumbers, addSentences, addStatus, addVerification, blockParser, parse;
 
 blockParser = require('./block_parser');
@@ -16292,7 +16425,7 @@ addStatus = require('./add_status');
 addVerification = require('./add_verification');
 
 parse = function(proofText) {
-  var block, e;
+  var block, e, proof;
   try {
     block = blockParser.parse(proofText);
     addLineNumbers.to(block);
@@ -16304,13 +16437,33 @@ parse = function(proofText) {
     e = _error;
     return e.message;
   }
-  return block;
+  proof = block;
+  proof.listErrorMessages = function() {
+    var errorMessages, walker;
+    errorMessages = [];
+    walker = {
+      visit: function(item) {
+        var errorMsg, lineName;
+        if ((item != null ? item.type : void 0) !== 'line') {
+          return void 0;
+        }
+        if (item.status.verified === false) {
+          lineName = item.number;
+          errorMsg = item.status.getMessage();
+          return errorMessages.push(lineName + ": " + errorMsg);
+        }
+      }
+    };
+    proof.walk(walker);
+    return errorMessages.join('\n');
+  };
+  return proof;
 };
 
 exports.parse = parse;
 
 
-},{"./add_justification":10,"./add_line_numbers":11,"./add_sentences":12,"./add_status":13,"./add_verification":14,"./block_parser":15}],19:[function(require,module,exports){
+},{"./add_justification":11,"./add_line_numbers":12,"./add_sentences":13,"./add_status":14,"./add_verification":15,"./block_parser":16}],20:[function(require,module,exports){
 var LineChecker, Pathfinder, RequirementChecker, _, _From, _notImplementedYet, _parseIfNecessaryAndDecorate, combinations, fol, from, numberToWords, permutations, premise, subproof, to, truthtable, util,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -16834,7 +16987,7 @@ exports.Pathfinder = Pathfinder;
 exports.LineChecker = LineChecker;
 
 
-},{"../fol":5,"../util":21,"lodash":7}],20:[function(require,module,exports){
+},{"../fol":6,"../util":22,"lodash":8}],21:[function(require,module,exports){
 var _, _subsForPNF, _subs_eliminate_redundancy, applySubstitutions, doSub, doSubRecursive, fol, from, k, match, replace, subsForPNF, subs_eliminate_redundancy, theSub, to, util, v;
 
 _ = require('lodash');
@@ -17129,7 +17282,7 @@ applySubstitutions = function(expression) {
 exports.applySubstitutions = applySubstitutions;
 
 
-},{"./match":6,"./parser/awFOL":9,"./util":21,"lodash":7}],21:[function(require,module,exports){
+},{"./match":7,"./parser/awFOL":10,"./util":22,"lodash":8}],22:[function(require,module,exports){
 var SYMBOLS, _, _delExtraneousProperties, _typeComparator, areIdenticalExpressions, atomicExpressionComparator, atomicSentenceTypes, cloneExpression, delExtraneousProperties, exhaust, expressionContainsSubstitutions, expressionHasSub, expressionToString, expressionTypes, find, listMetaVariableNames, listOfAtomicExpressionsComparator, listTerms, matchesToString, max, termComparator, termTypes, walk, walkCompare, walkMutate, walkMutateFindOne,
   hasProp = {}.hasOwnProperty;
 
@@ -17824,4 +17977,4 @@ expressionHasSub = function(expression, sub) {
 exports.expressionHasSub = expressionHasSub;
 
 
-},{"lodash":7}]},{},[4]);
+},{"lodash":8}]},{},[4]);

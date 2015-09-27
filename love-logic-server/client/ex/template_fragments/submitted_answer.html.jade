@@ -4,10 +4,10 @@ template(name="submitted_answer")
   if Template.subscriptionsReady 
     if isSubmitted
       each submittedAnswers
-        .row: .col.s12: .right You submitted an answer #{dateSubmitted}.
+        .row: .col.s12: .right You submitted an answer #{dateSubmitted}
           span [
           a#view-answer.waves-effect load answer
-          span ]
+          span ].
           if isCorrectnessDetermined
             span Your answer is #{rightOrWrong}.
            

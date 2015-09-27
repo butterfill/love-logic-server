@@ -5,20 +5,13 @@ template(name="trans_ex")
 
   +trans_ex_display_question
 
-  h4 your answer
-  textarea#editor 
-
-  .row
-    .col.s12
-      p#feedback
+  +editSentence editorId="awFOLeditor" sentenceIsAwFOL=sentenceIsAwFOL
 
   +submitted_answer  
 
   +help_with_this_exercise
 
   .row: .col.s12
-    .left
-      button#convert-to-symbols.btn.waves-effect.grey convert to symbols
     .right
       +ask_for_help
       +submit_btn

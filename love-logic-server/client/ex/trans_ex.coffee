@@ -1,8 +1,6 @@
 # Example URL:
 # http://localhost:3000/ex/trans/domain/3things/names/a=thing-1%7Cb=thing-2/predicates/Fish1-x-is-a-fish%7CBetween3-xIsBetweenYAndZ%7CRed1/sentence/At%20least%20two%20people%20are%20not%20fish
 
-Session.setDefault 'answer', ''
-
 editor = undefined  #This will be our codemirror thing.
 
 # This will be configured `.onRender`
@@ -85,14 +83,12 @@ getDomainFromParams = () ->
 # -------------
 # User interactions
 
-# Provide feedback to the user.
-giveFeedback = (message) ->
-  $('#feedback').text(message)
-giveMoreFeedback = (message) ->
-  $('#feedback').text("#{$('#feedback').text()}  #{message}")
+
+getAnswer = () ->
+  return Session.get(ix.getSessionKeyForUserExercise())
 
 isAnswerFOLsentence = () ->
-  rawAnswer = editor.getValue()
+  rawAnswer = ix.getAnswer()
   try 
     answer = fol.parse( rawAnswer.replace(/\n/g,' ') )
     return true
@@ -100,49 +96,38 @@ isAnswerFOLsentence = () ->
     return false
 
 getAnswerAsFOLsentence = () ->
-  rawAnswer = editor.getValue()
+  rawAnswer = ix.getAnswer()
   try 
     answer = fol.parse( rawAnswer.replace(/\n/g,' ') )
     return answer
   catch error
     return undefined
 
-checkAnswer = () ->
-  # Save the answer in the session.
-  rawAnswer = editor.getValue()
-  Session.set 'answer', rawAnswer
-  if not isTranslationToEn
-    if not isAnswerFOLsentence()
-      giveFeedback "Your answer is not a correct sentence of awFOL."
-  return undefined
 
 
 
 Template.trans_ex.onRendered () ->
-  # Configure the editor
-  # TODO : switch to a component (this isn’t destroyed properly!)
-  editor = CodeMirror.fromTextArea($('#editor')[0], {
-    theme : 'blackboard'
-    smartIndent : true
-    tabSize : 2
-    lineNumbers : false
-    autofocus : true
-    matchBrackets : true
-  })
-  answer  =  Session.get 'answer'
-  editor.setValue(answer)
-
   isTranslationToEn = checkIfTranslationToEn()
 
-  editor.on "keyHandled", (instance, name, event) ->
-    if name in ['Down','Up','Enter']
-      checkAnswer()
-
-
-
+Template.trans_ex.helpers 
+  'sentenceIsAwFOL' : () ->
+    return not checkIfTranslationToEn()
+    
 Template.trans_ex.events 
   'click button#submit' : (event, template) ->
-    answer = editor.getValue()
+    answer = ix.getAnswer()
+    
+    answerShouldBeEnglish = checkIfTranslationToEn()
+    if answerShouldBeEnglish
+      ix.submitExercise({
+          answer : 
+            type : 'trans'
+            content : answer
+        }, () ->
+          Materialize.toast "Your translation has been submitted.", 4000
+      )
+      return
+      
     isFOLsentence = isAnswerFOLsentence()
     answerFOLstring = undefined
     answerPNFSimplifiedSorted = undefined
@@ -166,28 +151,10 @@ Template.trans_ex.events
     ix.submitExercise({
         answer : 
           type : 'trans'
-          content : editor.getValue()
+          content : answer
           answerFOL : answerFOLstring
           answerPNFsimplifiedSorted : answerPNFsimplifiedSorted
         machineFeedback : machineFeedback
       }, () ->
-        giveFeedback "Your translation has been submitted."
         Materialize.toast "Your translation has been submitted.", 4000
     )
-
-  # This is called from a sub-template in which the data context is a `SubmittedExercise`
-  'click #view-answer' : (event, template) ->
-    giveFeedback ""
-    editor.setValue(@answer.content)
-
-  'click #convert-to-symbols' : (event, template) ->
-    answer = editor.getValue()
-    try
-      answerFOL = fol.parse( answer.replace(/\n/g,' ') )
-    catch error
-      giveFeedback "Your answer is not a correct sentence of awFOL. (#{error})"
-      return
-    giveFeedback ""
-    editor.setValue( answerFOL.toString({replaceSymbols:true}) )
-
-

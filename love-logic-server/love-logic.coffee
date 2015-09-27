@@ -42,8 +42,17 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
+# TODO: exercise - yes/no question (e.g. can logically valid argument have false premises)
+# TODO: exercise - (free text) state the definition of logically valid
+# TODO: exercise - build a scene where these sentences are true
+# TODO: exercise - build a scene which is a counterexample to this argument
+# TODO: exercise - truth table for sentence
+# TODO: exercise - truth tables for argument
 # TODO: exercise - specify the main connective (multiple choice)
 # TODO: exercise - write down the scopes of different operators.
+# TODO: exercise - state whether an argument (of awFOL or En) is valid.
+# TODO: exercise - is this sentence true in this world.
+# TODO: exercise - proof of, or counterexample to, argument
 
 # Write a proof exercise
 FlowRouter.route '/ex/proof/from/:_premises/to/:_conclusion',
@@ -58,6 +67,9 @@ FlowRouter.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicate
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'trans_ex'
 
+FlowRouter.route '/ex/create/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'create_ex'
 
 # ------
 # Grading (=marking) routes

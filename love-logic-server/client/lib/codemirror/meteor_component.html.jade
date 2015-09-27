@@ -1,0 +1,34 @@
+//- This can be used for both English and awFOL sentences; set param `sentenceIsAwFOL`
+template(name="editSentence")
+  h4 your answer
+  textarea(id="#{editorId}", style="display: none") {{defaultContent}}
+  .row
+    .col.s12
+      p#feedback
+  if sentenceIsAwFOL
+    .row: .col.s12
+      .left
+        button#convert-to-symbols.btn.waves-effect.grey convert to symbols
+
+
+template(name="editProof")
+  h4 your answer
+  
+  textarea(id="#{editorId}", style="display: none") 
+  .row
+    .col.s12
+      p#feedback
+      
+  .row: .col.s12
+    button#checkProof.btn.waves-effect.grey check
+    button#resetProof.btn.modal-trigger.waves-effect.grey(data-target="reset_modal") reset
+    #reset_modal.modal
+      .modal-content
+        h4 Reset your work on this proof?
+        p You really want to start again?
+      .modal-footer
+        a(href="")#resetProof-confirm.modal-action.modal-close.waves-effect.waves-grey.btn-flat yes, reset
+        a(href="").resetProof-abort.modal-action.modal-close.waves-effect.waves-grey.btn-flat no!
+
+  p#feedback .
+    i.material-icons error_outline

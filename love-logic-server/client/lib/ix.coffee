@@ -105,3 +105,65 @@ ix.getExerciseContext = () ->
             exerciseSet : exSet
           }
 
+# The student’s work in progress (in an editor) is stored under this key.
+ix.getSessionKeyForUserExercise = () ->
+  return "#{ix.getUserId()}/#{ix.getExerciseId()}"
+ix.getAnswer = () ->
+  Session.get(ix.getSessionKeyForUserExercise())
+ix.setAnswer = (answer) ->
+  Session.setPersistent(ix.getSessionKeyForUserExercise(), answer)
+
+
+
+
+# ====
+# proofs
+
+
+# Extract premises from the URL.  Remove any premises which are `true`
+# (so you can set proofs with no premises).  Add an error if any 
+# sentences cannot be parsed.
+# Return a list of awFOL objects.
+ix.getPremisesFromParams = () ->
+  _premises = FlowRouter.getParam('_premises')
+  txtList = decodeURIComponent(_premises).split('|')
+  try
+    folList = (fol.parse(t) for t in txtList)
+  catch e
+    return ["Sorry, there is an error with the URL you gave (#{e})."]
+  folList = (e for e in folList when not (e.type is 'value' and e.value is true))
+  return folList
+
+# Extract the conclusion from the URL.
+# Return it as an awFOL object.
+ix.getConclusionFromParams = () ->
+  _conclusion = FlowRouter.getParam('_conclusion')
+  try
+    e = fol.parse(decodeURIComponent(_conclusion))
+  catch error
+    return "Sorry, there is an error with the URL you gave (#{error})."
+  return e
+
+# Extract the proof to be written from the params.  
+ix.getProofFromParams = () ->
+  premiseTxt = (t.toString({replaceSymbols:true}) for t in ix.getPremisesFromParams()).join('\n| ')
+  conclusionTxt = ix.getConclusionFromParams().toString({replaceSymbols:true})
+  return "| #{premiseTxt}\n|---\n| \n| \n| #{conclusionTxt}"  
+  
+
+ix.checkPremisesAndConclusionOfProof = (theProof) ->
+    # Now check the conclusion is what its supposed to be.
+    conclusionIsOk = theProof.getConclusion().isIdenticalTo( ix.getConclusionFromParams() )
+    if not conclusionIsOk 
+      return "Your conclusion (#{theProof.getConclusion()}) is not the one you were supposed to prove (#{ix.getConclusionFromParams()})."
+    # Finally, check no premises other than those stipulated have been used (but
+    # you don't have to use the premises given.)
+    proofPremises = theProof.getPremises()
+    proofPremisesStr = (p.toString({replaceSymbols:true}) for p in proofPremises)
+    actualPremisesList = (p.toString({replaceSymbols:true}) for p in ix.getPremisesFromParams())
+    proofPremisesNotInActualPremises = _.difference proofPremisesStr, actualPremisesList
+    premisesAreOk = proofPremisesNotInActualPremises.length is 0
+    if not premisesAreOk
+      return "Your premises (#{proofPremisesStr.join(', ')}) are not the ones you were supposed to start from---you added #{proofPremisesNotInActualPremises.join(', ')}."
+    #Everything is  ok
+    return true

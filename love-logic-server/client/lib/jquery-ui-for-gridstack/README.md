@@ -1,0 +1,1 @@
+This contains only what's needed fro gridstack: ore, Widget, Mouse, Draggable, Resizable

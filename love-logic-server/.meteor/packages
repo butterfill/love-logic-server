@@ -16,3 +16,4 @@ kadira:flow-router
 useraccounts:flow-routing
 reactive-var
 meteorhacks:aggregate
+u2622:persistent-session

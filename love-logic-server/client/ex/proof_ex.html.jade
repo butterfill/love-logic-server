@@ -1,35 +1,16 @@
 template(name='proof_ex')
-
   //- Display something like ‘Topic: Rules of Proof for Identity --- normal exercises for UK_W20_PH126’
   +topic_header
-  
+
   +proof_ex_display_question
-  
-  if Template.subscriptionsReady 
-    | {{> CodeMirror id="editor"  name="editor" options=editorOptions editorCode=editorContent reactiveVar="codeMirrorContent" getEditorObj=getEditorObj}}
-  else
-    p loading ...
-    
-  p#feedback .
-    i.material-icons error_outline
+
+  +editProof editorId="proofEditor"
 
   +submitted_answer
 
   +help_with_this_exercise
 
-  .left
-    button#reset.btn.modal-trigger.waves-effect.grey(data-target="reset_modal") reset
-    #reset_modal.modal
-      .modal-content
-        h4 Reset your work on this proof?
-        p You really want to start again?
-      .modal-footer
-        a(href="")#reset-confirm.modal-action.modal-close.waves-effect.waves-grey.btn-flat yes, reset
-        a(href="").reset-abort.modal-action.modal-close.waves-effect.waves-grey.btn-flat no!
-        
-  
   .right
-    button#checkProof.btn.waves-effect.grey check all
     +ask_for_help
     +submit_btn
         
