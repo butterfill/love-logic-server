@@ -1,5 +1,5 @@
-# This is a CodeMirror editor that (TODO:) will save state
-#
+# This is a collection of templates using CodeMirror editors that will save state
+# It depends on `codemirror`
 # Modified from https://github.com/perak/codemirror/blob/master/lib/component/component.js
 
 # ====
