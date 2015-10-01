@@ -1,0 +1,52 @@
+template(name='tt_ex')
+  +topic_header
+
+  +tt_ex_display_question
+
+  table.highlight.truthtable
+    thead
+      tr
+        each letters
+          th.center #{theLetter}
+        each sentences
+          th.center #{theSentence}
+        th .
+    tbody
+      tr 
+        each letters
+          td.center 
+            .input-field
+              input(maxlength="1", type="text", style="width:1em;")
+        each sentences
+          td.center 
+            .input-field
+              input(maxlength="1", type="text", style="width:1em;")
+        td
+          i.material-icons.addRow add_circle_outline
+        td
+          i.material-icons.removeRow remove_circle_outline
+          
+
+  +submitted_answer
+
+  +help_with_this_exercise
+
+  .right
+    +ask_for_help
+    +submit_btn
+        
+  +next_exercise
+
+template(name="tt_ex_display_question")
+  h4 Construct truth tables for these sentences
+  ul.collection
+    each sentences
+      li.collection-item 
+        span.theSentence #{idx}. #{theSentence}
+  
+
+
+template(name="tt_ex_display_answer")
+  p.red-text.yellow TODO!
+    
+    

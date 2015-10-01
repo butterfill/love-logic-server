@@ -1,0 +1,42 @@
+template(name='TorF_ex')
+  +topic_header
+
+  +TorF_ex_display_question
+
+  ul.collection
+    each sentences
+      li.collection-item 
+        span.theSentence #{idx}. #{theSentence}
+        span.right.trueOrFalseInputs
+          form
+            input.true.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="true_for_#{idx}", value='true')
+            label(for="true_for_#{idx}") true
+            input.false.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="false_for_#{idx}", value='false')
+            label(for="false_for_#{idx}") false
+
+  +submitted_answer
+
+  +help_with_this_exercise
+
+  .right
+    +ask_for_help
+    +submit_btn
+        
+  +next_exercise
+
+template(name="TorF_ex_display_question")
+  h4 In this possible situation ...
+  +possible_world_from_param
+  
+  h4 ... which of the following are true and which false?
+
+
+template(name="TorF_ex_display_answer")
+  ul.collection
+    each sentences
+      li.collection-item 
+        span.theSentence #{idx}. #{theSentence}
+        span.right #{value}
+  
+    
+    

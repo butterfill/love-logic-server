@@ -175,8 +175,12 @@ ix.getSentencesFromParam = () ->
   sentences = decodeURIComponent(FlowRouter.getParam('_sentences')).split('|')
   return (fol.parse(x) for x in sentences)
 
+
+ix.getWorldFromParam = () ->
+  return JSON.parse(decodeURIComponent(FlowRouter.getParam('_world')))
+
 ix.possibleWorld = 
-  checkSentencesTrue : ($grid) ->
+  checkSentencesTrue : ($grid, giveFeedback) ->
     allTrue = true
     try
       possibleSituation = ix.possibleWorld.getSituationFromSerializedWord( ix.possibleWorld.serialize($grid) )
@@ -212,7 +216,7 @@ ix.possibleWorld =
 
       # names
       if item.name? and item.name isnt ''
-        itemNames = item.name.split(',')
+        itemNames = item.name.split(/[\s,]+/)
         for aName in itemNames
           if aName in assignedNames
             throw new Error "You cannot give the name ‘#{aName}’ to two objects."
@@ -360,20 +364,30 @@ ix.possibleWorld =
   # Abbreviation service.  We want to refer to properties like `width` and `face`;
   # but we also want to pop possible situations into URLs.  So we abbreviate before 
   # serializing and unabbreviate on deseializing.
-  ABBRV : [
-    {from:'width', to:'w'}
-    {from:'height', to:'h'}
-    {from:'name', to:'n'}
-    {from:'colour', to:'c'}
-    {from:'face', to:'f'}
-  ]
+  ABBRV : 
+    'width':'w'
+    'height':'h'
+    'name':'n'
+    'colour':'c'
+    'face':'f'
+  _abbreviate : (dict, keyMap) ->
+    if _.isArray(dict)
+      return (ix.possibleWorld._abbreviate(x,keyMap) for x in dict)
+    res = {}
+    for own k,v of dict
+      if k of keyMap
+        res[keyMap[k]] = v
+      else
+        res[k]=v
+    return res
   abbreviate : (dict) ->
-    for shorter in ix.possibleWorld.ABBRV
-      dict[shorter.to]  = dict[shorter.from]
-      delete dict[shorter.from]
-    return dict
+    return ix.possibleWorld._abbreviate(dict, ix.possibleWorld.ABBRV)
   unabbreviate : (dict) ->
-    for shorter in ix.possibleWorld.ABBRV
-      dict[shorter.from]  = dict[shorter.to]
-      delete dict[shorter.to]
-    return dict
+    return ix.possibleWorld._abbreviate(dict, ix.possibleWorld.UNABBRV)
+
+ix.possibleWorld.UNABBRV = (() ->
+  res = {}
+  for own k,v of ix.possibleWorld.ABBRV
+    res[v]=k
+  return res
+)()

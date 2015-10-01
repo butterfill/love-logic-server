@@ -6,6 +6,38 @@ giveFeedback = (message) ->
 giveMoreFeedback = (message) ->
   $('#feedback').text("#{$('#feedback').text()}  #{message}")
 
+
+Template.possible_world_static.rendered = () ->
+  o = @data.options or {}
+  options = _.defaults o, 
+    cell_height: 80
+    width: 12
+    animate : true
+    vertical_margin: 10
+    static_grid : true
+  
+  templateInstance = this
+  $grid = $(@find('.grid-stack'))
+  $grid.gridstack(options)
+  studentsAnswer = @data.answer.content
+  deserializeAndRestore(studentsAnswer, $grid)
+
+Template.possible_world_from_param.rendered = () ->
+  o = @data.options or {}
+  options = _.defaults o, 
+    cell_height: 80
+    width: 12
+    animate : true
+    vertical_margin: 10
+    static_grid : true
+  
+  templateInstance = this
+  $grid = $(@find('.grid-stack'))
+  $grid.gridstack(options)
+  world = ix.getWorldFromParam()
+  deserializeAndRestore(world, $grid)
+
+
 Template.possible_world.rendered = () ->
   o = @data.options or {}
   options = _.defaults o, 
@@ -37,7 +69,7 @@ Template.possible_world.rendered = () ->
         deserializeAndRestore(savedAnswer, $grid)
         # Clear feedback because the answer has been changed from outside
         giveFeedback ""
-        ix.possibleWorld.checkSentencesTrue($grid) 
+        ix.possibleWorld.checkSentencesTrue($grid, giveFeedback) 
 
 getNofElements = ($grid) ->
   return $('.grid-stack-item', $grid).length
@@ -105,7 +137,7 @@ defaultNode = () ->
 
 saveAndUpdate = ($grid) ->
   ix.setAnswer( ix.possibleWorld.serializeAndAbbreviate($grid) )
-  ix.possibleWorld.checkSentencesTrue($grid)
+  ix.possibleWorld.checkSentencesTrue($grid, giveFeedback)
         
 
 Template.possible_world.events 

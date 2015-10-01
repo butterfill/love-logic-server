@@ -101,7 +101,7 @@ Template.grading_form.events
     console.log textareaId
     rawComment = $("#"+"#{textareaId}").val()
     saveComment(submission, rawComment)
-    $(templateInstance.find('.addComment.modal-trigger')).leanModal()    
+    $(template.find('.addComment.modal-trigger')).leanModal()    
 
   "click .markCorrectness" : (event, template) ->
     isCorrect = $(event.target).hasClass('correct')

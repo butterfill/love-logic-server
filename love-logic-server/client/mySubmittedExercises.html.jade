@@ -5,8 +5,7 @@ template(name='mySubmittedExercises')
   each exercises
     section
       div
-        a(href="#{exerciseId}") #{exerciseLink}
+        h4: a(href="#{exerciseId}") #{exerciseLink}
         span ---  #{date}
-      each answerLines
-        .grey.monospace.lighten-2(style='padding-left:2px;padding-right:2px;margin-bottom:-4px;') #{line}
+        +Template.dynamic(template=displayAnswer)
       .divider(style="margin-top:2em;")

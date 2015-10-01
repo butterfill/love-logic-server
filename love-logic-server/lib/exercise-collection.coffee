@@ -61,6 +61,10 @@ exSets = [
               '/ex/trans/domain/3things/names/a=thing-1|b=thing-2/predicates/Fish1-x-is-a-fish|Between3-xIsBetweenYAndZ|Person1/sentence/A fish is between two people'
               '/ex/trans/domain/people/names/a=Ayesha|b=Beatrice/predicates/Runner1-x-is-a-runner|FasterThan2-xIsFasterThanY|Philosopher1-xIsAPhilosopher/sentence/Ayesha is a philosopher who is faster than Beatrice'
               '/ex/trans/domain/people/names/a=Ayesha|b=Beatrice/predicates/Runner1-x-is-a-runner|FasterThan2-xIsFasterThanY|Philosopher1-xIsAPhilosopher/sentence/Ayesha is a philosopher who is faster than a runner'
+              '/ex/create/White(b)/'
+              '/ex/create/exists x (Happy(x) and Tall(x))/'
+              '/ex/create/exists x exists y Adjacent(x,y)/'
+              """/ex/TorF/White(a)|exists x Happy(x)|exists x exists y RightOf(x,y)/[{"x":9,"y":0,"w":2,"h":2,"n":"a,b","c":"white","f":["}:","^","D"]},{"x":0,"y":0,"w":2,"h":2,"n":"","c":"pink","f":[":\'","-","D"]},{"x":4,"y":0,"w":2,"h":2,"n":"","c":"purple","f":[":\'","-","("]}]"""
               '/ex/proof/from/A and (B and C)/to/B or D'
             ]
             

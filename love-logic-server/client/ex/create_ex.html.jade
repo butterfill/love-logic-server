@@ -18,18 +18,17 @@ template(name='create_ex')
   +next_exercise
 
 template(name="create_ex_display_question")
-  h2 Create a possible situation
-  
   h4 Make these sentences true ...
   ul.collection
     each sentences
       li.collection-item 
         span #{theSentence}
         span ---
-        span.sentenceIsTrue.red-text F
+        span.sentenceIsTrue.red-text
 
 
 template(name="create_ex_display_answer")
-  p.monospace.grey.lighten-2 
-    p TODO!
+  //- p TODO
+  +possible_world_static
+    
     

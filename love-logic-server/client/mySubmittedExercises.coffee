@@ -13,5 +13,7 @@ Template.mySubmittedExercises.helpers
     decodeURIComponent(@exerciseId)
   date : () ->
     return moment(@created).format("YYYY-MM-DD HH:mm")
-  answerLines : () ->
-    return ({line:x} for x in @answer.content.split('\n'))
+  displayAnswer : () ->
+    url = ix.url()
+    type = url.split('/')[2]
+    return "#{@answer.type}_ex_display_answer"

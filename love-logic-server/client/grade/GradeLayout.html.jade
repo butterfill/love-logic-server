@@ -12,11 +12,6 @@ template(name="GradeLayout")
         h4 #{ownerName} &lsaquo;#{email}&rsaquo;
         p Submitted #{dateSubmitted}:
         +Template.dynamic(template=displayAnswer)
-        //- p.monospace.grey.lighten-2
-        //-   if answer.answerFOL
-        //-     | #{answer.answerFOL}
-        //-   else
-        //-     | #{answer.content}
           
         if isMachineFeedback
           p Machine says: #{machineFeedback.comment}

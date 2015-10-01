@@ -8,4 +8,16 @@ template(name="possible_world")
 
   .row: .col.s12
     button#addElement.btn.waves-effect.grey add element
-      
+
+//- Use this template when the world you want to display is in 
+//- the data context as a SubmittedExercise
+template(name="possible_world_static")
+  .grey(style='padding:10px')
+    .grid-stack
+    
+//- Use this template when the world you want to display is
+//- given in a URL parameter.
+template(name="possible_world_from_param")
+  .grey(style='padding:10px')
+    .grid-stack
+            
