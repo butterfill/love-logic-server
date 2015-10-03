@@ -1,0 +1,31 @@
+template(name='truth_table')
+  table.highlight.truthtable
+    thead
+      tr
+        each letters
+          th.center #{theLetter}
+        each sentences
+          th.center #{theSentence}
+        th
+        th
+    tbody
+          
+
+
+
+template(name="truth_table_static")
+  table.highlight.truthtable
+    thead
+      tr
+        each letters
+          th.center #{theLetter}
+        each sentences
+          th.center #{theSentence}
+    tbody
+      each rows
+        tr 
+          each values
+            td.center #{value}
+  
+    
+    

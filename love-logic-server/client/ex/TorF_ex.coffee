@@ -2,7 +2,7 @@
 Template.TorF_ex.rendered = () ->
   templateInstance = this
   # Allow the answer to be updated by setting the session variable
-  Tracker.autorun () ->
+  @autorun () ->
     # We need to `watchPathChange` so that the answer also gets updated when we change page.
     FlowRouter.watchPathChange()
     savedAnswer = ix.getAnswer() 
@@ -87,8 +87,7 @@ Template.TorF_ex.events
 
 Template.TorF_ex_display_answer.helpers
   sentences : () ->
-    console.log this
-    ss = decodeURIComponent(@exerciseId.split('/')[3]).split('|')
-    ss = (fol.parse(x).toString({replaceSymbols:true}) for x in ss)
+    ss = ix.getSentencesFromParam(this)
+    ss = (x.toString({replaceSymbols:true}) for x in ss)
     return ({value:"#{v}", idx, theSentence:ss[idx]}  for v, idx in @answer.content)
 

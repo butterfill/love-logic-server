@@ -41,7 +41,7 @@ Template.editSentence.rendered = () ->
     ix.setAnswer(val)
   
   # Allow the value of the editor to be updated by setting the session variable
-  Tracker.autorun () ->
+  @autorun () ->
     # We need to `watchPathChange` so that the editor gets updated.
     FlowRouter.watchPathChange()
     val = ix.getAnswer() or ''
@@ -160,7 +160,7 @@ Template.editProof.rendered = () ->
   $("#resetProof").leanModal()
   
   # Allow the value of the editor to be updated by setting the session variable
-  Tracker.autorun ->
+  @autorun ->
     # We need to `watchPathChange` so that the editor gets updated.
     FlowRouter.watchPathChange()
     val = ix.getAnswer() or ix.getProofFromParams() or ''

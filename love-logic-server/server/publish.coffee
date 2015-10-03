@@ -23,6 +23,9 @@ Meteor.publish "submitted_exercise", (exerciseId) ->
   #   Meteor._sleepForMs(10000)
   return SubmittedExercises.find({ $and:[{owner:@userId},{exerciseId:exerciseId}] })
 
+Meteor.publish "graded_answers", (exerciseId) ->
+  return GradedAnswers.find({exerciseId})
+
 Meteor.publish "next_exercise_with_unseen_feedback", ->
   SubmittedExercises.find({ $and:[{owner:@userId}, {'humanFeedback.studentSeen':false}] }, {limit:1})
 

@@ -116,6 +116,12 @@ Template.grading_form.events
         Materialize.toast "Error saving feedback: #{error.message}.", 4000
       else
         Materialize.toast "Your feedback has been saved.", 4000
+        submittedExercse = template.data
+        exerciseId = submittedExercse.exerciseId
+        ownerIdHash = ix.hash(submittedExercse.owner)
+        answerHash = ix.hashAnswer(submittedExercse)
+        comment = submittedExercse.humanFeedback?.comment
+        Meteor.call "addGradedExercise", exerciseId, ownerIdHash, answerHash, isCorrect, comment
     
   "click .changeCorrectness" : (event, template) ->
     submission = this

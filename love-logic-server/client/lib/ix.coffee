@@ -76,6 +76,36 @@ ix.submitExercise = (exercise, cb) ->
   ), cb)
 
 
+# ----
+# Relating to auto grading
+
+ix.hash = (text) ->
+  console.log "to hash is #{text}"
+  return XXH(text, 0xFFFA).toString(36)
+
+ix.hashAnswer = (answerDoc) ->
+  toHash = answerDoc.answer.content
+  if answerDoc.answerPNFsimplifiedSorted?
+    toHash = answerDoc.answerPNFsimplifiedSorted
+  r = ix.hash(JSON.stringify(toHash))
+  console.log "hash is #{r}"
+  return r
+
+ix.gradeUsingGradedAnswers = (answerDoc) ->
+  return undefined if GradedAnswers.find().count() is 0
+  answerDoc ?= {answer:{content:ix.getAnswer()}}
+  answerHash = ix.hashAnswer(answerDoc)
+  thisAnswersGrades = GradedAnswers.find({answerHash})
+  return undefined if thisAnswersGrades.count() is 0
+  # TODO : scan through all the grades and check they're consistent, combining comments
+  grade = thisAnswersGrades.fetch()[0]
+  isCorrect = grade.isCorrect
+  comment = grade.comment
+  return {
+    isCorrect
+    comment
+  }
+
 # Return an object specifying the lecture and unit in which the present 
 # exercise occurs, and also the next exercise in the series (if any).
 # Used by the `next_exercise` template.
@@ -171,9 +201,18 @@ ix.checkPremisesAndConclusionOfProof = (theProof) ->
 
 # ======
 # create a possible situation
-ix.getSentencesFromParam = () ->
-  sentences = decodeURIComponent(FlowRouter.getParam('_sentences')).split('|')
-  return (fol.parse(x) for x in sentences)
+ix.getSentencesFromParam = (self) ->
+  sentencesParam = FlowRouter.getParam('_sentences')
+  if sentencesParam?
+    sentences = decodeURIComponent(sentencesParam).split('|')
+    return (fol.parse(x) for x in sentences)
+  # Try another method
+  if self?.exerciseId?
+    console.log "sentences from exerciseId"
+    ss = decodeURIComponent(self.exerciseId.split('/')[3]).split('|')
+    return (fol.parse(x) for x in ss)
+  # give up
+  return []
 
 
 ix.getWorldFromParam = () ->
@@ -391,3 +430,85 @@ ix.possibleWorld.UNABBRV = (() ->
     res[v]=k
   return res
 )()
+
+
+# ======
+# truth tables
+
+ix.truthTable = 
+  checkAnswer : (values) ->
+    values ?= ix.truthTable.getValuesFromTable()
+    result = ix.truthTable.checkAnswerCorrectNofRows(values)
+    return result unless result.isCorrect
+    res2 = ix.truthTable.checkAnswerCorrectRowOrder(values)
+    if not res2
+      result.message += 'You did not order the rows correctly.'
+      result.isCorrect = false
+  
+    lttrs = ix.truthTable.getSentenceLetters()
+    sentences = ix.getSentencesFromParam()
+    correctAnswers = []
+    for row, rowIdx in values
+      world = {}
+      for l, idx in lttrs
+        world[l] = row[idx]
+      thisRowCorrect = []
+      for s, idx in sentences
+        submittedValue = row[idx+lttrs.length]
+        actualValue = s.evaluate(world)
+        # console.log "row #{rowIdx} sentence #{idx} : you = #{submittedValue}, actual = #{actualValue}"
+        thisRowCorrect.push(submittedValue is actualValue)
+      correctAnswers = correctAnswers.concat thisRowCorrect
+    if false in correctAnswers
+      result.isCorrect = false
+      result.message += 'You did not provide the correct truth values in all rows.'
+    return result
+
+  checkAnswerCorrectNofRows : (values) ->
+    lttrs = ix.truthTable.getSentenceLetters()
+    expectedNofRows = Math.pow(2,lttrs.length)
+    message = ''
+    if expectedNofRows > values.length
+      message = 'You have too few rows.'
+    if expectedNofRows < values.length
+      message = 'You have too many rows.'
+    return {
+      isCorrect: expectedNofRows is values.length
+      message
+    }
+  checkAnswerCorrectRowOrder : (values) ->
+    values = (_.clone(r) for r in values)
+    lttrs = ix.truthTable.getSentenceLetters()
+    expectedNofRows = Math.pow(2,lttrs.length)
+    for num in [expectedNofRows-1..0]
+      binaryStr = ix.truthTable.pad0(num.toString(2), lttrs.length)
+      expected = (x is "1" for x in binaryStr)
+      idx = (expectedNofRows-1)-num
+      actual = values[idx].splice(0,lttrs.length)
+      return false unless _.isEqual(expected, actual)
+    return true
+    
+  pad0 : (n, len) ->
+    return n if n.length >= len
+    # Thankyou http://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
+    return new Array(len - n.length + 1).join('0') + n
+  
+  getSentenceLetters : (self) ->
+    lttrs = []
+    for s in ix.getSentencesFromParam(self)
+      moreLttrs = s.getSentenceLetters()
+      lttrs = lttrs.concat moreLttrs
+    return _.uniq(lttrs)
+  
+  getValuesFromTable : () ->
+    result = []
+    $rows = $('.truthtable tbody tr')
+    $rows.each (idx, tr) ->
+      resultRow = []
+      $inputs = $('input', $(tr))
+      $inputs.each (idx, input) ->
+        resultRow.push true if ($(input).val() is "T")
+        resultRow.push false if ($(input).val() is "F")
+        resultRow.push null if not ($(input).val() in ["T","F"])
+      result.push resultRow
+    return result

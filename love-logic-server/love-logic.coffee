@@ -45,7 +45,6 @@ FlowRouter.route '/mySubmittedExercises',
 # TODO: exercise - yes/no question (e.g. can logically valid argument have false premises)
 # TODO: exercise - (free text) state the definition of logically valid
 # TODO: exercise - build a scene which is a counterexample to this argument
-# TODO: exercise - truth table for sentence
 # TODO: exercise - truth tables for argument
 # TODO: exercise - specify the main connective (multiple choice)
 # TODO: exercise - write down the scopes of different operators.
@@ -107,6 +106,9 @@ FlowRouter.route '/ex/TorF/:_sentences/:_world/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
+FlowRouter.route '/ex/tt/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
 # ------
 # Collections
@@ -117,6 +119,13 @@ FlowRouter.route '/ex/TorF/:_sentences/:_world/grade',
 # Record which exercise sets a student has subscribed to.
 @Subscriptions = new Mongo.Collection('subscriptions')
 
+# When a grader grades an exercise, the results are stored here so that
+# students who submit the same answer can be auto-graded.
+# Documents contain `.exerciseId`, `.ownerIdHash` (so that changes can be monitored)
+# hash of answer.content (or answer.answerPNFsimplifiedSorted) plus 
+# `.isCorrect`, `.comment`, and `.graderId` ()
+@GradedAnswers = new Mongo.Collection('graded_answers')
+
 Meteor.methods
   # TODO: Change email.  Do not allow user to change email to
   # an email already used, nor to an email used as a supervisor email.
@@ -125,8 +134,9 @@ Meteor.methods
     userId = Meteor.user()?._id
     if not userId or 'userId' of exercise
       throw new Meteor.Error "not-authorized"
-    if 'humanFeedback' of exercise
-      throw new Meteor.Error "Human feedback provided with submission (cheating?)."
+    # Can't do this because may be auto grading using past feedback
+    # if 'humanFeedback' of exercise
+    #   throw new Meteor.Error "Human feedback provided with submission (cheating?)."
     newDoc = _.defaults(exercise, {
       owner : userId
       ownerName : Meteor.user().profile?.name
@@ -147,7 +157,6 @@ Meteor.methods
       {humanFeedback : {$exists:false}}
     ] }
     findAndModify(query, {}, newDoc, {upsert: true})
-    # SubmittedExercises.insert( newDoc )
 
   subscribeToExerciseSet : (courseName, variant) ->
     userId = Meteor.user()._id
@@ -188,8 +197,27 @@ Meteor.methods
     if not userId or exercise.owner isnt userId
       throw new Meteor.Error "not-authorized"
     SubmittedExercises.update(exercise, $set:{'humanFeedback.studentSeen':true, 'humanFeedback.studentEverSeen':true})
-  
-    
+
+  addGradedExercise : (exerciseId, ownerIdHash, answerHash, isCorrect, comment) ->
+    graderId = Meteor.user()?._id
+    if not graderId
+      throw new Meteor.Error "not-authorized"
+    newDoc = {graderId, exerciseId, ownerIdHash, answerHash}
+    if isCorrect?
+      newDoc.isCorrect = isCorrect
+    if comment? 
+      newDoc.comment = comment
+    if Meteor.isClient
+      return undefined
+    rawGradedAnswers = GradedAnswers.rawCollection()
+    findAndModify = Meteor.wrapAsync(rawGradedAnswers.findAndModify, rawGradedAnswers)
+    # TODO create unique composite index
+    query = { $and:[
+      {exerciseId}
+      {ownerIdHash}
+      {answerHash}
+    ] }
+    findAndModify(query, {}, newDoc, {upsert: true})
 # -----
 # Methods for getting data
 Meteor.methods

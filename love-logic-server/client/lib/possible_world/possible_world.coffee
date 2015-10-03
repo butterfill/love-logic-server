@@ -54,7 +54,7 @@ Template.possible_world.rendered = () ->
     saveAndUpdate()
 
   # Allow the possible situation to be updated by setting the session variable
-  Tracker.autorun () ->
+  @autorun () ->
     # We need to `watchPathChange` so that the possible situation gets updated.
     FlowRouter.watchPathChange()
     savedAnswer = ix.getAnswer() 

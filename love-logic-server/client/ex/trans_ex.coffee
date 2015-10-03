@@ -104,7 +104,11 @@ getAnswerAsFOLsentence = () ->
     return undefined
 
 
-
+Template.trans_ex.onCreated () ->
+  self = this
+  @autorun () ->
+    exerciseId = ix.getExerciseId()
+    self.subscribe 'graded_answers', exerciseId
 
 Template.trans_ex.onRendered () ->
   isTranslationToEn = checkIfTranslationToEn()
@@ -117,13 +121,18 @@ Template.trans_ex.events
   'click button#submit' : (event, template) ->
     answer = ix.getAnswer()
     
+    doc = {
+      answer : 
+        type : 'trans'
+        content : answer
+    }
+    
     answerShouldBeEnglish = checkIfTranslationToEn()
     if answerShouldBeEnglish
-      ix.submitExercise({
-          answer : 
-            type : 'trans'
-            content : answer
-        }, () ->
+      humanFeedback = ix.gradeUsingGradedAnswers()
+      if humanFeedback?
+        doc.humanFeedback = humanFeedback
+      ix.submitExercise(doc, () ->
           Materialize.toast "Your translation has been submitted.", 4000
       )
       return
@@ -148,13 +157,12 @@ Template.trans_ex.events
     else
       machineFeedback.comment = "Your answer is incorrect because it is not a sentence of awFOL."
       machineFeedback.isCorrect = false
-    ix.submitExercise({
-        answer : 
-          type : 'trans'
-          content : answer
-          answerFOL : answerFOLstring
-          answerPNFsimplifiedSorted : answerPNFsimplifiedSorted
-        machineFeedback : machineFeedback
-      }, () ->
+    doc.answerFOL = answerFOLstring
+    doc.answerPNFsimplifiedSorted = answerPNFsimplifiedSorted
+    doc.machineFeedback = machineFeedback
+    humanFeedback = ix.gradeUsingGradedAnswers(doc)
+    if humanFeedback?
+      doc.humanFeedback = humanFeedback
+    ix.submitExercise(doc, () ->
         Materialize.toast "Your translation has been submitted.", 4000
     )
