@@ -8,12 +8,14 @@ Template.main.onCreated () ->
   self.autorun () ->
     self.subscribe('subscriptions')
     self.subscribe('next_exercise_with_unseen_feedback')
+    self.subscribe('next_help_request_with_unseen_answer')
 
 
 getNextExercisesWithUnseenFeedback = () ->
   return SubmittedExercises.findOne({ $and:[{owner:Meteor.userId()}, {'humanFeedback.studentSeen':false}] })
 
 Template.main.helpers
+  isTutor : () -> Meteor.user()?.profile?.is_seminar_tutor
   hasSubscriptions : () ->
     return Subscriptions.find().count() >0
   hasNoSubscriptions : () ->
@@ -30,13 +32,13 @@ Template.main.helpers
   
   hasNewGrades : () ->
     return getNextExercisesWithUnseenFeedback()?
-  nextUnseenFeedbackLink : () ->
-    ex = getNextExercisesWithUnseenFeedback()
-    link = ex.exerciseId
-    return link
   
   hasNewHelpRequestAnswers : () ->
-    return true
+    return HelpRequest.find({ requesterId:Meteor.userId(), answer:{$exists:true}, studentSeen:{$exists:false}}).count() > 0
+  nextHelpRequestAnswerLink : () ->
+    helpReq = HelpRequest.findOne({ requesterId:Meteor.userId(), studentSeen:{$exists:false} })
+    link = helpReq.exerciseId
+    return link
   
   emailAddress : () ->
     return ix.getUserEmail()

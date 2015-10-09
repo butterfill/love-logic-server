@@ -16,7 +16,26 @@ template(name="GradeLayout")
         if isMachineFeedback
           p Machine says: #{machineFeedback.comment}
         +grading_form
+        each helpRequests
+          h5 > Help request
+          p #{helpRequestDate} this student asked:
+            span #{question}
+          if doNotShowAnserHelpRequestInput
+            span #{answererName} answered #{helpAnswerDate}: #{answer}
+            if studentSeenHelpRequest
+              span
+            else
+              a.editAnswer.waves-effect 
+                i.material-icons mode_edit
+          else
+            //- help request not yet answered
+            .input-field
+              label(for="help_request_#{theId}") Your answer:
+              textarea.materialize-textarea.help-request-answer(id="help_request_#{theId}") #{answer}
+            
         .divider
+          
+      
     else
       h4 None of your students have answered this question yet.
   else

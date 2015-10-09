@@ -1,12 +1,19 @@
 
 
 template(name='main')
+  if isTutor
+    h3 Links for tutors
+    ul.collection
+      li.collection-item: a(href="/exercisesToGrade") Exercises to grade
+      li.collection-item: a(href="/helpRequestsToAnswer") Help requests to answer
+      li.collection-item: a(href="/myTutees") List of tutees
+
   if hasSubscriptions
     h3 Exercises
     ul.collection
-    each subscriptions
-      li.collection-item
-        a(href="/course/#{courseName}/exercise-set/#{variant}") The ‘#{variant}’ exercises for #{courseName}
+      each subscriptions
+        li.collection-item
+          a(href="/course/#{courseName}/exercise-set/#{variant}") The ‘#{variant}’ exercises for #{courseName}
     
     .row: .col.s12
       .right
@@ -24,7 +31,7 @@ template(name='main')
             span.card-title.black-text Help Request
             p Your request for help with an exercise has been answered.
             .card-action: .right
-              a.waves-effect.blue-text See answer
+              a.waves-effect.blue-text(href="#{nextHelpRequestAnswerLink}") See answer
   
     if hasNewGrades
       .col.s12.m6.l4
@@ -33,16 +40,16 @@ template(name='main')
             span.card-title.black-text Grades 
             p Some of your work has been graded.
             .card-action: .right
-              a(href="#{nextUnseenFeedbackLink}").waves-effect.blue-text See grades
+              a(href="/feedbackToReview").waves-effect.blue-text See feedback
   
     .col.s12.m6.l4
       .card
         .card-content
-          span.card-title.black-text Seminar tutor
+          span.card-title.black-text Tutor
           if hasSeminarTutor
-            p #{seminarTutor} is your seminar tutor and will review the exercises you submit.
+            p #{seminarTutor} is your tutor and will review the exercises you submit.
           else
-            p You have not assigned yourself to a seminar tutor; no one will review your work.
+            p You have not assigned yourself to a tutor; no one will review your work.
           .card-action: .right
             if hasSeminarTutor
               a.changeSeminarTutor.waves-effect.blue-text(data-target="seminar-tutor-modal") Change tutor
@@ -52,7 +59,7 @@ template(name='main')
           
             #seminar-tutor-modal.modal
               .modal-content
-                h4 Seminar Tutor
+                h4  Tutor
                 form
                   p 
                   .input-field

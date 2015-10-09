@@ -41,7 +41,8 @@ Template.exerciseSet.onCreated () ->
     variant = FlowRouter.getParam('_variant')
     self.subscribe('course', courseName)
     self.subscribe('exercise_set', courseName, variant)
-    self.subscribe('submitted_exercises')
+    # This subscription provides `SubmittedExercises` but only some fields.
+    self.subscribe('dates_exercises_submitted')
     self.subscribe('subscriptions')
 
 

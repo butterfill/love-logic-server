@@ -26,7 +26,7 @@ exSets = [
   {
     courseName : 'UK_W20_PH126'
     variant : 'normal'
-    description : 'These exercises are suitable for students who did not take a mathematical subject at A-Level or equivalent.'
+    description : 'These exercises are aimed at students who did not take a mathematical subject at A-Level or equivalent.'
     lectures : [
       {
         type : 'lecture'
@@ -92,7 +92,7 @@ exSets = [
   {
     courseName : 'UK_W20_PH126'
     variant : 'fast'
-    description : 'These exercises are suitable for students with a qualification equivalent to further maths at A-Level.'
+    description : 'These exercises are aimed at students with a qualification equivalent to further maths at A-Level.'
     lectures : [
       {
         type : 'lecture'

@@ -47,7 +47,7 @@ template(name='exerciseSet')
         li
           a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}") #{name}
           if isSubmitted
-            span [submitted #{dateSubmitted}]
+            span.grey-text [submitted #{dateSubmitted}]
           else
-            span [todo]
+            span.red-text [todo]
 

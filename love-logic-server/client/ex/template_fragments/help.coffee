@@ -20,8 +20,14 @@ Template.ask_for_help.onCreated () ->
   templateInstance = this
   doSubscriptions(templateInstance)
   templateInstance.autorun () ->
+    FlowRouter.watchPathChange()
     exerciseId = ix.getExerciseId()
-    templateInstance.subscribe 'help_request', exerciseId
+    templateInstance.subscribe 'help_request', exerciseId, onReady : () ->
+      requesterId = Meteor.userId()
+      unseenHelpRequestAnswers = HelpRequest.find({exerciseId, requesterId, answer:{$exists:true}, studentSeen:{$exists:false} })
+      for helpReq in unseenHelpRequestAnswers.fetch()
+        Meteor.call "studentSeenHelpRequestAnswer", helpReq
+      
 
 
 Template.ask_for_help.onRendered () ->
@@ -46,6 +52,11 @@ unitTitle = () ->
   return '' unless ctx
   return ctx.unit.name
 
+notYetSubmitted = () ->
+  exerciseId = ix.getExerciseId()
+  owner = Meteor.userId()
+  SubmittedExercises.find({exerciseId, owner}).count() is 0
+
 Template.help_with_this_exercise.helpers
   slidesForThisUnit : slidesForThisUnit
   readingForThisUnit : readingForThisUnit
@@ -55,6 +66,15 @@ Template.ask_for_help.helpers
   slidesForThisUnit : slidesForThisUnit
   readingForThisUnit : readingForThisUnit
   unitTitle : unitTitle
+  notYetSubmitted : notYetSubmitted 
+  helpRequests : () ->
+    exerciseId = ix.getExerciseId()
+    requesterId = Meteor.userId()
+    return HelpRequest.find({exerciseId, requesterId}, {sort:{'created':-1}})
+  # This is called when a particluar `HelpRequest` is the data context
+  helpRequestDate : () -> moment(@created).fromNow()
+  isHelpRequestAnswered : () -> @answer?
+  helpAnswerDate : () -> moment(@dateAnswered).fromNow()
 
 Template.topic_header.helpers
   unitTitle : unitTitle
@@ -73,12 +93,18 @@ Template.topic_header.helpers
 
 Template.ask_for_help.events
   'click #confirm-request-help' : (event, template) ->
-    doc = {
-      exerciseId : ix.getExerciseId()
+    if notYetSubmitted()
+      # must submit exercise
+      $('button#submit').click()
+    owner = Meteor.userId()
+    exerciseId = ix.getExerciseId()
+    submittedExerciseId = SubmittedExercises.findOne({owner, exerciseId}, {sort:{'created':-1}})._id
+    doc = 
+      exerciseId : exerciseId
+      submittedExerciseId : submittedExerciseId
       reviewedLectureSlides : $('#reviewed-lecture-slides').is(':checked')
       readTextbook : $('#read-textbook').is(':checked')
       question : $('#request-for-help-description').val().trim()
-    }
     delete doc.readTextbook if $('#read-textbook').length is 0
     delete doc.reviewedLectureSlides if $('#reviewed-lecture-slides').length is 0
     if doc.question is ''

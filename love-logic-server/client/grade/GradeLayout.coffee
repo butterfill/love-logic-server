@@ -8,7 +8,7 @@ Template.GradeLayout.onCreated () ->
     self.subscribe 'submitted_answers', exerciseId
     self.subscribe 'courses'
     self.subscribe 'graded_answers', exerciseId
-    
+    self.subscribe 'help_requests_for_tutor', exerciseId
 
 
 
@@ -18,7 +18,6 @@ Template.GradeLayout.helpers
     FlowRouter.watchPathChange()
     url = ix.url()
     type = url.split('/')[2]
-    console.log type
     return "#{type}_ex_display_question"
   displayAnswer : () ->
     url = ix.url()
@@ -31,12 +30,24 @@ Template.GradeLayout.helpers
     exerciseId = ix.getExerciseId()
     return SubmittedExercises.find({exerciseId}, {sort:{'created':-1}})
   dateSubmitted : () ->
-    return moment(@.created).fromNow()
+    return moment(@created).fromNow()
   isMachineFeedback : () ->
     return @machineFeedback?
   isHumanFeedback : () ->
     return @humanFeedback?
 
+  # These occur in the data context of a SubmittedAnswer
+  helpRequests : () ->
+    return HelpRequest.find({submittedExerciseId:@_id, requesterId:@owner})
+  helpRequestDate : () -> moment(@created).fromNow()
+  doNotShowAnserHelpRequestInput : () ->
+    return false unless @answer?
+    key = "helpRequestAnswer/#{Meteor.userId()}/#{this._id}"
+    forceShowInput = Session.get(key)
+    return false if forceShowInput? and forceShowInput
+    return true
+  studentSeenHelpRequest : () -> @studentSeen?
+  theId : () -> "#{@_id}"
 
 
 
@@ -61,7 +72,7 @@ Template.grading_form.helpers
     #return (not @humanFeedback?.comment?.studentEverSeen?) and 
     return @humanFeedback?.isCorrect?
   feedbackTextareaContent : () ->
-    key = "comment/Meteor.userId()/#{this._id}"
+    key = "comment/#{Meteor.userId()}/#{this._id}"
     return Session.get(key) or ''
 
 
@@ -89,7 +100,7 @@ saveComment = (submission, rawComment) ->
       
 Template.grading_form.helpers
   "theId" : () ->
-    return "#{@._id}"
+    return "#{@_id}"
 
 # When a grader marks an exercise, we might want to store the grade and 
 # comment in case another student gives a matching answer.
@@ -162,14 +173,28 @@ Template.grading_form.events
     
     
   "click .editComment" : (event, target) ->
-    console.log "start"
     submission = this
-    key = "comment/Meteor.userId()/#{this._id}"
-    console.log key
+    key = "comment/#{Meteor.userId()}/#{this._id}"
     Session.set(key, submission.humanFeedback.comment)
     humanFeedback = _.clone submission.humanFeedback
     delete humanFeedback.comment
     Meteor.call "addHumanFeedback", submission, humanFeedback, (error) ->
       if error
         Materialize.toast "Error deleting feedback comment: #{error.message}.", 4000
-    console.log "done"
+    
+Template.GradeLayout.events
+  'blur .help-request-answer' : (event, template) ->
+    helpReq = @
+    answer = $(event.target).val()
+
+    # This session variable controls whether the input is shown
+    key = "helpRequestAnswer/#{Meteor.userId()}/#{this._id}"
+    Session.set(key, false)
+
+    Meteor.call "answerHelpRequest", helpReq, answer
+
+  "click .editAnswer" : (event, target) ->
+    # This session variable controls whether the input is shown
+    key = "helpRequestAnswer/#{Meteor.userId()}/#{this._id}"
+    Session.set(key, true)
+

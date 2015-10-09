@@ -32,7 +32,8 @@ Template.submitted_answer.helpers
   isSubmitted : isSubmitted 
   submittedAnswers : () ->
     exerciseId = ix.getExerciseId()
-    return SubmittedExercises.find({exerciseId}, {sort:{'created':-1}})
+    owner = Meteor.userId()
+    return SubmittedExercises.find({owner, exerciseId}, {sort:{'created':-1}})
   dateSubmitted : () ->
     return moment(@created).fromNow()
   isCorrectnessDetermined : () ->

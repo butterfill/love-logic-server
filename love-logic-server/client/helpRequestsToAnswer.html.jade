@@ -1,0 +1,7 @@
+template(name='helpRequestsToAnswer')
+  h2 Help Requests to Answer
+  p The following exercises are those for which students specifying you as seminar tutor have made an unanswered requested help.
+  ul.collection
+    each exercises
+      li.collection-item
+        a(href="#{gradeURL}") #{exerciseName}

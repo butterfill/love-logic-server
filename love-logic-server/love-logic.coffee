@@ -32,6 +32,9 @@ FlowRouter.route '/course/:_courseName/exercise-set/:_variant',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'exerciseSet'
 
+FlowRouter.route '/feedbackToReview',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'feedbackToReview'
 
 FlowRouter.route '/mySubmittedExercises',
   action : (params, queryParams) ->
@@ -42,13 +45,15 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
+# TODO: tutor - page showing tutee’s progress (% completed in last 7 days? etc)
+
 # TODO: exercise - yes/no question (e.g. can logically valid argument have false premises)
+# TODO: exercise - state whether an argument (of awFOL or En) is valid.
 # TODO: exercise - (free text) state the definition of logically valid
+# TODO: exercise - truth tables for argument (determine validity)
 # TODO: exercise - build a scene which is a counterexample to this argument
-# TODO: exercise - truth tables for argument
 # TODO: exercise - specify the main connective (multiple choice)
 # TODO: exercise - write down the scopes of different operators.
-# TODO: exercise - state whether an argument (of awFOL or En) is valid.
 # TODO: exercise - proof of, or counterexample to, argument
 
 # Write a proof exercise
@@ -86,9 +91,14 @@ FlowRouter.route '/myTutees',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'myTutees'
 
+
 FlowRouter.route '/exercisesToGrade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'exercisesToGrade'
+
+FlowRouter.route '/helpRequestsToAnswer',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'helpRequestsToAnswer'
 
 FlowRouter.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicates/sentence/:_sentence/grade',
   action : (params, queryParams) ->
@@ -156,6 +166,14 @@ Meteor.methods
       throw new Meteor.Error "That email address is already is use."
     emails = [{ address : emailAddress, verified : false }]
     Meteor.users.update(userId, {$set: {'emails':emails}})
+  
+  makeMeATutor : () ->
+    userId = Meteor.user()?._id
+    if not userId 
+      throw new Meteor.Error "not-authorized"
+    Meteor.users.update(userId, {$set: {'profile.is_seminar_tutor':true}})
+    
+    
   
   submitExercise : (exercise) ->
     userId = Meteor.user()?._id
@@ -225,6 +243,13 @@ Meteor.methods
       throw new Meteor.Error "not-authorized"
     SubmittedExercises.update(exercise, $set:{'humanFeedback.studentSeen':true, 'humanFeedback.studentEverSeen':true})
 
+  studentSeenHelpRequestAnswer : (helpReq) ->
+    userId = Meteor.user()._id
+    if not userId or helpReq.requesterId isnt userId
+      throw new Meteor.Error "not-authorized"
+    HelpRequest.update(helpReq, $set:{studentSeen: new Date()})
+    
+
   createHelpRequest : (doc) ->
     requesterId = Meteor.user()?._id
     if not requesterId
@@ -234,6 +259,14 @@ Meteor.methods
       doc.requesterTutorEmail = Meteor.user().profile.seminar_tutor
     doc.created = new Date()
     HelpRequest.insert(doc)
+
+  answerHelpRequest : (helpReq, answer) ->
+    answererId = Meteor.user()?._id
+    if not answererId
+      throw new Meteor.Error "not-authorized"
+    answererName = Meteor.user().profile?.name
+    # Anyone may answer a help request
+    HelpRequest.update(helpReq, $set:{dateAnswered:new Date(), answererId, answer, answererName} )
 
   addGradedExercise : (exerciseId, ownerIdHash, answerHash, isCorrect, comment, answerPNFsimplifiedSorted) ->
     graderId = Meteor.user()?._id

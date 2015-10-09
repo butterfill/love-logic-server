@@ -1,0 +1,7 @@
+template(name='feedbackToReview')
+  h2 Feedback to review
+  p The following exercises have been graded; please review the grade and comments.
+  ul.collection
+    each exercises
+      li.collection-item
+        a(href="#{exerciseId}") #{exerciseName}
