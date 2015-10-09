@@ -1,6 +1,6 @@
 
-doSubscriptions = () ->
-  templateInstance = this
+doSubscriptions = (templateInstance) ->
+  templateInstance ?= this
   templateInstance.autorun () ->
     courseName = FlowRouter.getQueryParam 'courseName'
     variant = FlowRouter.getQueryParam 'variant'
@@ -15,8 +15,13 @@ doSubscriptions = () ->
     templateInstance.exerciseContext.set(ctx)
 
 Template.help_with_this_exercise.onCreated doSubscriptions
-Template.ask_for_help.onCreated doSubscriptions
 Template.topic_header.onCreated doSubscriptions
+Template.ask_for_help.onCreated () ->
+  templateInstance = this
+  doSubscriptions(templateInstance)
+  templateInstance.autorun () ->
+    exerciseId = ix.getExerciseId()
+    templateInstance.subscribe 'help_request', exerciseId
 
 
 Template.ask_for_help.onRendered () ->

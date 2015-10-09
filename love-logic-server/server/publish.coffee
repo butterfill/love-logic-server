@@ -23,6 +23,11 @@ Meteor.publish "submitted_exercise", (exerciseId) ->
   #   Meteor._sleepForMs(10000)
   return SubmittedExercises.find({ $and:[{owner:@userId},{exerciseId:exerciseId}] })
 
+Meteor.publish "help_request", (exerciseId) ->
+  # if(Meteor.isServer)
+  #   Meteor._sleepForMs(10000)
+  return HelpRequest.find( {owner:@userId, exerciseId:exerciseId} )
+
 Meteor.publish "graded_answers", (exerciseId) ->
   return GradedAnswers.find({exerciseId})
 
