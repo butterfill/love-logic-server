@@ -45,16 +45,51 @@ template(name='main')
             p You have not assigned yourself to a seminar tutor; no one will review your work.
           .card-action: .right
             if hasSeminarTutor
-              a.waves-effect.blue-text Change tutor
+              a.changeSeminarTutor.waves-effect.blue-text(data-target="seminar-tutor-modal") Change tutor
             else
-              a.waves-effect.blue-text Add tutor
+              a.changeSeminarTutor.waves-effect.blue-text(data-target="seminar-tutor-modal") Add tutor
+          
+          
+            #seminar-tutor-modal.modal
+              .modal-content
+                h4 Seminar Tutor
+                form
+                  p 
+                  .input-field
+                    textarea.seminarTutor.materialize-textarea(id='set-seminar-tutor-email') #{seminarTutorEmail}
+                    label(for='set-seminar-tutor-email') Enter the email address your seminar tutor has asked you to use.
+                  p
+                    em Note that your seminar tutor may not be registered under all her email addresses; if in doubt, please ask your seminar tutor to confirm her email address.
+              .modal-footer
+                a(href="").modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel
+                a(href="")#confirm-set-seminar-tutor-email.modal-action.modal-close.waves-effect.waves-grey.btn-flat update
+          
+          
     .col.s12.m6.l4
       .card
         .card-content
           span.card-title.black-text Email 
-          p Your email address is #{emailAddress}.  If this is not your university or college email address, your progress may not be recorded.
+          p Your email address is #{emailAddress}.  
+            span (If this isn’t your university or college email address, your university won’t see your work.)
           .card-action: .right
-            a.waves-effect.blue-text Change email 
+            a.changeEmail.waves-effect.blue-text Change email 
+
+            
+            #change-email-modal.modal
+              .modal-content
+                h4 Change Email
+                form
+                  p 
+                  .input-field
+                    textarea.newEmailAddress.materialize-textarea(id='set-seminar-tutor-email') #{emailAddress}
+                    label(for='set-seminar-tutor-email') Your email address.
+                  p
+                    em Please use your university or college email address if you are studying logic as part of a degree course (your university won’t see your work if you don’t).
+              .modal-footer
+                a(href="").modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel
+                a(href="")#confirm-update-email.modal-action.modal-close.waves-effect.waves-grey.btn-flat update
+                        
+                                                
     .col.s12.m6.l4
       .card
         .card-content

@@ -28,6 +28,14 @@ AccountsTemplates.addField({
   required: false
 });
 
+AccountsTemplates.addField({
+  _id: "terms_of_use"
+  type: "checkbox"
+  required: true
+  # TODO : make that it is required to be true
+  displayName: "All my datas are belong to you."
+});
+
 AccountsTemplates.configure
   defaultLayout: 'ApplicationLayout'
   defaultLayoutRegions : {}

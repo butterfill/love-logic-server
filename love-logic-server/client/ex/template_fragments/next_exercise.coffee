@@ -33,6 +33,7 @@ Template.next_exercise.events
     else
       queryString = ""
     nextUrl = ctx.next
+    nextUrl = ix.convertToExerciseId(nextUrl)
     # Check we aren't grading (in which case we need to add `/grade` to the nextUrl)
     url = ix.url()
     if url.match /\/grade\/?/

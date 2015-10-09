@@ -63,9 +63,9 @@ exSets = [
               '/ex/trans/domain/people/names/a=Ayesha|b=Beatrice/predicates/Runner1-x-is-a-runner|FasterThan2-xIsFasterThanY|Philosopher1-xIsAPhilosopher/sentence/Ayesha is a philosopher who is faster than a runner'
               '/ex/tt/A or B|B and not A|(A∨B)∧¬(B∧¬A)'
               '/ex/tt/A or not B|not A arrow B'
-              '/ex/create/White(b)/'
-              '/ex/create/exists x (Happy(x) and Tall(x))/'
-              '/ex/create/exists x exists y Adjacent(x,y)/'
+              '/ex/create/White(b)'
+              '/ex/create/exists x (Happy(x) and Tall(x))'
+              '/ex/create/exists x exists y Adjacent(x,y)'
               """/ex/TorF/White(a)|exists x Happy(x)|exists x exists y RightOf(x,y)/[{"x":9,"y":0,"w":2,"h":2,"n":"a,b","c":"white","f":["}:","^","D"]},{"x":0,"y":0,"w":2,"h":2,"n":"","c":"pink","f":[":\'","-","D"]},{"x":4,"y":0,"w":2,"h":2,"n":"","c":"purple","f":[":\'","-","("]}]"""
               '/ex/proof/from/A and (B and C)/to/B or D'
             ]

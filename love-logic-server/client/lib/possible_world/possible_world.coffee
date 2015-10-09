@@ -7,7 +7,7 @@ giveMoreFeedback = (message) ->
   $('#feedback').text("#{$('#feedback').text()}  #{message}")
 
 
-Template.possible_world_static.rendered = () ->
+Template.possible_world_static.onRendered () ->
   o = @data.options or {}
   options = _.defaults o, 
     cell_height: 80
@@ -22,7 +22,7 @@ Template.possible_world_static.rendered = () ->
   studentsAnswer = @data.answer.content
   deserializeAndRestore(studentsAnswer, $grid)
 
-Template.possible_world_from_param.rendered = () ->
+Template.possible_world_from_param.onRendered () ->
   o = @data.options or {}
   options = _.defaults o, 
     cell_height: 80
@@ -38,7 +38,7 @@ Template.possible_world_from_param.rendered = () ->
   deserializeAndRestore(world, $grid)
 
 
-Template.possible_world.rendered = () ->
+Template.possible_world.onRendered () ->
   o = @data.options or {}
   options = _.defaults o, 
     cell_height: 80

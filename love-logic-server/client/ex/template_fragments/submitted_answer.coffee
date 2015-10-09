@@ -42,6 +42,12 @@ Template.submitted_answer.helpers
     if @humanFeedback?.isCorrect?
       return ("correct" if @humanFeedback.isCorrect) or "incorrect"
     return ("correct" if @machineFeedback.isCorrect) or "incorrect"
+  displayMachineFeedback : () ->
+    return false if not @machineFeedback?
+    # We don't want to display machineFeedback if the machine coulnd't detemine correctness
+    # and the human has determined correctness.
+    # return false if @humanFeedback?.isCorrect? and not @machineFeedback?.isCorrect?
+    return true
 
 Template.submit_btn.helpers    
   isSubmitted : isSubmitted 

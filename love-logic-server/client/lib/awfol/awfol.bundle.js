@@ -608,6 +608,9 @@ _decorate = function(expression) {
       _decorate(newE);
       return newE;
     };
+    e.isPNFExpressionEquivalent = function(other) {
+      return normalForm.arePNFExpressionsEquivalent(e, other);
+    };
     return e.evaluate = function(world) {
       return evaluate.evaluate(e, world);
     };
@@ -13370,7 +13373,7 @@ exports.isPNF = isPNF;
 renameVariables = function(expression, newVariableBaseName) {
   var _newVarIdx, _newVarNames, _oldVarNames, getReplacementName, newVariableType, ref, setNewReplacementName, topDownWalker;
   if (newVariableBaseName == null) {
-    newVariableBaseName = 'xx';
+    newVariableBaseName = 'x';
   }
   newVariableType = ((ref = newVariableBaseName[0]) === 'α' || ref === 'β' || ref === 'γ' || ref === 'τ' ? 'term_metavariable' : void 0) || 'variable';
   _newVarIdx = 0;

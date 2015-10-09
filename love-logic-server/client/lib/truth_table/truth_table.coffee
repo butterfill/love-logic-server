@@ -1,5 +1,5 @@
 
-Template.truth_table.rendered = () ->
+Template.truth_table.onRendered () ->
   # Allow the answer to be updated by setting the session variable
   @autorun () ->
     # We need to `watchPathChange` so that the answer also gets updated when we change page.

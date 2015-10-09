@@ -129,9 +129,12 @@ Template.trans_ex.events
     
     answerShouldBeEnglish = checkIfTranslationToEn()
     if answerShouldBeEnglish
+      
+      # Try to get human feedback from the grade and comments on a previous student’s answer.
       humanFeedback = ix.gradeUsingGradedAnswers()
       if humanFeedback?
         doc.humanFeedback = humanFeedback
+        
       ix.submitExercise(doc, () ->
           Materialize.toast "Your translation has been submitted.", 4000
       )
@@ -150,7 +153,7 @@ Template.trans_ex.events
       machineFeedback.hasFreeVariables = (freeVariables.length isnt 0)
       if not machineFeedback.hasFreeVariables
         answerPNFsimplifiedSorted = answerFOLobject.convertToPNFsimplifyAndSort().toString({replaceSymbols:true})
-        machineFeedback.comment = "Your answer is a sentence of awFOL. I couldn’t tell whether it is correct."
+        machineFeedback.comment = "Your answer is a sentence of awFOL."
       else 
         machineFeedback.comment = "Your answer is a sentence of awFOL but it cannot be correct because it contains free variables (#{freeVariables}).  Have you forgotten a quantifier or made a mistake with brackets?"
         machineFeedback.isCorrect = false
@@ -160,9 +163,12 @@ Template.trans_ex.events
     doc.answerFOL = answerFOLstring
     doc.answerPNFsimplifiedSorted = answerPNFsimplifiedSorted
     doc.machineFeedback = machineFeedback
+    
+    # Try to get human feedback from the grade and comments on a previous student’s answer.
     humanFeedback = ix.gradeUsingGradedAnswers(doc)
     if humanFeedback?
       doc.humanFeedback = humanFeedback
+      
     ix.submitExercise(doc, () ->
         Materialize.toast "Your translation has been submitted.", 4000
     )

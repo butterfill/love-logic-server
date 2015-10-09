@@ -126,9 +126,36 @@ FlowRouter.route '/ex/tt/:_sentences/grade',
 # `.isCorrect`, `.comment`, and `.graderId` ()
 @GradedAnswers = new Mongo.Collection('graded_answers')
 
+@HelpRequest = new Mongo.Collection('help_request')
+
 Meteor.methods
   # TODO: Change email.  Do not allow user to change email to
   # an email already used, nor to an email used as a supervisor email.
+  
+  updateSeminarTutor : (emailAddress) ->
+    userId = Meteor.user()?._id
+    if not userId 
+      throw new Meteor.Error "not-authorized"
+    if Meteor.isClient
+      # Can’t simulate
+      return undefined
+    test = Meteor.users.find({'emails.address':emailAddress}).count()
+    if test is 0
+      throw new Meteor.Error "No one is registered with that email address."
+    Meteor.users.update(userId, {$set: {"profile.seminar_tutor":emailAddress}})
+
+  updateEmailAddress : (emailAddress) ->
+    userId = Meteor.user()?._id
+    if not userId 
+      throw new Meteor.Error "not-authorized"
+    if Meteor.isClient
+      # Can’t simulate
+      return undefined
+    test = Meteor.users.find({'emails.address':emailAddress}).count()
+    if test isnt 0
+      throw new Meteor.Error "That email address is already is use."
+    emails = [{ address : emailAddress, verified : false }]
+    Meteor.users.update(userId, {$set: {'emails':emails}})
   
   submitExercise : (exercise) ->
     userId = Meteor.user()?._id
@@ -198,15 +225,28 @@ Meteor.methods
       throw new Meteor.Error "not-authorized"
     SubmittedExercises.update(exercise, $set:{'humanFeedback.studentSeen':true, 'humanFeedback.studentEverSeen':true})
 
-  addGradedExercise : (exerciseId, ownerIdHash, answerHash, isCorrect, comment) ->
+  createHelpRequest : (doc) ->
+    requesterId = Meteor.user()?._id
+    if not requesterId
+      throw new Meteor.Error "not-authorized"
+    doc.requesterId = requesterId
+    if Meteor.user()?.profile?.seminar_tutor?
+      doc.requesterTutorEmail = Meteor.user().profile.seminar_tutor
+    doc.created = new Date()
+    HelpRequest.insert(doc)
+
+  addGradedExercise : (exerciseId, ownerIdHash, answerHash, isCorrect, comment, answerPNFsimplifiedSorted) ->
     graderId = Meteor.user()?._id
     if not graderId
       throw new Meteor.Error "not-authorized"
     newDoc = {graderId, exerciseId, ownerIdHash, answerHash}
+    if answerPNFsimplifiedSorted
+      newDoc.answerPNFsimplifiedSorted = answerPNFsimplifiedSorted
     if isCorrect?
       newDoc.isCorrect = isCorrect
     if comment? 
       newDoc.comment = comment
+    # (Checking that we actually need to add this answer has already been done on the client.)
     if Meteor.isClient
       return undefined
     rawGradedAnswers = GradedAnswers.rawCollection()
@@ -218,6 +258,8 @@ Meteor.methods
       {answerHash}
     ] }
     findAndModify(query, {}, newDoc, {upsert: true})
+
+
 # -----
 # Methods for getting data
 Meteor.methods

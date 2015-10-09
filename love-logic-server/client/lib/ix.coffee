@@ -85,8 +85,13 @@ ix.hash = (text) ->
 
 ix.hashAnswer = (answerDoc) ->
   toHash = answerDoc.answer.content
-  if answerDoc.answerPNFsimplifiedSorted?
-    toHash = answerDoc.answerPNFsimplifiedSorted
+  if _.isString(toHash)
+    # Try to eliminate minor variations in text answer by, e.g.
+    # making lower case, removing periods, commas and multiple spaces or tables, trim.
+    # (Note: there is a small chance of a clash if the answer is awFOL because case is 
+    # significant in awFOL for distinguishing predicates from sentence letters, but it's
+    # hard to imagine this mattering within the answers to a single exercise.)
+    toHash = toHash.toLowerCase().replace(/\./,'').replace(/,/,'').replace(/\s+/g,' ').trim()
   r = ix.hash(JSON.stringify(toHash))
   console.log "hash is #{r}"
   return r
@@ -96,15 +101,51 @@ ix.gradeUsingGradedAnswers = (answerDoc) ->
   answerDoc ?= {answer:{content:ix.getAnswer()}}
   answerHash = ix.hashAnswer(answerDoc)
   thisAnswersGrades = GradedAnswers.find({answerHash})
-  return undefined if thisAnswersGrades.count() is 0
-  # TODO : scan through all the grades and check they're consistent, combining comments
-  grade = thisAnswersGrades.fetch()[0]
-  isCorrect = grade.isCorrect
-  comment = grade.comment
-  return {
-    isCorrect
-    comment
-  }
+  if thisAnswersGrades.count() is 0
+    if answerDoc.answerPNFsimplifiedSorted?
+      # Where there is an awFOL expression in PNF, we will grade by checking for equivalence.
+      return _gradePNF(answerDoc)
+    else
+      return undefined 
+  isCorrect = undefined
+  comment = ''
+  conflict = false
+  for grade in thisAnswersGrades.fetch()
+    if isCorrect isnt undefined and isCorrect isnt grade.isCorrect
+      conflict = true
+    isCorrect = grade.isCorrect
+    if grade.comment?
+      comment += grade.comment
+  result = {}
+  if comment? and comment isnt ''
+    result.comment = comment
+  if not conflict and isCorrect?
+    result.isCorrect = isCorrect
+  return result
+
+_gradePNF = (answerDoc) ->
+  console.log "using PNF to check for equivalence"
+  isCorrect = undefined
+  comment = ''
+  conflict = false
+  answerPNF = answerDoc.answerPNFsimplifiedSorted
+  for graded in GradedAnswers.find().fetch()
+    gradedPNF = graded.answerPNFsimplifiedSorted
+    a = fol.parse(answerPNF)
+    g = fol.parse(gradedPNF)
+    test = a.isPNFExpressionEquivalent(g)
+    if test
+      if isCorrect isnt undefined and isCorrect isnt graded.isCorrect
+        conflict = true
+      isCorrect = graded.isCorrect
+      if graded.comment?
+        comment += graded.comment
+  result = {}
+  if comment? and comment isnt ''
+    result.comment = comment
+  if isCorrect? and not conflict
+    result.isCorrect = isCorrect
+  return result
 
 # Return an object specifying the lecture and unit in which the present 
 # exercise occurs, and also the next exercise in the series (if any).

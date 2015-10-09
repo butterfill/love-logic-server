@@ -23,6 +23,9 @@ Template.ask_for_help.onRendered () ->
   $("#request-help").leanModal()
 
 
+# ====
+# template helpers
+
 slidesForThisUnit = () ->
   # Because `Session` is a reactive var, this call ensures the templates are updated when
   # the current unit changes.
@@ -58,3 +61,28 @@ Template.topic_header.helpers
     ctx = Template.instance().exerciseContext.get()
     return '' unless ctx
     return ctx.exerciseSet.variant
+
+
+# ====
+# template events
+
+Template.ask_for_help.events
+  'click #confirm-request-help' : (event, template) ->
+    doc = {
+      exerciseId : ix.getExerciseId()
+      reviewedLectureSlides : $('#reviewed-lecture-slides').is(':checked')
+      readTextbook : $('#read-textbook').is(':checked')
+      question : $('#request-for-help-description').val().trim()
+    }
+    delete doc.readTextbook if $('#read-textbook').length is 0
+    delete doc.reviewedLectureSlides if $('#reviewed-lecture-slides').length is 0
+    if doc.question is ''
+      return undefined
+    Meteor.call "createHelpRequest", doc, (error) ->
+      if error
+        Materialize.toast error.message, 4000
+      else
+        Materialize.toast "Your request for help has been recorded.", 4000
+      
+    
+      

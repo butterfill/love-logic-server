@@ -1,5 +1,5 @@
 
-Template.TorF_ex.rendered = () ->
+Template.TorF_ex.onRendered () ->
   templateInstance = this
   # Allow the answer to be updated by setting the session variable
   @autorun () ->

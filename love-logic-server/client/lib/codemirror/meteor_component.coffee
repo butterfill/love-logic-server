@@ -17,7 +17,7 @@ giveMoreFeedback = (message) ->
 # editSentence
 
 # Enchanced for sentences of FOL: includes a feedback line and a `convert to symbols` button.
-Template.editSentence.rendered = () ->
+Template.editSentence.onRendered () ->
   o = @data.options or {}
   options = _.defaults o, {
     theme : 'blackboard'
@@ -126,7 +126,7 @@ addMarker = (lineNumber, color = "#822", editor) ->
 
 # Enchanced for sentences of FOL: includes a feedback line and a `convert to symbols` button.
 # Also gets editor content from URL if not stored in session
-Template.editProof.rendered = () ->
+Template.editProof.onRendered () ->
   o = @data.options or {}
   options = _.defaults o, {
     theme : 'blackboard'
