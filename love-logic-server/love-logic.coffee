@@ -45,7 +45,9 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
-# TODO: tutor - page showing tutee’s progress (% completed in last 7 days? etc)
+# TODO: only trusted users can create GradedAnswers
+
+# TODO: tutors can create exercise sets
 
 # TODO: exercise - yes/no question (e.g. can logically valid argument have false premises)
 # TODO: exercise - state whether an argument (of awFOL or En) is valid.
@@ -91,6 +93,9 @@ FlowRouter.route '/myTutees',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'myTutees'
 
+FlowRouter.route '/myTuteesProgress',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'myTuteesProgress'
 
 FlowRouter.route '/exercisesToGrade',
   action : (params, queryParams) ->
@@ -139,9 +144,6 @@ FlowRouter.route '/ex/tt/:_sentences/grade',
 @HelpRequest = new Mongo.Collection('help_request')
 
 Meteor.methods
-  # TODO: Change email.  Do not allow user to change email to
-  # an email already used, nor to an email used as a supervisor email.
-  
   updateSeminarTutor : (emailAddress) ->
     userId = Meteor.user()?._id
     if not userId 
@@ -161,6 +163,7 @@ Meteor.methods
     if Meteor.isClient
       # Can’t simulate
       return undefined
+    # Do not allow user to change email to an email already used.
     test = Meteor.users.find({'emails.address':emailAddress}).count()
     if test isnt 0
       throw new Meteor.Error "That email address is already is use."
@@ -207,16 +210,24 @@ Meteor.methods
     userId = Meteor.user()._id
     if not userId
       throw new Meteor.Error "not-authorized"
-    subscription = Subscriptions.findOne($and:[{owner:userId},{courseName},{variant}])
-    if subscription
+    subscription = Subscriptions.findOne({owner:userId, courseName, variant})
+    if subscription?
       throw new Meteor.Error "You are already following ‘#{variant}’ on #{courseName}."
-    if not subscription
-      Subscriptions.insert({
-        owner : userId
-        created : new Date()
-        courseName
-        variant
-      })
+    Subscriptions.insert({
+      owner : userId
+      created : new Date()
+      courseName
+      variant
+    })
+
+  unsubscribeToExerciseSet : (courseName, variant) ->
+    userId = Meteor.user()._id
+    if not userId
+      throw new Meteor.Error "not-authorized"
+    subscription = Subscriptions.findOne({owner:userId, courseName, variant})
+    if not subscription?
+      throw new Meteor.Error "You aren’t following ‘#{variant}’ on #{courseName}."
+    Subscriptions.remove(subscription._id)
 
   addHumanFeedback : (submission, humanFeedback) ->
     if not Meteor.userId() 

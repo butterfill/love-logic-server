@@ -42,8 +42,13 @@ Template.exerciseSet.onCreated () ->
     self.subscribe('course', courseName)
     self.subscribe('exercise_set', courseName, variant)
     # This subscription provides `SubmittedExercises` but only some fields.
-    self.subscribe('dates_exercises_submitted')
-    self.subscribe('subscriptions')
+    userId = ix.getUserId()
+    self.subscribe('dates_exercises_submitted', userId)
+    self.subscribe('tutee_user_info', userId)
+    if userId is Meteor.userId()
+      # This is only used to check whether the user wants to follow or stop following
+      # an exercise set.
+      self.subscribe('subscriptions')
 
 
 isSubmitted = (exerciseLink) ->
@@ -53,6 +58,26 @@ dateSubmitted = (exerciseLink) ->
   exerciseId = ix.convertToExerciseId(exerciseLink)
   return SubmittedExercises.findOne({exerciseId}, {sort:{created:-1}}).created
 
+exerciseIsCorrect = (exerciseLink) ->
+  exerciseId = ix.convertToExerciseId(exerciseLink)
+  ex = SubmittedExercises.findOne({exerciseId}, {sort:{created:-1}})
+  return true if ex?.humanFeedback?.isCorrect
+  return true if ex?.machineFeedback?.isCorrect
+  return false
+exerciseIsIncorrect = (exerciseLink) ->
+  exerciseId = ix.convertToExerciseId(exerciseLink)
+  ex = SubmittedExercises.findOne({exerciseId}, {sort:{created:-1}})
+  return true if ex?.humanFeedback?.isCorrect is false
+  return true if ex?.machineFeedback?.isCorrect is false
+  return false
+exerciseIsUngraded = (exerciseLink) ->
+  exerciseId = ix.convertToExerciseId(exerciseLink)
+  ex = SubmittedExercises.findOne({exerciseId}, {sort:{created:-1}})
+  return false unless ex?.created?
+  return false if ex?.humanFeedback?.isCorrect?
+  return false if ex?.machineFeedback?.isCorrect?
+  return true
+  
 Template.exerciseSet.helpers
   courseName : () ->
     return getCourseName() 
@@ -62,6 +87,16 @@ Template.exerciseSet.helpers
     return getExerciseSetName()
   exerciseSetDescription : () ->
     return ExerciseSets.findOne()?.description
+  isForTutee : () -> Meteor.users.find().count() > 1
+  tuteeId : () -> 
+    tuteeId = ix.getUserId()
+    return Meteor.users.findOne(ix.getUserId())._id
+  tuteeName : () -> 
+    tuteeId = ix.getUserId()
+    return Meteor.users.findOne(ix.getUserId())?.profile?.name
+  tuteeEmail : () -> 
+    tuteeId = ix.getUserId()
+    return Meteor.users.findOne(ix.getUserId())?.emails?[0]?.address
   lectures : () ->
     theLectures = ExerciseSets.findOne()?.lectures
     return [] if not theLectures
@@ -73,6 +108,9 @@ Template.exerciseSet.helpers
             link:ix.convertToExerciseId(e)
             isSubmitted:isSubmitted(e)
             dateSubmitted:(moment(dateSubmitted(e)).fromNow() if isSubmitted(e))
+            exerciseIsCorrect : exerciseIsCorrect(e)
+            exerciseIsIncorrect : exerciseIsIncorrect(e)
+            exerciseIsUngraded : exerciseIsUngraded(e)
           } for e in unit.rawExercises
         )
         if unit.rawReading?.length >0
@@ -80,8 +118,10 @@ Template.exerciseSet.helpers
         else 
           unit.reading =""
     return theLectures
+  'gradeURL' : () -> (@link.replace(/\/$/, ''))+"/grade"
   isAlreadyFollowing : () ->
-    userId = ix.getUserId()
+    # Here we get the acutal user (this is for wheter to display the `follow button`)
+    userId = Meteor.userId()
     courseName = getCourseName()
     variant = getExerciseSetName()
     return false unless userId? and courseName? and variant?
@@ -96,10 +136,20 @@ Template.exerciseSet.events
   'click #follow' : (event, template) ->
     courseName = getCourseName()
     variant = getExerciseSetName()
-    Meteor.call('subscribeToExerciseSet', courseName, variant, (error,result)->
+    Meteor.call 'subscribeToExerciseSet', courseName, variant, (error,result)->
       if not error
         Materialize.toast "You are following #{variant}", 4000
       else
         Materialize.toast "Sorry, there was an error signing you up for #{variant}. (#{error.message})", 4000
-    )
+  
+  'click #unfollow' : (event, template) ->
+    courseName = getCourseName()
+    variant = getExerciseSetName()
+    Meteor.call 'unsubscribeToExerciseSet', courseName, variant, (error,result)->
+      if not error
+        Materialize.toast "You are no longer following #{variant}", 4000
+      else
+        Materialize.toast "Sorry, there was an error signing you out of #{variant}. (#{error.message})", 4000
+    
+    
 

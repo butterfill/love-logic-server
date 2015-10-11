@@ -5,11 +5,19 @@ Template.GradeLayout.onCreated () ->
   self.autorun () ->
     FlowRouter.watchPathChange()
     exerciseId = ix.getExerciseId()
-    self.subscribe 'submitted_answers', exerciseId
     self.subscribe 'courses'
     self.subscribe 'graded_answers', exerciseId
     self.subscribe 'help_requests_for_tutor', exerciseId
-
+    
+    # Which `SubmittedAnswers` to get?
+    # If url param `user`, then get answers for that user (who must be a tutee of the current user).
+    # Otherwise get answers for all the current users tutees.
+    userId = ix.getUserId()
+    if userId is Meteor.userId()
+      self.subscribe 'submitted_answers', exerciseId
+    else
+      self.subscribe 'submitted_answers', exerciseId, userId
+    
 
 
   

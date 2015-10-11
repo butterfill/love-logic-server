@@ -8,6 +8,8 @@
 
 # Return the `_id` of the current user.
 ix.getUserId = () ->
+  userId = FlowRouter.getQueryParam('user')
+  return userId if userId?
   if Meteor.user()?._id
     return Meteor.user()._id
   return undefined

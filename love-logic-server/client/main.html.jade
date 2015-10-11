@@ -1,4 +1,6 @@
 
+template(name='display_subscription')
+  a(href="/course/#{courseName}/exercise-set/#{variant}?#{userQueryParam}") The ‘#{variant}’ exercises for #{courseName}
 
 template(name='main')
   if isTutor
@@ -7,13 +9,14 @@ template(name='main')
       li.collection-item: a(href="/exercisesToGrade") Exercises to grade
       li.collection-item: a(href="/helpRequestsToAnswer") Help requests to answer
       li.collection-item: a(href="/myTutees") List of tutees
+      li.collection-item: a(href="/myTuteesProgress") Tutees’ progress report
 
   if hasSubscriptions
     h3 Exercises
     ul.collection
       each subscriptions
         li.collection-item
-          a(href="/course/#{courseName}/exercise-set/#{variant}") The ‘#{variant}’ exercises for #{courseName}
+          +display_subscription 
     
     .row: .col.s12
       .right

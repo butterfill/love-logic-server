@@ -1,5 +1,6 @@
 template(name='myTutees')
   h2 My Tutees
-  p The following students have registered and currently list you as their seminar tutor.
-  each tutees
-    p #{profile.name} &lt;#{email}&gt;
+  p The following currently list you as their seminar tutor:
+  ul.collection
+    each tutees
+      li.collection-item #{profile.name} &lt;#{email}&gt;

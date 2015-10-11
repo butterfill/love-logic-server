@@ -19,12 +19,20 @@ template(name='exerciseSetsForCourse')
 template(name='exerciseSet')
   p #{courseName} --- #{courseDescription}
   
-  h2 #{exerciseSetName}
+  
+  h2 
+    if isForTutee
+      span #{tuteeName} &lsaquo;#{tuteeEmail}&rsaquo;
+      br
+    span #{exerciseSetName}
   p #{exerciseSetDescription}
-  if isAlreadyFollowing
-    a#unfollowDialog.btn.waves-effect.grey stop following ‘#{exerciseSetName}’
+  if isForTutee
+    .pass
   else
-    a#follow.btn.waves-effect.grey follow ‘#{exerciseSetName}’
+    if isAlreadyFollowing
+      a#unfollow.btn.waves-effect.grey stop following ‘#{exerciseSetName}’
+    else
+      a#follow.btn.waves-effect.grey follow ‘#{exerciseSetName}’
 
   each lectures
     h4 #{name}
@@ -45,7 +53,16 @@ template(name='exerciseSet')
       ul.collection
       each exercises
         li
-          a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}") #{name}
+          if isForTutee
+            a(href="#{gradeURL}?variant=#{exerciseSetName}&courseName=#{courseName}&user=#{tuteeId}") #{name}
+          else
+            a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}") #{name}
+          if exerciseIsCorrect
+            span.green-text ✔ 
+          if exerciseIsIncorrect
+            span.red-text ✘
+          if exerciseIsUngraded
+            span.orange.white-text(style="font-weight:bold;border-radius:16px;padding-left:3px;padding-right:2px;") ?
           if isSubmitted
             span.grey-text [submitted #{dateSubmitted}]
           else

@@ -2,7 +2,11 @@ template(name='exercisesToGrade')
   h2 Exercises to Grade
   p The following exercises are those for which students specifying you as seminar tutor have submitted work and for which you have not yet provided feedback.
   p (This does not include any exercises submitted which were automatically marked as correct.)
-  ul.collection
-    each exercises
-      li.collection-item
-        a(href="#{gradeURL}") #{exerciseName}
+  
+  if Template.subscriptionsReady
+    ul.collection
+      each exercises
+        li.collection-item
+          a(href="#{gradeURL}") #{exerciseName}
+  else
+    p.orange-text Loading ...
