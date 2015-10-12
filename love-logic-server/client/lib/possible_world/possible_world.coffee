@@ -32,10 +32,13 @@ Template.possible_world_from_param.onRendered () ->
     static_grid : true
   
   templateInstance = this
-  $grid = $(@find('.grid-stack'))
-  $grid.gridstack(options)
-  world = ix.getWorldFromParam()
-  deserializeAndRestore(world, $grid)
+  @autorun () ->
+    # We need to `watchPathChange` so that the possible situation gets updated.
+    FlowRouter.watchPathChange()
+    $grid = $(templateInstance.find('.grid-stack'))
+    $grid.gridstack(options)
+    world = ix.getWorldFromParam()
+    deserializeAndRestore(world, $grid)
 
 
 Template.possible_world.onRendered () ->

@@ -98,11 +98,19 @@ ix.hashAnswer = (answerDoc) ->
   console.log "hash is #{r}"
   return r
 
-ix.gradeUsingGradedAnswers = (answerDoc) ->
-  return undefined if GradedAnswers.find().count() is 0
+ix.gradeUsingGradedAnswers = (answerDoc, o) ->
+  o ?= {}
+  exerciseId = ix.getExerciseId()
+  return undefined if GradedAnswers.find({exerciseId}).count() is 0
   answerDoc ?= {answer:{content:ix.getAnswer()}}
   answerHash = ix.hashAnswer(answerDoc)
-  thisAnswersGrades = GradedAnswers.find({answerHash})
+  thisAnswersGrades = GradedAnswers.find({exerciseId, answerHash})
+  if o.uniqueAnswer and thisAnswersGrades.count() is 0
+    if GradedAnswers.find({exerciseId, isCorrect:true}).count() isnt 0
+      # We already checked the answer doesn’t match any graded answer, 
+      # so whether the answer is not the unique correct answer.
+      return { isCorrect:false }
+    
   if thisAnswersGrades.count() is 0
     if answerDoc.answerPNFsimplifiedSorted?
       # Where there is an awFOL expression in PNF, we will grade by checking for equivalence.
@@ -199,11 +207,13 @@ ix.setAnswer = (answer) ->
 # Return a list of awFOL objects.
 ix.getPremisesFromParams = () ->
   _premises = FlowRouter.getParam('_premises')
+  return undefined unless _premises?
   txtList = decodeURIComponent(_premises).split('|')
   try
     folList = (fol.parse(t) for t in txtList)
   catch e
-    return ["Sorry, there is an error with the URL you gave (#{e})."]
+    # The premises may occasionally be sentences of English or another natural language.
+    return (_fixEnglishSentence(x) for x in txtList)
   folList = (e for e in folList when not (e.type is 'value' and e.value is true))
   return folList
 
@@ -211,10 +221,11 @@ ix.getPremisesFromParams = () ->
 # Return it as an awFOL object.
 ix.getConclusionFromParams = () ->
   _conclusion = FlowRouter.getParam('_conclusion')
+  return undefined unless _conclusion?
   try
     e = fol.parse(decodeURIComponent(_conclusion))
   catch error
-    return "Sorry, there is an error with the URL you gave (#{error})."
+    return _fixEnglishSentence(_conclusion)
   return e
 
 # Extract the proof to be written from the params.  
@@ -222,7 +233,17 @@ ix.getProofFromParams = () ->
   premiseTxt = (t.toString({replaceSymbols:true}) for t in ix.getPremisesFromParams()).join('\n| ')
   conclusionTxt = ix.getConclusionFromParams().toString({replaceSymbols:true})
   return "| #{premiseTxt}\n|---\n| \n| \n| #{conclusionTxt}"  
-  
+
+ix.getTTrowFromParam = () ->
+  _raw = FlowRouter.getParam('_TTrow')
+  return undefined unless _raw?
+  assignments = decodeURIComponent(_raw).split('|')
+  row = {}
+  for a in assignments
+    [key,value] = a.split(':')
+    row[key]=value
+  return row
+    
 
 ix.checkPremisesAndConclusionOfProof = (theProof) ->
     # Now check the conclusion is what its supposed to be.
@@ -241,25 +262,47 @@ ix.checkPremisesAndConclusionOfProof = (theProof) ->
     #Everything is  ok
     return true
 
-
-# ======
-# create a possible situation
 ix.getSentencesFromParam = (self) ->
   sentencesParam = FlowRouter.getParam('_sentences')
   if sentencesParam?
     sentences = decodeURIComponent(sentencesParam).split('|')
-    return (fol.parse(x) for x in sentences)
+    try
+      return (fol.parse(x) for x in sentences)
+    catch e
+      # The sentences may be English rather than awFOL.
+      return (_fixEnglishSentence(s) for s in sentences)
   # Try another method
   if self?.exerciseId?
-    console.log "sentences from exerciseId"
-    ss = decodeURIComponent(self.exerciseId.split('/')[3]).split('|')
-    return (fol.parse(x) for x in ss)
+    exercisesIdParts = self.exerciseId.split('/')
+    if 'qq' in exercisesIdParts
+      qqIdx = exercisesIdParts.indexOf('qq')
+      # The sentences are the part after `qq`
+      rawSentences = exercisesIdParts[qqIdx+1]
+    else
+      rawSentences = exercisesIdParts[3]
+    sentences = decodeURIComponent(rawSentences).split('|')
+    try
+      return (fol.parse(x) for x in sentences)
+    catch e
+      return (_fixEnglishSentence(s) for s in sentences)
   # give up
   return []
 
+_fixEnglishSentence = (sentence) ->
+  if not sentence.endsWith('.')
+    sentence += '.'
+  # capitalize first letter
+  sentence = sentence.charAt(0).toUpperCase() + sentence.slice(1)
+  return sentence
 
 ix.getWorldFromParam = () ->
-  return JSON.parse(decodeURIComponent(FlowRouter.getParam('_world')))
+  world = FlowRouter.getParam('_world')
+  if world?
+    return JSON.parse(decodeURIComponent(world))
+  return undefined
+
+# ======
+# create a possible situation
 
 ix.possibleWorld = 
   checkSentencesTrue : ($grid, giveFeedback) ->
@@ -331,10 +374,11 @@ ix.possibleWorld =
     noseSymbol = object.face[1]
     mouthSymbol = object.face[2]
     predicates = [
-      ix.possibleWorld.getPredicate(mouthSymbol, ix.possibleWorld.mouths)
-      ix.possibleWorld.getPredicate(eyesSymbol, ix.possibleWorld.eyes)
-      ix.possibleWorld.getPredicate(noseSymbol, ix.possibleWorld.nose)
+      ix.possibleWorld.getPredicate(mouthSymbol, ix.possibleWorld.mouths)?.split(',')
+      ix.possibleWorld.getPredicate(eyesSymbol, ix.possibleWorld.eyes)?.split(',')
+      ix.possibleWorld.getPredicate(noseSymbol, ix.possibleWorld.nose)?.split(',')
     ]
+    predicates = _.flatten(predicates)
     colourName = object.colour
     colourPredicate = colourName[0].toUpperCase() + colourName.split('').splice(1).join('')
     predicates.push colourPredicate
@@ -346,13 +390,13 @@ ix.possibleWorld =
     {symbol:')', predicate:'Happy'}
     {symbol:'|', predicate:'Neutral'}
     {symbol:'(', predicate:'Sad'}
-    {symbol:'D', predicate:'Laughing'}
+    {symbol:'D', predicate:'Laughing,Happy'}
     {symbol:'()', predicate:'Surprised'}
     {symbol:'{}', predicate:'Angry'}
   ]
   eyes : [
     {symbol:':', predicate:null}
-    {symbol:'}:', predicate:'Frowing'}
+    {symbol:'}:', predicate:'Frowning'}
     {symbol:';', predicate:'Winking'}
     {symbol:":'", predicate:'Crying'}
     {symbol:"|%", predicate:'Confused'}

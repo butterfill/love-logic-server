@@ -16,6 +16,7 @@ Meteor.publish "subscriptions", ->
 # This is called by students to see their own progress.
 # Param `userId` allows tutors to call this to see a tutee’s progress.
 Meteor.publish "dates_exercises_submitted", (userId) ->
+  userId ?= @userId
   if @userId isnt userId
     studentId = userId
     throw new Meteor.Error "not authorized" unless checkIsTutee(@userId, studentId)
@@ -24,6 +25,7 @@ Meteor.publish "dates_exercises_submitted", (userId) ->
 # This is called by students to see everything they have submitted.
 # Param `userId` allows tutors to call this to see a tutee’s progress.
 Meteor.publish "submitted_exercises", (userId) ->
+  userId ?= @userId
   if @userId isnt userId
     studentId = userId
     throw new Meteor.Error "not authorized" unless checkIsTutee(@userId, studentId)
@@ -33,8 +35,8 @@ Meteor.publish "submitted_exercises", (userId) ->
 checkIsTutee = (userId, studentId) ->
   user = Meteor.users.findOne(userId)
   student = Meteor.users.findOne(studentId)
-  currentUserEmail = user.emails?[0]?.address
-  seminarTutor = student.profile?.seminar_tutor
+  currentUserEmail = user?.emails?[0]?.address
+  seminarTutor = student?.profile?.seminar_tutor
   isTutee = seminarTutor? and (seminarTutor is currentUserEmail)
   return isTutee
 

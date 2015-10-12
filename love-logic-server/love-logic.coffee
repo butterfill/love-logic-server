@@ -49,11 +49,10 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: tutors can create exercise sets
 
-# TODO: exercise - yes/no question (e.g. can logically valid argument have false premises)
-# TODO: exercise - state whether an argument (of awFOL or En) is valid.
-# TODO: exercise - (free text) state the definition of logically valid
-# TODO: exercise - truth tables for argument (determine validity)
 # TODO: exercise - build a scene which is a counterexample to this argument
+# TODO: exercise - (free text) state the definition of logically valid.
+# TODO: exercise - row of truth table, which sentences are true and which false.
+# TODO: exercise - truth tables for argument (determine validity)
 # TODO: exercise - specify the main connective (multiple choice)
 # TODO: exercise - write down the scopes of different operators.
 # TODO: exercise - proof of, or counterexample to, argument
@@ -62,29 +61,99 @@ FlowRouter.route '/mySubmittedExercises',
 FlowRouter.route '/ex/proof/from/:_premises/to/:_conclusion',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'proof_ex'
-
-# Translation exercise
-# Example URL:
-# /ex/trans/domain/5things/names/a=thing1%7Cb=thing2/predicates/Fish1%7CPerson2%7CRed1/sentence/At%20least%20two%20people%20are%20not%20fish
-# It will work which direction you are translating in by what language `:_sentence` is in.
+FlowRouter.route '/ex/proof/from/:_premises/to/:_conclusion/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+    
+# Translation exercise.  Example URL: /ex/trans/domain/5things/names/a=thing1%7Cb=thing2/predicates/Fish1%7CPerson2%7CRed1/sentence/At%20least%20two%20people%20are%20not%20fish
+# It will work out which direction you are translating in by what language `:_sentence` is in.
 FlowRouter.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicates/sentence/:_sentence',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'trans_ex'
+FlowRouter.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicates/sentence/:_sentence/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
 # Create a possible situation in which `_sentences` are all true
-FlowRouter.route '/ex/create/:_sentences',
+FlowRouter.route '/ex/create/qq/:_sentences',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'create_ex'
+FlowRouter.route '/ex/create/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
 # Say which sentences are true in a possible situation
-FlowRouter.route '/ex/TorF/:_sentences/:_world',
+FlowRouter.route '/ex/TorF/world/:_world/qq/:_sentences',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'TorF_ex'
+FlowRouter.route '/ex/TorF/world/:_world/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
 # Construct truth tables for the sentences
-FlowRouter.route '/ex/tt/:_sentences/',
+FlowRouter.route '/ex/tt/qq/:_sentences/',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'tt_ex'
+FlowRouter.route '/ex/tt/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+
+# ---
+# The exercises following all use the `evaluate_ex` template
+
+# Answer questions about an argument and a possible situation (predicate)
+# E.g. /ex/evaluate/from/I am a dog|I am a cat/to/I am a dog and a cat/world/[{"x":9,"y":0,"w":2,"h":2,"n":"a,b","c":"white","f":["}:","^","D"]},{"x":0,"y":0,"w":2,"h":2,"n":"","c":"pink","f":[":\'","-","D"]},{"x":4,"y":0,"w":2,"h":2,"n":"","c":"purple","f":[":\'","-","("]}]/qq/The argument is sound|The argument is valid
+FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/world/:_world/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
+FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/world/:_world/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+# Answer questions about an argument and a possible situation (TTrow)
+# e.g. /ex/evaluate/from/not A|A arrow B/to/not B/TTrow/A:F|B:T/qq/the first premise is true|the second premise is true|the conclusion is true|the possible situation is a counterexample to the argument
+FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/TTrow/:_TTrow/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
+FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/TTrow/:_TTrow/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+# Answer questions about an argument
+# e.g. /ex/evaluate/from/I am a dog|I am a cat/to/I am a dog and a cat//qq/The argument is sound|The argument is valid
+FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
+FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+# Answer questions about a possible situation (predicate)
+# TODO: this partly duplicates TorF (should maybe replace it, but will have to machine grade)
+FlowRouter.route '/ex/evaluate/world/:_world/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
+FlowRouter.route '/ex/evaluate/world/:_world/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+# Answer questions about a possible situation (TTrow)
+FlowRouter.route '/ex/evaluate/TTrow/:_TTrow/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
+FlowRouter.route '/ex/evaluate/TTrow/:_TTrow/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+# Answer questions
+FlowRouter.route '/ex/evaluate/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
+FlowRouter.route '/ex/evaluate/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
 
 # ------
 # Grading (=marking) routes
@@ -105,25 +174,6 @@ FlowRouter.route '/helpRequestsToAnswer',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'helpRequestsToAnswer'
 
-FlowRouter.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicates/sentence/:_sentence/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
-
-FlowRouter.route '/ex/proof/from/:_premises/to/:_conclusion/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
-    
-FlowRouter.route '/ex/create/:_sentences/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
-
-FlowRouter.route '/ex/TorF/:_sentences/:_world/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
-
-FlowRouter.route '/ex/tt/:_sentences/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
 # ------
 # Collections

@@ -1,0 +1,72 @@
+template(name='evaluate_ex')
+  +topic_header
+
+  +evaluate_ex_display_question
+
+  ul.collection
+    each sentences
+      li.collection-item 
+        span.theSentence #{idx}. #{theSentence}
+        span.right.trueOrFalseInputs
+          form
+            input.true.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="true_for_#{idx}", value='true')
+            label(for="true_for_#{idx}") true
+            input.false.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="false_for_#{idx}", value='false')
+            label(for="false_for_#{idx}") false
+
+  +submitted_answer
+
+  +help_with_this_exercise
+
+  .right
+    +ask_for_help
+    +submit_btn
+        
+  +next_exercise
+
+template(name="evaluate_ex_display_question")
+  if isArgument
+    h4 Consider this argument:
+    .row: .col.s11.offset-s1
+      table
+        tbody
+          each premises
+            tr(style="border-left: 1px solid black;")
+              td(width="1em")
+              td: div(style="margin-left:-1em;") #{this}
+          tr(style="border-left: 1px solid black;")
+            td(width="1em", style="border-top:1px solid black;padding-right:1em;")
+            td: div(style="margin-left:-1em;") #{conclusion}
+
+  if isWorld
+    h4 Here is a possible situation:
+    +possible_world_from_param
+
+  if isTTrow
+    h4 Here is a possible situation:
+    table.highlight.truthtable
+      thead
+        tr
+          each TTletters
+            th.center(width='2em') #{this}
+      tbody
+        tr 
+          each TTvalues
+            td.center(width='2em') #{this}
+
+
+  if isJustOneSentence
+    h4 Is the following sentence true or false?
+  else
+    h4 Which of the following are true and which false?
+  
+
+template(name="evaluate_ex_display_answer")
+  ul.collection
+    each sentences
+      li.collection-item 
+        span.theSentence #{idx}. #{theSentence}
+        span.right #{value}
+  
+    
+    

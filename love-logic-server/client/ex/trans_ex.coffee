@@ -107,6 +107,7 @@ getAnswerAsFOLsentence = () ->
 Template.trans_ex.onCreated () ->
   self = this
   @autorun () ->
+    FlowRouter.watchPathChange()
     exerciseId = ix.getExerciseId()
     self.subscribe 'graded_answers', exerciseId
 

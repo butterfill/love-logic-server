@@ -46,6 +46,11 @@ exSets = [
               '/ex/proof/from/A and (B and C)/to/B'
               '/ex/proof/from/A and B|B and C/to/A and C'
               '/ex/proof/from/A and (B and C)/to/(A and B) and C'
+              '/ex/evaluate/qq/a logically valid argument cannot have a false conclusion|a logically valid argument cannot have false premises'
+              '/ex/evaluate/qq/a logically valid argument cannot have true premises and a false conclusion'
+              """/ex/evaluate/from/Happy(a)|not White(b)/to/exists x (Happy(x) and White(x))/world/[{"x":9,"y":0,"w":2,"h":2,"n":"a","c":"white","f":["}:","^","D"]},{"x":0,"y":0,"w":2,"h":2,"n":"b","c":"pink","f":[":\'","-","D"]},{"x":4,"y":0,"w":2,"h":2,"n":"","c":"purple","f":[":\'","-","("]}]/qq/The premises are true in the possible situation|The conclusion is false in the possible situation|The possible situation is a counterexample to the argument|The argument is valid"""
+              "/ex/evaluate/from/not A|A arrow B/to/not B/TTrow/A:F|B:T/qq/the first premise is true|the second premise is true|the conclusion is true|the possible situation is a counterexample to the argument"
+              "/ex/evaluate/from/not A|A arrow B/to/not B/TTrow/A:F|B:F/qq/the first premise is true|the second premise is true|the conclusion is true|the possible situation is a counterexample to the argument"
             ]
           }
           {
@@ -61,12 +66,13 @@ exSets = [
               '/ex/trans/domain/3things/names/a=thing-1|b=thing-2/predicates/Fish1-x-is-a-fish|Between3-xIsBetweenYAndZ|Person1/sentence/A fish is between two people'
               '/ex/trans/domain/people/names/a=Ayesha|b=Beatrice/predicates/Runner1-x-is-a-runner|FasterThan2-xIsFasterThanY|Philosopher1-xIsAPhilosopher/sentence/Ayesha is a philosopher who is faster than Beatrice'
               '/ex/trans/domain/people/names/a=Ayesha|b=Beatrice/predicates/Runner1-x-is-a-runner|FasterThan2-xIsFasterThanY|Philosopher1-xIsAPhilosopher/sentence/Ayesha is a philosopher who is faster than a runner'
-              '/ex/tt/A or B|B and not A|(A∨B)∧¬(B∧¬A)'
-              '/ex/tt/A or not B|not A arrow B'
-              '/ex/create/White(b)'
-              '/ex/create/exists x (Happy(x) and Tall(x))'
-              '/ex/create/exists x exists y Adjacent(x,y)'
-              """/ex/TorF/White(a)|exists x Happy(x)|exists x exists y RightOf(x,y)/[{"x":9,"y":0,"w":2,"h":2,"n":"a,b","c":"white","f":["}:","^","D"]},{"x":0,"y":0,"w":2,"h":2,"n":"","c":"pink","f":[":\'","-","D"]},{"x":4,"y":0,"w":2,"h":2,"n":"","c":"purple","f":[":\'","-","("]}]"""
+              '/ex/tt/qq/A or B|B and not A|(A∨B)∧¬(B∧¬A)'
+              '/ex/tt/qq/A or not B|not A arrow B'
+              '/ex/create/qq/White(b)'
+              '/ex/create/qq/exists x (Happy(x) and Tall(x))'
+              '/ex/create/qq/exists x exists y Adjacent(x,y)'
+              """/ex/TorF/world/[{"x":9,"y":0,"w":2,"h":2,"n":"a,b","c":"white","f":["}:","^","D"]},{"x":0,"y":0,"w":2,"h":2,"n":"","c":"pink","f":[":\'","-","D"]},{"x":4,"y":0,"w":2,"h":2,"n":"","c":"purple","f":[":\'","-","("]}]/qq/White(a)|exists x Happy(x)|exists x exists y RightOf(x,y)"""
+              """/ex/TorF/world/[{"x":9,"y":0,"w":2,"h":2,"n":"b","c":"pink","f":[":","-",")"]},{"x":3,"y":2,"w":2,"h":2,"n":"a","c":"orange","f":[";'","-","("]}]/qq/Orange(a)|exists x Sad(x)|exists x exists y Adjacent(x,y)"""
               '/ex/proof/from/A and (B and C)/to/B or D'
             ]
             
