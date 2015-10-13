@@ -8,13 +8,17 @@ Template.TorF_ex.onCreated () ->
 
 Template.TorF_ex.onRendered () ->
   templateInstance = this
+  
   # Allow the answer to be updated by setting the session variable
+  # (as when the user hits the ‘load answer’ link) --- we need this 
+  # because of the way radios render and checkboxes don't get updated (we can’t 
+  # easily make the ‘checked’ property reactive).
   @autorun () ->
     # We need to `watchPathChange` so that the answer also gets updated when we change page.
     FlowRouter.watchPathChange()
-    savedAnswer = ix.getAnswer() 
+    savedAnswer = ix.getAnswer()
     if savedAnswer?.length? and savedAnswer?.length > 0
-      arrayToRadio(savedAnswer) 
+      arrayToRadio(savedAnswer)
     if not savedAnswer?
       clearRadios()
 
@@ -48,6 +52,10 @@ Template.TorF_ex.helpers
   sentences : () ->
     sentences = ix.getSentencesFromParam()
     return ({theSentence:x.toString({replaceSymbols:true}), idx:idx} for x, idx in sentences)
+  isTrueChecked : () -> 
+    console.log ix.getAnswer()?[@idx]
+    return (ix.getAnswer()?[@idx] is true) 
+  isFalseChecked : () -> (ix.getAnswer()?[@idx] is false)
 
 # The world might either come from a TTrow or a possible situation
 getWorld = () ->
@@ -124,6 +132,7 @@ radioToArray = () ->
 
 arrayToRadio = (array) ->
   $el = $('.trueOrFalseInputs')
+  console.log $el.length
   $el.each (idx, $item) ->
     if array[idx] is true
       $('input.true', $el.eq(idx)).prop('checked', true)

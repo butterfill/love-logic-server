@@ -9,9 +9,9 @@ template(name='TorF_ex')
         span.theSentence #{idx}. #{theSentence}
         span.right.trueOrFalseInputs
           form
-            input.true.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="true_for_#{idx}", value='true')
+            input.true.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="true_for_#{idx}", value='true', checked='#{isTrueChecked}')
             label(for="true_for_#{idx}") true
-            input.false.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="false_for_#{idx}", value='false')
+            input.false.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="false_for_#{idx}", value='false', checked='#{isFalseChecked}')
             label(for="false_for_#{idx}") false
 
   +submitted_answer

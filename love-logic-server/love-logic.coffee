@@ -274,11 +274,7 @@ Meteor.methods
     # (except that their code doesn’t work because they add a `$setOnInsert`.)
     rawSubmittedExercises = SubmittedExercises.rawCollection()
     findAndModify = Meteor.wrapAsync(rawSubmittedExercises.findAndModify, rawSubmittedExercises)
-    query = { $and:[
-      {owner : userId}
-      {exerciseId : exercise.exerciseId}
-      {humanFeedback : {$exists:false}}
-    ] }
+    query = { owner : userId, exerciseId : exercise.exerciseId, humanFeedback : {$exists:false} }
     findAndModify(query, {}, newDoc, {upsert: true})
 
   subscribeToExerciseSet : (courseName, variant) ->

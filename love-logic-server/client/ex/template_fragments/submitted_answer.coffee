@@ -57,5 +57,6 @@ Template.submitted_answer.events
   # This is called from a sub-template in which the data context is a `SubmittedExercise`
   'click #view-answer' : (event, template) ->
     # The special session variable holds the value displayed in an editor
+    # We set it twice to ensure a reactive update.
     ix.setAnswer(@answer.content)
 
