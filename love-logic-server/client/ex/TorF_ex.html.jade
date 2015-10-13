@@ -25,11 +25,32 @@ template(name='TorF_ex')
   +next_exercise
 
 template(name="TorF_ex_display_question")
-  h4 In this possible situation ...
-  +possible_world_from_param
-  
-  h4 ... which of the following are true and which false?
+  if isArgument
+    h4 Consider this argument:
+    .row: .col.s11.offset-s1
+      +display_argument
+  if isWorld
+    h4 Here is a possible situation:
+    +possible_world_from_param
 
+  if isTTrow
+    h4 Here is a possible situation:
+    table.truthtable
+      thead
+        tr
+          each TTletters
+            th.center(width='2em') #{this}
+      tbody
+        tr 
+          each TTvalues
+            td.center(width='2em') #{this}
+
+
+  if isJustOneSentence
+    h4 Is the following sentence true or false?
+  else
+    h4 Which of the following are true and which false?
+  
 
 template(name="TorF_ex_display_answer")
   ul.collection
@@ -38,5 +59,16 @@ template(name="TorF_ex_display_answer")
         span.theSentence #{idx}. #{theSentence}
         span.right #{value}
   
-    
+
+template(name="display_argument")
+  table
+    tbody
+      each premises
+        tr(style="border-left: 1px solid black;")
+          td(width="1em")
+          td: div(style="margin-left:-1em;") #{this}
+      tr(style="border-left: 1px solid black;")
+        td(width="1em", style="border-top:1px solid black;padding-right:1em;")
+        td: div(style="margin-left:-1em;") #{conclusion}
+
     

@@ -1,0 +1,11 @@
+template(name='upsertExerciseSet')
+  h4 Enter the exercise set
+  p It is a string representing a JSON object (TODO: link to examples).
+  p It will be created if it does not exist.
+  p It will be updated if it exists and you created it (or have otherwise come to own it).
+  .right
+    button#submit.btn.waves-effect.grey(type='submit') submit
+     i.material-icons.right send
+  .input-field
+    label(for="exerciseSet") exercise set:
+    textarea.materialize-textarea.human-comment#exerciseSet 

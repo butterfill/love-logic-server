@@ -1,0 +1,29 @@
+// e.g.: http://localhost:3000/ex/trans/domain/5things/names/a=thing1%7Cb=thing2/predicates/Fish1%7CPerson2%7CRed1/sentence/At%20least%20two%20people%20are%20not%20fish
+// e.g.: http://localhost:3000/ex/trans/domain/5things/names/a=thing1%7Cb=thing2/predicates/Fish1%7CPerson2%7CRed1/sentence/exists(x) exists(y) (Person(x) and Person(y) and not Fish(x) and not Fish(y) and not x=y)
+
+template(name="q_ex")
+
+  +q_ex_display_question
+
+  +editSentence editorId="awFOLeditor" sentenceIsAwFOL=sentenceIsAwFOL
+
+  +submitted_answer  
+
+  +help_with_this_exercise
+
+  .row: .col.s12
+    .right
+      +ask_for_help
+      +submit_btn
+  
+  +next_exercise
+
+                
+template(name="q_ex_display_question")
+  h2 #{theQuestion}
+
+
+template(name="q_ex_display_answer")
+  p.monospace.grey.lighten-2 #{answer.content}
+    
+

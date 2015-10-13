@@ -13,8 +13,11 @@ Template.tt_ex.events
           type : 'tt'
           content : values
         machineFeedback : machineFeedback
-      }, () ->
-        Materialize.toast "Your answer has been submitted.", 4000
+      }, (error, result) ->
+        if error
+          Materialize.toast "Sorry, could not submit answer. #{error.message}", 4000
+        else
+          Materialize.toast "Your answer has been submitted.", 4000
     )
 
 # ===================

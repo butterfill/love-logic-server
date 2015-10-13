@@ -83,10 +83,6 @@ getDomainFromParams = () ->
 # -------------
 # User interactions
 
-
-getAnswer = () ->
-  return Session.get(ix.getSessionKeyForUserExercise())
-
 isAnswerFOLsentence = () ->
   rawAnswer = ix.getAnswer()
   try 

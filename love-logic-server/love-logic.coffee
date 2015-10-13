@@ -47,12 +47,12 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: only trusted users can create GradedAnswers
 
-# TODO: tutors can create exercise sets
+# TODO: students can see the summary of their progress (same as tutor view, but just for themselves).
 
-# TODO: exercise - build a scene which is a counterexample to this argument
-# TODO: exercise - (free text) state the definition of logically valid.
-# TODO: exercise - row of truth table, which sentences are true and which false.
-# TODO: exercise - truth tables for argument (determine validity)
+# TODO: add possibility of ‘it is impossible’ to the `/create` exercises.
+# TODO: exercise - create a counterexample OR say the argument is valid
+# TODO: exercise - truth tables for argument (determine validity) (see route below)
+# TODO: exercise - build a scene in which all sentences are false
 # TODO: exercise - specify the main connective (multiple choice)
 # TODO: exercise - write down the scopes of different operators.
 # TODO: exercise - proof of, or counterexample to, argument
@@ -82,7 +82,71 @@ FlowRouter.route '/ex/create/qq/:_sentences/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
-# Say which sentences are true in a possible situation
+# Create a counterexample to the argument
+FlowRouter.route '/ex/create/from/:_premises/to/:_conclusion',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'create_ex'
+FlowRouter.route '/ex/create/from/:_premises/to/:_conclusion/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+# Construct truth tables for the sentences
+FlowRouter.route '/ex/tt/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'tt_ex'
+FlowRouter.route '/ex/tt/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+# Construct truth tables for argument and say whether it is valid, specifying a counterexample if appropriate. TODO: update template so it copes with this  TODO: Add examples
+FlowRouter.route '/ex/tt/from/:_premises/to/:_conclusion',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'tt_ex'
+FlowRouter.route '/ex/tt/from/:_premises/to/:_conclusion/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+
+
+# Answer a question in free text
+FlowRouter.route '/ex/q/:_question/',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'q_ex'
+FlowRouter.route '/ex/q/:_question/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+# ---
+# The exercises following all use the `evaluate_ex` template
+
+# Answer questions about an argument and a possible situation (predicate)
+# E.g. /ex/TorF/from/I am a dog|I am a cat/to/I am a dog and a cat/world/[{"x":9,"y":0,"w":2,"h":2,"n":"a,b","c":"white","f":["}:","^","D"]},{"x":0,"y":0,"w":2,"h":2,"n":"","c":"pink","f":[":\'","-","D"]},{"x":4,"y":0,"w":2,"h":2,"n":"","c":"purple","f":[":\'","-","("]}]/qq/The argument is sound|The argument is valid
+FlowRouter.route '/ex/TorF/from/:_premises/to/:_conclusion/world/:_world/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'TorF_ex'
+FlowRouter.route '/ex/TorF/from/:_premises/to/:_conclusion/world/:_world/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+# Answer questions about an argument and a possible situation (TTrow)
+# e.g. /ex/TorF/from/not A|A arrow B/to/not B/TTrow/A:F|B:T/qq/the first premise is true|the second premise is true|the conclusion is true|the possible situation is a counterexample to the argument
+FlowRouter.route '/ex/TorF/from/:_premises/to/:_conclusion/TTrow/:_TTrow/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'TorF_ex'
+FlowRouter.route '/ex/TorF/from/:_premises/to/:_conclusion/TTrow/:_TTrow/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+# Answer questions about an argument
+# e.g. /ex/TorF/from/I am a dog|I am a cat/to/I am a dog and a cat//qq/The argument is sound|The argument is valid
+FlowRouter.route '/ex/TorF/from/:_premises/to/:_conclusion/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'TorF_ex'
+FlowRouter.route '/ex/TorF/from/:_premises/to/:_conclusion/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+
+# Answer questions about a possible situation (predicate)
 FlowRouter.route '/ex/TorF/world/:_world/qq/:_sentences',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'TorF_ex'
@@ -90,67 +154,19 @@ FlowRouter.route '/ex/TorF/world/:_world/qq/:_sentences/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
-# Construct truth tables for the sentences
-FlowRouter.route '/ex/tt/qq/:_sentences/',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'tt_ex'
-FlowRouter.route '/ex/tt/qq/:_sentences/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
-
-
-# ---
-# The exercises following all use the `evaluate_ex` template
-
-# Answer questions about an argument and a possible situation (predicate)
-# E.g. /ex/evaluate/from/I am a dog|I am a cat/to/I am a dog and a cat/world/[{"x":9,"y":0,"w":2,"h":2,"n":"a,b","c":"white","f":["}:","^","D"]},{"x":0,"y":0,"w":2,"h":2,"n":"","c":"pink","f":[":\'","-","D"]},{"x":4,"y":0,"w":2,"h":2,"n":"","c":"purple","f":[":\'","-","("]}]/qq/The argument is sound|The argument is valid
-FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/world/:_world/qq/:_sentences',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
-FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/world/:_world/qq/:_sentences/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
-
-# Answer questions about an argument and a possible situation (TTrow)
-# e.g. /ex/evaluate/from/not A|A arrow B/to/not B/TTrow/A:F|B:T/qq/the first premise is true|the second premise is true|the conclusion is true|the possible situation is a counterexample to the argument
-FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/TTrow/:_TTrow/qq/:_sentences',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
-FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/TTrow/:_TTrow/qq/:_sentences/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
-
-# Answer questions about an argument
-# e.g. /ex/evaluate/from/I am a dog|I am a cat/to/I am a dog and a cat//qq/The argument is sound|The argument is valid
-FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/qq/:_sentences',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
-FlowRouter.route '/ex/evaluate/from/:_premises/to/:_conclusion/qq/:_sentences/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
-
-# Answer questions about a possible situation (predicate)
-# TODO: this partly duplicates TorF (should maybe replace it, but will have to machine grade)
-FlowRouter.route '/ex/evaluate/world/:_world/qq/:_sentences',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
-FlowRouter.route '/ex/evaluate/world/:_world/qq/:_sentences/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
-
 # Answer questions about a possible situation (TTrow)
-FlowRouter.route '/ex/evaluate/TTrow/:_TTrow/qq/:_sentences',
+FlowRouter.route '/ex/TorF/TTrow/:_TTrow/qq/:_sentences',
   action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
-FlowRouter.route '/ex/evaluate/TTrow/:_TTrow/qq/:_sentences/grade',
+    BlazeLayout.render 'ApplicationLayout', main:'TorF_ex'
+FlowRouter.route '/ex/TorF/TTrow/:_TTrow/qq/:_sentences/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
 # Answer questions
-FlowRouter.route '/ex/evaluate/qq/:_sentences',
+FlowRouter.route '/ex/TorF/qq/:_sentences',
   action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'evaluate_ex'
-FlowRouter.route '/ex/evaluate/qq/:_sentences/grade',
+    BlazeLayout.render 'ApplicationLayout', main:'TorF_ex'
+FlowRouter.route '/ex/TorF/qq/:_sentences/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
@@ -173,6 +189,15 @@ FlowRouter.route '/exercisesToGrade',
 FlowRouter.route '/helpRequestsToAnswer',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'helpRequestsToAnswer'
+
+
+# ------
+# Other routes
+
+# Add or create an exercise set
+FlowRouter.route '/upsertExerciseSet',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'upsertExerciseSet'
 
 
 # ------
@@ -353,6 +378,26 @@ Meteor.methods
     ] }
     findAndModify(query, {}, newDoc, {upsert: true})
 
+
+  upsertExerciseSet : (exerciseSet) ->
+    userId = Meteor.user()._id
+    if not userId or (exerciseSet.owner? and exerciseSet.owner isnt userId)
+      throw new Meteor.Error "not-authorized"
+    if not exerciseSet.courseName? or not exerciseSet.variant? 
+      throw new Meteor.Error "Exercise sets must have `courseName` and `variant` properties."
+    oldExerciseSet = ExerciseSets.findOne({courseName:exerciseSet.courseName, variant:exerciseSet.variant})
+    if not oldExerciseSet?
+      exerciseSet.owner = userId
+      exerciseSet.created = new Date()
+      r = ExerciseSets.insert(exerciseSet)
+      return r
+    # There is an exercise set which we must update.
+    if oldExerciseSet.owner isnt userId
+      throw new Meteor.Error "You cannot update this exercise set because you do not own it."
+    r = ExerciseSets.update(oldExerciseSet._id, $set:{description:exerciseSet.description, lectures:exerciseSet.lectures})
+    return r
+      
+    
 
 # -----
 # Methods for getting data

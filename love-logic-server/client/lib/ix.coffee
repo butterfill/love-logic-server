@@ -94,7 +94,13 @@ ix.hashAnswer = (answerDoc) ->
     # significant in awFOL for distinguishing predicates from sentence letters, but it's
     # hard to imagine this mattering within the answers to a single exercise.)
     toHash = toHash.toLowerCase().replace(/\./,'').replace(/,/,'').replace(/\s+/g,' ').trim()
-  r = ix.hash(JSON.stringify(toHash))
+  else
+    toHash = JSON.stringify(toHash)
+  exerciseId = ix.getExerciseId()
+  if not exerciseId?
+    throw new Meteor.Error "could not get exercise id"
+  toHash += exerciseId
+  r = ix.hash(toHash)
   console.log "hash is #{r}"
   return r
 
@@ -178,7 +184,7 @@ ix.getExerciseContext = () ->
               next = lecture.units[unitIdx+1].rawExercises[0]
             else
               if exSet.lectures.length > lectureIdx+1
-                next = exSet.lectures[lectureIdx+1].units[0].rawExercises[0]
+                next = exSet.lectures[lectureIdx+1].units?[0]?.rawExercises?[0]
           return {
             lecture
             unit
@@ -266,11 +272,7 @@ ix.getSentencesFromParam = (self) ->
   sentencesParam = FlowRouter.getParam('_sentences')
   if sentencesParam?
     sentences = decodeURIComponent(sentencesParam).split('|')
-    try
-      return (fol.parse(x) for x in sentences)
-    catch e
-      # The sentences may be English rather than awFOL.
-      return (_fixEnglishSentence(s) for s in sentences)
+    return _sentencesToAwFOL(sentences)
   # Try another method
   if self?.exerciseId?
     exercisesIdParts = self.exerciseId.split('/')
@@ -281,12 +283,18 @@ ix.getSentencesFromParam = (self) ->
     else
       rawSentences = exercisesIdParts[3]
     sentences = decodeURIComponent(rawSentences).split('|')
-    try
-      return (fol.parse(x) for x in sentences)
-    catch e
-      return (_fixEnglishSentence(s) for s in sentences)
+    return _sentencesToAwFOL(sentences)
   # give up
   return []
+_sentencesToAwFOL = (sentences) ->
+  result = []
+  for s in sentences
+    try
+      result.push(fol.parse(s))
+    catch e
+      # The sentences may be English rather than awFOL.
+      result.push(_fixEnglishSentence(s))
+  return result
 
 _fixEnglishSentence = (sentence) ->
   if not sentence.endsWith('.')
@@ -327,7 +335,23 @@ ix.possibleWorld =
       #TODO: this is part of another template!
       $(".sentenceIsTrue:eq(#{idx})").text(('T' if isTrue) or 'F')
     return allTrue
+  
+  checkSentencesAreCounterexample : ($grid) ->
+    isCorrect = true
+    try
+      possibleSituation = ix.possibleWorld.getSituationFromSerializedWord( ix.possibleWorld.serialize($grid) )
+    catch error
+      console.log "Warning: #{error.message}"
+      return false
+    for premise, idx in ix.getPremisesFromParams()
+      isTrue = premise.evaluate(possibleSituation)
+      isCorrect = isCorrect and isTrue 
+    conclusion = ix.getConclusionFromParams()
+    # The conclusion must be false in `possibleSituation`.
+    isCorrect = (not conclusion.evaluate(possibleSituation)) and isCorrect
+    return isCorrect
     
+  
   # Create a possible situation against which awFOL sentences can be evaluated.
   # For example:
   #   `{domain:[1,2,3], predicates:{F:[[1],[3]]}, names:{a:1, b:2}})`
@@ -437,7 +461,11 @@ ix.possibleWorld =
     ShorterThan : (a,b) ->
       return a.height < b.height
     SameShape : (a,b) ->
-      return (a.height is b.height) and (a.width is b.width)
+      return (a.height / a.width) is (b.height / b.width)
+    LargerThan : (a,b) ->
+      return a.height*a.width > b.height*b.width
+    SmallerThan : (a,b) ->
+      return a.height*a.width < b.height*b.width
     SameSize : (a,b) ->
       return (a.height * a.width) is (b.height * b.width)
 

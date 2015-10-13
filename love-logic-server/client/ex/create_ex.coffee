@@ -5,11 +5,17 @@ Template.create_ex.events
   'click button#submit' : (event, template) ->
     # We assume there is only one
     $grid = $('.grid-stack')
-    isCorrect = ix.possibleWorld.checkSentencesTrue($grid)
-    machineFeedback = {
-      isCorrect : isCorrect
-      comment : "Your submitted possible situation is #{('not' if not isCorrect) or ''} correct."
-    }
+    
+    # There are two possibilities.
+    # First possibility: user has to make all the sentences true
+    if ix.getSentencesFromParam()?
+      isCorrect = ix.possibleWorld.checkSentencesTrue($grid)
+      comment = "Your submitted possible situation is #{('not' if not isCorrect) or ''} correct."
+    # Second possibility: user has to give a counterexample to argument
+    if ix.getConclusionFromParams()?
+      isCorrect = ix.possibleWorld.checkSentencesAreCounterexample($grid)
+      comment = "Your submitted possible situation is #{('not' if not isCorrect) or ''} a counterexample."
+    machineFeedback = { isCorrect, comment }
     ix.submitExercise({
         answer : 
           type : 'create'
@@ -26,7 +32,15 @@ Template.create_ex.events
 
 
 Template.create_ex_display_question.helpers 
+  isSentences : () -> ix.getSentencesFromParam()? and ix.getSentencesFromParam().length > 0
+  isArgument : () -> ix.getConclusionFromParams()?
   sentences : () ->
     folSentences = ix.getSentencesFromParam()
     return ({theSentence:x.toString({replaceSymbols:true})} for x in folSentences)
+  premises : () -> 
+    premises = ix.getPremisesFromParams()
+    # Premises may be awFOL objects or strings.
+    # But because strings have `.toString`, this works either way.
+    (e.toString({replaceSymbols:true}) for e in premises)
+  conclusion : () -> ix.getConclusionFromParams().toString({replaceSymbols:true})
 
