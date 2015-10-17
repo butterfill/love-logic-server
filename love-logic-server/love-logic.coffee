@@ -45,23 +45,36 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
-# TODO: only trusted users can create GradedAnswers
+
+# TODO: add questions to /tt/ exercises - 
+#     if one sentence, say if it is a contradiction, logical truth or logical possibility
+#     if two sentences, say if they are logically equivalent, if the first entails the second, if the second entails the first
+
+# TODO: add anchors to exercise list, link to lectures and units from the lecture web index
 
 # TODO: students can see the summary of their progress (same as tutor view, but just for themselves).
 
-# TODO: add possibility of ‘it is impossible’ to the `/create` exercises.
-# TODO: exercise - create a counterexample OR say the argument is valid
-# TODO: exercise - truth tables for argument (determine validity) (see route below)
-# TODO: exercise - build a scene in which all sentences are false
+# TODO: links for seminar tutors to grading page and to exercise page
+
+# TODO: Allow users to see and complete exercises, but not submit them, without being logged in? (Tricky because when the log in the saved answer will no longer appear; but maybe necessary for advertising?)
+
+# TODO: only trusted users can create GradedAnswers
+
 # TODO: exercise - specify the main connective (multiple choice)
 # TODO: exercise - write down the scopes of different operators.
-# TODO: exercise - proof of, or counterexample to, argument
 
 # Write a proof exercise
 FlowRouter.route '/ex/proof/from/:_premises/to/:_conclusion',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'proof_ex'
 FlowRouter.route '/ex/proof/from/:_premises/to/:_conclusion/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+# Say that the argument is invalid or write a proof
+FlowRouter.route '/ex/proof/orInvalid/from/:_premises/to/:_conclusion',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'proof_ex'
+FlowRouter.route '/ex/proof/orInvalid/from/:_premises/to/:_conclusion/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
     
@@ -78,7 +91,14 @@ FlowRouter.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicate
 FlowRouter.route '/ex/create/qq/:_sentences',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'create_ex'
+# Either say that the sentences are inconsistent or else create a possible situation in which `_sentences` are all true
+FlowRouter.route '/ex/create/orInconsistent/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'create_ex'
 FlowRouter.route '/ex/create/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+FlowRouter.route '/ex/create/orInconsistent/qq/:_sentences/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
@@ -86,7 +106,14 @@ FlowRouter.route '/ex/create/qq/:_sentences/grade',
 FlowRouter.route '/ex/create/from/:_premises/to/:_conclusion',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'create_ex'
+# Either say that the argument is logically valid or else create a counterexample to the argument
+FlowRouter.route '/ex/create/orValid/from/:_premises/to/:_conclusion',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'create_ex'
 FlowRouter.route '/ex/create/from/:_premises/to/:_conclusion/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+FlowRouter.route '/ex/create/orValid/from/:_premises/to/:_conclusion/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 

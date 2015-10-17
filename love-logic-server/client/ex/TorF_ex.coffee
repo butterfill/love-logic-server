@@ -6,21 +6,7 @@ Template.TorF_ex.onCreated () ->
     exerciseId = ix.getExerciseId()
     self.subscribe 'graded_answers', exerciseId
 
-Template.TorF_ex.onRendered () ->
-  templateInstance = this
-  
-  # Allow the answer to be updated by setting the session variable
-  # (as when the user hits the ‘load answer’ link) --- we need this 
-  # because of the way radios render and checkboxes don't get updated (we can’t 
-  # easily make the ‘checked’ property reactive).
-  @autorun () ->
-    # We need to `watchPathChange` so that the answer also gets updated when we change page.
-    FlowRouter.watchPathChange()
-    savedAnswer = ix.getAnswer()
-    if savedAnswer?.length? and savedAnswer?.length > 0
-      arrayToRadio(savedAnswer)
-    if not savedAnswer?
-      clearRadios()
+
 
 
 Template.TorF_ex_display_question.helpers
@@ -51,11 +37,7 @@ Template.display_argument.helpers
 Template.TorF_ex.helpers
   sentences : () ->
     sentences = ix.getSentencesFromParam()
-    return ({theSentence:x.toString({replaceSymbols:true}), idx:idx} for x, idx in sentences)
-  isTrueChecked : () -> 
-    console.log ix.getAnswer()?[@idx]
-    return (ix.getAnswer()?[@idx] is true) 
-  isFalseChecked : () -> (ix.getAnswer()?[@idx] is false)
+    return ({theSentence:x.toString({replaceSymbols:true}), idx:(idx+1 if sentences.length > 1)} for x, idx in sentences)
 
 # The world might either come from a TTrow or a possible situation
 getWorld = () ->
@@ -120,43 +102,18 @@ checkAllAnswers = (answers) ->
   }
   
   
-radioToArray = () ->
-  $el = $('.trueOrFalseInputs')
-  result = []
-  $el.each (idx, $item) ->
-    value = $('input:checked', $item).val()
-    if value isnt undefined
-       value = ((value + '').toLowerCase() is 'true')
-    result.push value
-  return result
 
-arrayToRadio = (array) ->
-  $el = $('.trueOrFalseInputs')
-  console.log $el.length
-  $el.each (idx, $item) ->
-    if array[idx] is true
-      $('input.true', $el.eq(idx)).prop('checked', true)
-    if array[idx] is false
-      $('input.false', $el.eq(idx)).prop('checked', true)
 
-clearRadios = () ->
-  $el = $('.trueOrFalseInputs')
-  $el.each (idx, $item) ->
-    $('input.true', $el.eq(idx)).prop('checked', false)
-    $('input.false', $el.eq(idx)).prop('checked', false)
   
-
 Template.TorF_ex.events 
-  'click input' : () -> ix.setAnswer(radioToArray())
-  
   # This button is provided by a the `submitted_answer` template.
   'click button#submit' : (event, template) ->
-    answer = radioToArray()
+    answer = ix.radioToArray()
 
     doc = 
       answer :
         type : 'TorF'
-        content : answer
+        content : {TorF:answer}
     
     # Try to get machine feedback
     result = checkAllAnswers(answer)
@@ -182,5 +139,5 @@ Template.TorF_ex_display_answer.helpers
   sentences : () ->
     ss = ix.getSentencesFromParam(this)
     ss = (x.toString({replaceSymbols:true}) for x in ss)
-    return ({value:"#{v}", idx, theSentence:ss[idx]}  for v, idx in @answer.content)
+    return ({value:"#{v}", idx:(idx+1 if ss.length > 1), theSentence:ss[idx]}  for v, idx in @answer.content.TorF)
 

@@ -3,17 +3,8 @@ template(name='TorF_ex')
 
   +TorF_ex_display_question
 
-  ul.collection
-    each sentences
-      li.collection-item 
-        span.theSentence #{idx}. #{theSentence}
-        span.right.trueOrFalseInputs
-          form
-            input.true.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="true_for_#{idx}", value='true', checked='#{isTrueChecked}')
-            label(for="true_for_#{idx}") true
-            input.false.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="false_for_#{idx}", value='false', checked='#{isFalseChecked}')
-            label(for="false_for_#{idx}") false
-
+  +TorF_questions sentences=sentences
+  
   +submitted_answer
 
   +help_with_this_exercise
@@ -23,6 +14,7 @@ template(name='TorF_ex')
     +submit_btn
         
   +next_exercise
+
 
 template(name="TorF_ex_display_question")
   if isArgument

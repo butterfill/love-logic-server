@@ -19,8 +19,9 @@ Template.possible_world_static.onRendered () ->
   templateInstance = this
   $grid = $(@find('.grid-stack'))
   $grid.gridstack(options)
-  studentsAnswer = @data.answer.content
-  deserializeAndRestore(studentsAnswer, $grid)
+  studentsAnswer = @data.answer.content.world
+  if _.isArray(studentsAnswer) and studentsAnswer.length > 0
+    deserializeAndRestore(studentsAnswer, $grid)
 
 Template.possible_world_from_param.onRendered () ->
   o = @data.options or {}
@@ -60,7 +61,7 @@ Template.possible_world.onRendered () ->
   @autorun () ->
     # We need to `watchPathChange` so that the possible situation gets updated.
     FlowRouter.watchPathChange()
-    savedAnswer = ix.getAnswer() 
+    savedAnswer = ix.getAnswer()?.world
     if not savedAnswer?
       # Allow the grid from a previous question to be carried over
       # But add an element if there are none.
@@ -139,7 +140,10 @@ defaultNode = () ->
 
 
 saveAndUpdate = ($grid) ->
-  ix.setAnswer( ix.possibleWorld.serializeAndAbbreviate($grid) )
+  answer = ix.getAnswer() 
+  answer ?= {}
+  answer.world = ix.possibleWorld.serializeAndAbbreviate($grid)
+  ix.setAnswer( answer )
   ix.possibleWorld.checkSentencesTrue($grid, giveFeedback)
         
 

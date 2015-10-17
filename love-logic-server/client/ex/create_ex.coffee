@@ -1,8 +1,53 @@
+getDisplayCreateWorld = () ->
+  answer = ix.getAnswer()
+  if answer?.TorF?[0] is true and ix.isExerciseSubtype('orValid') 
+    return false
+  if answer?.TorF?[0] is true and ix.isExerciseSubtype('orInconsistent')
+    return false
+  return true
 
+
+Template.create_ex.onCreated () ->
+  self=this
+  @autorun () ->
+    FlowRouter.watchPathChange()
+    exerciseId = ix.getExerciseId()
+    self.subscribe 'graded_answers', exerciseId
+
+Template.create_ex.helpers
+  exSubtypeIsValid : () -> ix.isExerciseSubtype('orValid')
+  exSubtypeIsInconsistent : () -> ix.isExerciseSubtype('orInconsistent')
+  sentences : () ->
+    if ix.isExerciseSubtype('orValid')
+      return [{theSentence:'The argument is logically valid.', idx:0}]
+    if ix.isExerciseSubtype('orInconsistent')
+      return [{theSentence:'The sentences are logically inconsistent.', idx:0}]
+  displayCreateWorld : getDisplayCreateWorld
+    
+  
+  
 
 Template.create_ex.events 
   # This button is provided by a the `submitted_answer` template.
   'click button#submit' : (event, template) ->
+    #First work out what kind of answer we are submitting.
+    answerTorF = ix.getAnswer()?.TorF?[0]
+    if (ix.isExerciseSubtype('orValid') or ix.isExerciseSubtype('orInconsistent')) and answerTorF is true
+      doc = 
+        answer : 
+          type : 'create'
+          content : {TorF:[answerTorF]}
+      humanFeedback = ix.gradeUsingGradedAnswers(doc)
+      if humanFeedback?
+        doc.humanFeedback = humanFeedback
+      ix.submitExercise doc, (error, result) ->
+        if error
+          Materialize.toast "There was an error submitting your answer. #{error.message}", 4000
+        else
+          Materialize.toast "Your answer has been submitted.", 4000
+      return      
+      
+    
     # We assume there is only one
     $grid = $('.grid-stack')
     
@@ -19,7 +64,7 @@ Template.create_ex.events
     ix.submitExercise({
         answer : 
           type : 'create'
-          content : ix.possibleWorld.serializeAndAbbreviate($grid)
+          content : {world:ix.possibleWorld.serializeAndAbbreviate($grid)}
         machineFeedback : machineFeedback
       }, () ->
         Materialize.toast "Your possible situation has been submitted.", 4000
@@ -32,6 +77,7 @@ Template.create_ex.events
 
 
 Template.create_ex_display_question.helpers 
+  exSubtypeIsValid : () -> ix.isExerciseSubtype('orValid')
   isSentences : () -> ix.getSentencesFromParam()? and ix.getSentencesFromParam().length > 0
   isArgument : () -> ix.getConclusionFromParams()?
   sentences : () ->
@@ -44,3 +90,13 @@ Template.create_ex_display_question.helpers
     (e.toString({replaceSymbols:true}) for e in premises)
   conclusion : () -> ix.getConclusionFromParams().toString({replaceSymbols:true})
 
+Template.create_ex_display_answer.helpers
+  exSubtypeIsValid : () -> ix.isExerciseSubtype('orValid', @)
+  exSubtypeIsInconsistent : () -> ix.isExerciseSubtype('orInconsistent', @)
+  displayCreateWorld : () -> @answer.content.world?
+  sentences : () ->
+    answerTorF = @answer.content.TorF?[0]
+    if ix.isExerciseSubtype('orValid', @) and answerTorF?
+      return [{theSentence:'The argument is logically valid.', idx:0, value:"#{answerTorF}"}]
+    if ix.isExerciseSubtype('orInconsistent', @) and answerTorF?
+      return [{theSentence:'The sentences are logically inconsistent.', idx:0, value:"#{answerTorF}"}]

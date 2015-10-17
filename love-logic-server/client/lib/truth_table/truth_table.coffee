@@ -1,10 +1,11 @@
 
 Template.truth_table.onRendered () ->
   # Allow the answer to be updated by setting the session variable
+  templateInstance = this
   @autorun () ->
     # We need to `watchPathChange` so that the answer also gets updated when we change page.
     FlowRouter.watchPathChange()
-    savedAnswer = ix.getAnswer()
+    savedAnswer = ix.getAnswer()?.tt
     if savedAnswer? and _.isArray(savedAnswer) and savedAnswer.length>0
       if not _.isEqual(ix.truthTable.getValuesFromTable(), savedAnswer)
         makeTableFromValues(savedAnswer)
@@ -14,17 +15,19 @@ Template.truth_table.onRendered () ->
       
 Template.truth_table.helpers
   sentences : () ->
-    folSentences = ix.getSentencesFromParam()
+    folSentences = ix.getSentencesOrPremisesAndConclusion()
     return ({theSentence:x.toString({replaceSymbols:true}), idx:idx} for x, idx in folSentences)
+      
   letters : () ->
     ({theLetter:l} for l in ix.truthTable.getSentenceLetters())
   rows : () ->
-    values = ix.getAnswer()
+    values = ix.getAnswer()?.tt
     if values? and _.isArray(values) and values.length > 0 
       return getRowsFromValues(values)
     else
       result = (null for x in ix.truthTable.getSentenceLetters())
-      result = result.concat( (null for x in ix.getSentencesFromParam()) )
+      result = result.concat( (null for x in ix.getSentencesOrPremisesAndConclusion()) )
+      console.log result
       return result
 
 
@@ -74,16 +77,20 @@ resetTruthTable = () ->
   $('.truthtable tbody').append($tr)
 
 nofColumnsNeededInTruthTable = () ->
-  return ix.truthTable.getSentenceLetters().length + ix.getSentencesFromParam().length
+  return ix.truthTable.getSentenceLetters().length + ix.getSentencesOrPremisesAndConclusion().length
   
 
 Template.truth_table.events 
   'click .addRow' : (event, template) ->
     $tr = $(event.target).parents('tr')
     addTrToTable($tr)
+    newValues = ix.truthTable.getValuesFromTable()
+    ix.setAnswerKey(newValues, 'tt')
   'click .removeRow' : (event, template) ->
     $tr = $(event.target).parents('tr')
     $tr.remove()
+    newValues = ix.truthTable.getValuesFromTable()
+    ix.setAnswerKey(newValues, 'tt')
     
   'blur .truthtable input' : (event, template) ->
     $input = $(event.target)
@@ -95,7 +102,7 @@ Template.truth_table.events
       else
         $input.val('')
     newValues = ix.truthTable.getValuesFromTable()
-    ix.setAnswer(newValues)
+    ix.setAnswerKey(newValues, 'tt')
 
 getRowsFromValues = (values) ->
   result = []
@@ -111,13 +118,7 @@ Template.truth_table_static.helpers
     ({theLetter:l} for l in ix.truthTable.getSentenceLetters(self))
   sentences : () ->
     self = this
-    ss = ix.getSentencesFromParam(self)
-
-    # ss = decodeURIComponent(@exerciseId.split('/')[3]).split('|')
-    # ss = (fol.parse(x) for x in ss)
-
-    ss = (x.toString({replaceSymbols:true}) for x in ss)
-    ssObj = ({theSentence:x, idx} for x, idx in ss)
-    return ssObj
+    ss = ix.getSentencesOrPremisesAndConclusion(self)
+    return ({theSentence:x.toString({replaceSymbols:true}), idx} for x, idx in ss)
   rows : () ->
-    return getRowsFromValues(@answer.content)
+    return getRowsFromValues(@answer.content.tt)

@@ -5,7 +5,13 @@ template(name='create_ex')
 
   h4 ... by creating a possible situation.
 
-  +possible_world
+  if exSubtypeIsValid
+    +TorF_questions sentences=sentences
+  if exSubtypeIsInconsistent
+    +TorF_questions sentences=sentences
+  
+  if displayCreateWorld
+    +possible_world
 
   +submitted_answer
 
@@ -19,7 +25,12 @@ template(name='create_ex')
 
 template(name="create_ex_display_question")
   if isSentences
-    h4 Make these sentences true ...
+    h4
+      if exSubtypeIsInconsistent
+        span Unless they are logically inconsistent, make
+      else
+        span Make
+      span these sentences true ...
     ul.collection
       each sentences
         li.collection-item 
@@ -28,12 +39,32 @@ template(name="create_ex_display_question")
           span.sentenceIsTrue.red-text
 
   if isArgument
-    h4 Create a counterexample to this argument:
+    h4
+      if exSubtypeIsValid
+        span Unless it is logically valid, give
+      else
+        span Give
+      span a counterexample to this argument:
     .row: .col.s11.offset-s1
       +display_argument
     
 
 template(name="create_ex_display_answer")
-  +possible_world_static
+  if exSubtypeIsValid
+    ul.collection
+      each sentences
+        li.collection-item 
+          span.theSentence #{theSentence}
+          span.right #{value}
+    
+  if exSubtypeIsInconsistent
+    ul.collection
+      each sentences
+        li.collection-item 
+          span.theSentence #{theSentence}
+          span.right #{value}
+          
+  if displayCreateWorld
+    +possible_world_static
     
     

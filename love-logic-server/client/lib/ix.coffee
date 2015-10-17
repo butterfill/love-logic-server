@@ -39,7 +39,16 @@ ix.queryString = () ->
       return parts[1]
     return ""
   return undefined
-  
+
+# Use like `ix.isExerciseSubtype('orValid')` the url contains an exerciseId.
+# Otherwise ule like `ix.isExerciseSubtype('orValid', @)` when the data context contains a 
+#  `SubmittedAnswer`.
+ix.isExerciseSubtype = (type, submittedAnswer) ->
+  if submittedAnswer?
+    url = submittedAnswer.exerciseId
+  else
+    url = ix.url()
+  return url.split('/')[3] is type
 
 
 # ----
@@ -62,6 +71,8 @@ ix.getExerciseId = () ->
   exerciseLink = exerciseLink.replace /\/grade\/?$/, ''
   return ix.convertToExerciseId(exerciseLink) 
 
+ix.getExerciseType = () ->
+  return ix.url().split('/')[2]
 
 # Returns true if the current user has already submitted the exercise specified by `exerciseLink`
 # If `exerciseLink` is not given, uses the current url.
@@ -196,23 +207,36 @@ ix.getExerciseContext = () ->
 ix.getSessionKeyForUserExercise = () ->
   return "#{ix.getUserId()}/#{ix.getExerciseId()}"
 ix.getAnswer = () ->
-  Session.get(ix.getSessionKeyForUserExercise())
+  return Session.get(ix.getSessionKeyForUserExercise())
 ix.setAnswer = (answer) ->
   Session.setPersistent(ix.getSessionKeyForUserExercise(), answer)
-
+ix.setAnswerKey = (newValue, key) ->
+  key ?= ix.getExerciseType()
+  answer = ix.getAnswer()
+  answer ?= {}
+  answer[key] = newValue
+  ix.setAnswer(answer)
+  
 
 
 
 # ====
-# proofs
 
 
 # Extract premises from the URL.  Remove any premises which are `true`
 # (so you can set proofs with no premises).  Add an error if any 
 # sentences cannot be parsed.
 # Return a list of awFOL objects.
-ix.getPremisesFromParams = () ->
+# TODO: update to provide optional use of `self` like `ix.getSentencesFromParam`
+ix.getPremisesFromParams = (self) ->
   _premises = FlowRouter.getParam('_premises')
+  if not _premises?
+    if self?.exerciseId?
+      exercisesIdParts = self.exerciseId.split('/')
+      if 'from' in exercisesIdParts
+        premisesIdx = exercisesIdParts.indexOf('from')
+        # The premises are the part after `from`
+        _premises = exercisesIdParts[premisesIdx+1]
   return undefined unless _premises?
   txtList = decodeURIComponent(_premises).split('|')
   try
@@ -225,8 +249,15 @@ ix.getPremisesFromParams = () ->
 
 # Extract the conclusion from the URL.
 # Return it as an awFOL object.
-ix.getConclusionFromParams = () ->
+ix.getConclusionFromParams = (self) ->
   _conclusion = FlowRouter.getParam('_conclusion')
+  if not _conclusion?
+    if self?.exerciseId?
+      exercisesIdParts = self.exerciseId.split('/')
+      if 'to' in exercisesIdParts
+        conclusionIdx = exercisesIdParts.indexOf('to')
+        # The conclusion is the part after `to`
+        _conclusion = exercisesIdParts[conclusionIdx+1]
   return undefined unless _conclusion?
   try
     e = fol.parse(decodeURIComponent(_conclusion))
@@ -269,10 +300,10 @@ ix.checkPremisesAndConclusionOfProof = (theProof) ->
     return true
 
 ix.getSentencesFromParam = (self) ->
+  sentences = undefined
   sentencesParam = FlowRouter.getParam('_sentences')
   if sentencesParam?
     sentences = decodeURIComponent(sentencesParam).split('|')
-    return _sentencesToAwFOL(sentences)
   # Try another method
   if self?.exerciseId?
     exercisesIdParts = self.exerciseId.split('/')
@@ -280,12 +311,11 @@ ix.getSentencesFromParam = (self) ->
       qqIdx = exercisesIdParts.indexOf('qq')
       # The sentences are the part after `qq`
       rawSentences = exercisesIdParts[qqIdx+1]
-    else
-      rawSentences = exercisesIdParts[3]
-    sentences = decodeURIComponent(rawSentences).split('|')
-    return _sentencesToAwFOL(sentences)
-  # give up
-  return []
+      sentences = decodeURIComponent(rawSentences).split('|')
+  if sentences?
+    return _sentencesToAwFOL(sentences) 
+  else
+    return undefined
 _sentencesToAwFOL = (sentences) ->
   result = []
   for s in sentences
@@ -295,7 +325,6 @@ _sentencesToAwFOL = (sentences) ->
       # The sentences may be English rather than awFOL.
       result.push(_fixEnglishSentence(s))
   return result
-
 _fixEnglishSentence = (sentence) ->
   if not sentence.endsWith('.')
     sentence += '.'
@@ -303,11 +332,34 @@ _fixEnglishSentence = (sentence) ->
   sentence = sentence.charAt(0).toUpperCase() + sentence.slice(1)
   return sentence
 
+
+ix.getSentencesOrPremisesAndConclusion = (self) ->
+  sentences = ix.getSentencesFromParam(self)
+  if not sentences? or sentences.length is 0
+    premises = ix.getPremisesFromParams(self)
+    conclusion = ix.getConclusionFromParams(self)
+    if conclusion?
+      premises ?= []
+      sentences = premises.concat([conclusion])
+  return sentences
+
+
 ix.getWorldFromParam = () ->
   world = FlowRouter.getParam('_world')
   if world?
     return JSON.parse(decodeURIComponent(world))
   return undefined
+
+ix.radioToArray = () ->
+  $el = $('.trueOrFalseInputs')
+  result = []
+  $el.each (idx, $item) ->
+    value = $('input:checked', $item).val()
+    if value isnt undefined
+       value = ((value + '').toLowerCase() is 'true')
+    result.push value
+  return result
+
 
 # ======
 # create a possible situation
@@ -337,18 +389,25 @@ ix.possibleWorld =
     return allTrue
   
   checkSentencesAreCounterexample : ($grid) ->
-    isCorrect = true
     try
       possibleSituation = ix.possibleWorld.getSituationFromSerializedWord( ix.possibleWorld.serialize($grid) )
     catch error
       console.log "Warning: #{error.message}"
       return false
     for premise, idx in ix.getPremisesFromParams()
-      isTrue = premise.evaluate(possibleSituation)
-      isCorrect = isCorrect and isTrue 
+      try
+        isTrue = premise.evaluate(possibleSituation)
+      catch error
+        console.log "error with `.evaluate(possibleSituation)` (may be expected): #{error}"
+        return false
+      return false unless isTrue 
     conclusion = ix.getConclusionFromParams()
     # The conclusion must be false in `possibleSituation`.
-    isCorrect = (not conclusion.evaluate(possibleSituation)) and isCorrect
+    try
+      isCorrect = (not conclusion.evaluate(possibleSituation))
+    catch error
+      console.log "error with `.evaluate(possibleSituation)` (may be expected): #{error}"
+      return false
     return isCorrect
     
   
@@ -561,7 +620,7 @@ ix.truthTable =
       result.isCorrect = false
   
     lttrs = ix.truthTable.getSentenceLetters()
-    sentences = ix.getSentencesFromParam()
+    sentences = ix.getSentencesOrPremisesAndConclusion()
     correctAnswers = []
     for row, rowIdx in values
       world = {}
@@ -610,7 +669,8 @@ ix.truthTable =
   
   getSentenceLetters : (self) ->
     lttrs = []
-    for s in ix.getSentencesFromParam(self)
+    folSentences = ix.getSentencesOrPremisesAndConclusion(self)
+    for s in folSentences
       moreLttrs = s.getSentenceLetters()
       lttrs = lttrs.concat moreLttrs
     return _.uniq(lttrs)

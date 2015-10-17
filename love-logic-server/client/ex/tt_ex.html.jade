@@ -5,6 +5,9 @@ template(name='tt_ex')
 
   +truth_table
 
+  if isArgument
+    +TorF_questions sentences=sentences 
+
   +submitted_answer
 
   +help_with_this_exercise
@@ -16,14 +19,27 @@ template(name='tt_ex')
   +next_exercise
 
 template(name="tt_ex_display_question")
-  h4 Construct truth tables for these sentences
-  ul.collection
-    each sentences
-      li.collection-item 
-        span.theSentence #{idx}. #{theSentence}
+
+  if isSentences
+    h4 Construct truth tables for these sentences
+    ul.collection
+      each sentences
+        li.collection-item 
+          span.theSentence #{idx}. #{theSentence}
+  
+  if isArgument
+    h4 Construct truth tables for this argument
+    .row: .col.s11.offset-s1
+      +display_argument
   
 
 
 template(name="tt_ex_display_answer")
   +truth_table_static
+  if isArgument
+    ul.collection
+      each sentences
+        li.collection-item 
+          span.theSentence #{theSentence}
+          span.right #{value}
   

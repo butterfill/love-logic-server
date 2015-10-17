@@ -31,20 +31,23 @@ Template.editSentence.onRendered () ->
   editor = CodeMirror.fromTextArea(textarea, options)
   
   # TODO: this should go? (Superflous given the autorun below)
-  savedAnswer = ix.getAnswer()
+  savedAnswer = ix.getAnswer()?.proof
   if savedAnswer? and savedAnswer.trim() isnt ''
     editor.setValue(savedAnswer)
   
   editor.on 'change', (doc) ->
     val = doc.getValue()
     textarea.value = val
-    ix.setAnswer(val)
+    ans = ix.getAnswer()
+    ans ?= {}
+    ans.proof = val
+    ix.setAnswer(ans)
   
   # Allow the value of the editor to be updated by setting the session variable
   @autorun () ->
     # We need to `watchPathChange` so that the editor gets updated.
     FlowRouter.watchPathChange()
-    val = ix.getAnswer() or ''
+    val = ix.getAnswer()?.proof or ''
     if val != editor.getValue()
       # Clear feedback because the answer has been changed from outside
       giveFeedback ""     
@@ -68,14 +71,17 @@ Template.editSentence.helpers
 
 Template.editSentence.events
   'click #convert-to-symbols' : (event, template) ->
-    answer = Session.get(ix.getSessionKeyForUserExercise())
+    answer = ix.getAnswer()?.proof
     try
       answerFOL = fol.parse( answer.replace(/\n/g,' ') )
     catch error
       giveFeedback "Your answer is not a correct sentence of awFOL. (#{error})"
       return
     giveFeedback ""
-    ix.setAnswer( answerFOL.toString({replaceSymbols:true}) )
+    ans = ix.getAnswer()
+    ans ?= {}
+    ans.proof = answerFOL.toString({replaceSymbols:true})
+    ix.setAnswer(ans)
 
 
 
@@ -90,7 +96,7 @@ Template.editSentence.events
 
 # Extract the proof from the editor and parse it.
 getProof = () ->
-  proofText = ix.getAnswer()
+  proofText = ix.getAnswer()?.proof
   theProof = proof.parse(proofText)
   return theProof
 
@@ -140,14 +146,17 @@ Template.editProof.onRendered () ->
   textarea = @find('textarea')
   editor = CodeMirror.fromTextArea(textarea, options)
   Template.instance().editor = editor
-  savedAnswer = ix.getAnswer()
+  savedAnswer = ix.getAnswer()?.proof
   if savedAnswer? and savedAnswer.trim() isnt ''
     editor.setValue(savedAnswer)
   
   editor.on 'change', (doc) ->
     val = doc.getValue()
     textarea.value = val
-    ix.setAnswer(val)
+    ans = ix.getAnswer()
+    ans ?= {}
+    ans.proof = val
+    ix.setAnswer(ans)
   
   editor.on "keyHandled", (instance, name, event) ->
     if name in ['Up']
@@ -163,7 +172,7 @@ Template.editProof.onRendered () ->
   @autorun ->
     # We need to `watchPathChange` so that the editor gets updated.
     FlowRouter.watchPathChange()
-    val = ix.getAnswer() or ix.getProofFromParams() or ''
+    val = ix.getAnswer()?.proof or ix.getProofFromParams() or ''
     if val != editor.getValue()
       # Clear feedback because the answer has been changed from outside
       giveFeedback ""
@@ -186,7 +195,7 @@ Template.editProof.helpers
     
 Template.editProof.events
   'click button#checkProof' : (event, template) ->
-    proofText = ix.getAnswer()
+    proofText = ix.getAnswer()?.proof
     theProof = proof.parse(proofText)
     
     if _.isString theProof
@@ -197,7 +206,7 @@ Template.editProof.events
     giveFeedback "Is your proof correct? #{result}!"
 
     # Add the red/green dots to the proof
-    for lineNumber in [1..ix.getAnswer().split('\n').length]
+    for lineNumber in [1..ix.getAnswer().proof.split('\n').length]
       line = theProof.getLine(lineNumber)
       lineIsCorrect = line.verify()
       addMarker(lineNumber, 'chartreuse', template.editor) if lineIsCorrect
@@ -210,5 +219,8 @@ Template.editProof.events
     
   'click #resetProof-confirm' : (event, template) ->
     giveFeedback ""
-    ix.setAnswer( ix.getProofFromParams() )
+    ans = ix.getAnswer()
+    ans ?= {}
+    ans.proof = ix.getProofFromParams()
+    ix.setAnswer(ans)
     

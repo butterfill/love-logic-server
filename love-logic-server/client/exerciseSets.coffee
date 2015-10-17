@@ -104,7 +104,7 @@ Template.exerciseSet.helpers
       for unit in l.units
         unit.exercises = (
           {
-            name:e
+            name:e.replace('/ex/','')
             link:ix.convertToExerciseId(e)
             isSubmitted:isSubmitted(e)
             dateSubmitted:(moment(dateSubmitted(e)).fromNow() if isSubmitted(e))

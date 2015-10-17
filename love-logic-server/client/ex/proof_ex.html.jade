@@ -4,7 +4,12 @@ template(name='proof_ex')
 
   +proof_ex_display_question
 
-  +editProof editorId="proofEditor"
+  h4 Your answer:
+  if exSubtypeIsOrInvalid
+    +TorF_questions sentences=sentences
+
+  if getDisplayProofEditor
+    +editProof editorId="proofEditor"
 
   +submitted_answer
 
@@ -18,6 +23,8 @@ template(name='proof_ex')
 
 template(name="proof_ex_display_question")
   h2 Write a proof
+    if exSubtypeIsOrInvalid
+      span unless the argument is invalid
   
   .row
     .col.s6
@@ -37,7 +44,15 @@ template(name="proof_ex_display_question")
 
 
 template(name="proof_ex_display_answer")
-  p.monospace.grey.lighten-2 
-    each answerLines
-      .grey.lighten-2(style='padding-left:2px;padding-right:2px;margin-bottom:-4px;') #{line}
+  if displayProof
+    p.monospace.grey.lighten-2 
+      each answerLines
+        .grey.lighten-2(style='padding-left:2px;padding-right:2px;margin-bottom:-4px;') #{line}
     
+  if exSubtypeIsOrInvalid
+    ul.collection
+      each sentences
+        li.collection-item 
+          span.theSentence #{theSentence}
+          span.right #{value}
+  
