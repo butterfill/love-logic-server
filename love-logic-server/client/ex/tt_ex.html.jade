@@ -2,10 +2,13 @@ template(name='tt_ex')
   +topic_header
 
   +tt_ex_display_question
-
+  
+  
+  h5 Your truth table:
   +truth_table
 
-  if isArgument
+  if isAskQuestions
+    h5 Answer these questions:
     +TorF_questions sentences=sentences 
 
   +submitted_answer
@@ -29,14 +32,14 @@ template(name="tt_ex_display_question")
   
   if isArgument
     h4 Construct truth tables for this argument
-    .row: .col.s11.offset-s1
-      +display_argument
+    //- .row: .col.s11.offset-s1
+    +display_argument
   
 
 
 template(name="tt_ex_display_answer")
   +truth_table_static
-  if isArgument
+  if isAskQuestions
     ul.collection
       each sentences
         li.collection-item 

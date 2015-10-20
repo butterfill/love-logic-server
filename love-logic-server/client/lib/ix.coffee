@@ -93,7 +93,7 @@ ix.submitExercise = (exercise, cb) ->
 # Relating to auto grading
 
 ix.hash = (text) ->
-  console.log "to hash is #{text}"
+  # console.log "to hash is #{text}"
   return XXH(text, 0xFFFA).toString(36)
 
 ix.hashAnswer = (answerDoc) ->
@@ -106,13 +106,15 @@ ix.hashAnswer = (answerDoc) ->
     # hard to imagine this mattering within the answers to a single exercise.)
     toHash = toHash.toLowerCase().replace(/\./,'').replace(/,/,'').replace(/\s+/g,' ').trim()
   else
+    if _.isString(toHash.sentence)
+      toHash.sentence = toHash.sentence.toLowerCase().replace(/\./,'').replace(/,/,'').replace(/\s+/g,' ').trim()
     toHash = JSON.stringify(toHash)
   exerciseId = ix.getExerciseId()
   if not exerciseId?
     throw new Meteor.Error "could not get exercise id"
   toHash += exerciseId
   r = ix.hash(toHash)
-  console.log "hash is #{r}"
+  # console.log "hash is #{r}"
   return r
 
 ix.gradeUsingGradedAnswers = (answerDoc, o) ->
@@ -151,7 +153,7 @@ ix.gradeUsingGradedAnswers = (answerDoc, o) ->
   return result
 
 _gradePNF = (answerDoc) ->
-  console.log "using PNF to check for equivalence"
+  # console.log "using PNF to check for equivalence"
   isCorrect = undefined
   comment = ''
   conflict = false
@@ -366,20 +368,21 @@ ix.radioToArray = () ->
 
 ix.possibleWorld = 
   checkSentencesTrue : ($grid, giveFeedback) ->
+    return false unless ix.getSentencesFromParam()?
     allTrue = true
     try
       possibleSituation = ix.possibleWorld.getSituationFromSerializedWord( ix.possibleWorld.serialize($grid) )
     catch error
       #TODO THIS BELONGS ELSEWHERE
       giveFeedback?("Warning: #{error.message}")
-      console.log "Warning: #{error.message}"
+      # console.log "Warning: #{error.message}"
       return false
     for sentence, idx in ix.getSentencesFromParam()
       try
         isTrue = sentence.evaluate(possibleSituation)
       catch error
         giveFeedback?("Warning: #{error.message}")
-        console.log "Warning: #{error.message}"
+        # console.log "Warning: #{error.message}"
         #TODO: this is part of another template!
         $(".sentenceIsTrue:eq(#{idx})").text('[not evaluable in this world]')
         return false
@@ -389,11 +392,7 @@ ix.possibleWorld =
     return allTrue
   
   checkSentencesAreCounterexample : ($grid) ->
-    try
-      possibleSituation = ix.possibleWorld.getSituationFromSerializedWord( ix.possibleWorld.serialize($grid) )
-    catch error
-      console.log "Warning: #{error.message}"
-      return false
+    possibleSituation = ix.possibleWorld.getSituationFromSerializedWord( ix.possibleWorld.serialize($grid) )
     for premise, idx in ix.getPremisesFromParams()
       try
         isTrue = premise.evaluate(possibleSituation)
@@ -643,9 +642,9 @@ ix.truthTable =
     expectedNofRows = Math.pow(2,lttrs.length)
     message = ''
     if expectedNofRows > values.length
-      message = 'You have too few rows.'
+      message = 'Your truth table has too few rows.'
     if expectedNofRows < values.length
-      message = 'You have too many rows.'
+      message = 'Your truth table has too many rows.'
     return {
       isCorrect: expectedNofRows is values.length
       message

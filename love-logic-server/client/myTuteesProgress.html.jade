@@ -1,25 +1,116 @@
 template(name='myTuteesProgress')
   h2 My Tutees’ Progress
-  p #{nofTutees} tutees.
-  p Mean  (all time): #{meanNumberSubmitted} exercises submitted
-    span (#{percentCorrect}% correct, #{percentIncorrect}% incorrect, #{percentUngraded}% ungraded)
-  p Mean (last 7 days): #{meanNumberSubmitted7days} exercises submitted
-    span (#{percentCorrect7Days}% correct, #{percentIncorrect7Days}% incorrect, #{percentUngraded7Days}% ungraded)
-  each tutees
-    h3 #{profile.name} &lt;#{email}&gt;
+  
+  if paramsSpecifyExerciseSet
+    h5 On 
+      if paramsSpecifyUnit
+        span the unit ‘#{unitName}’ of
+      if paramsSpecifyLecture
+        span #{lectureName} in 
+      span #{exerciseSetName}
+  else
     if Template.subscriptionsReady
+      p For all exercises. Restrict to:
+      ul
+        each allSubscriptionsUniqueExerciseSets
+          li(style="margin-left:2em;"): a(href="/myTuteesProgress/course/#{courseName}/exerciseSet/#{variant}") The #{variant} exercises for #{courseName}
+  
+  if paramsSpecifyExerciseSet
+    if paramsSpecifyLecture
+      if paramsSpecifyUnit
+        p 
+      else
+        //- select unit
+        p Restrict to unit:
+          each unitNamesOfCurrentLecture
+            span 
+              a(href="#{url}") #{name}
+              | , 
+    else
+      //- select lecture
+      p Restrict to lecture:
+        each lectureNamesOfCurrentExerciseSet
+          span
+            a(href="#{url}") #{name}
+            | , 
+  
+  
+  h5 All time
+  #progressChart
+  h5 Last 7 days
+  #progressChart7days
+  if Template.subscriptionsReady
+    p #{drawProgressCharts}
+  
+  h4 Means for your #{nofTutees} tutees:
+  table.centered
+    thead
+      tr
+        th
+        th number submitted
+        th correct
+        th incorrect
+        th ungraded
+    tbody
+      tr
+        td.left All time
+        td #{meanNumberSubmitted}
+        td #{percentCorrect}%
+        td #{percentIncorrect}%
+        td #{percentUngraded}%
+      tr
+        td.left last 7 days
+        td #{meanNumberSubmitted7days}
+        td #{percentCorrect7Days}%
+        td #{percentIncorrect7Days}%
+        td #{percentUngraded7Days}%
+  
+  
+  //- p Mean  (all time): #{meanNumberSubmitted} exercises submitted
+  //-   span (#{percentCorrect}% correct, #{percentIncorrect}% incorrect, #{percentUngraded}% ungraded)
+  //- p Mean (last 7 days): #{meanNumberSubmitted7days} exercises submitted
+  //-   span (#{percentCorrect7Days}% correct, #{percentIncorrect7Days}% incorrect, #{percentUngraded7Days}% ungraded)
+  
+  each tutees
+    .spacer(style="margin-top:2em") &nbsp;
+    h4 #{profile.name} &lt;#{email}&gt;
+    if Template.subscriptionsReady
+      
+      table.centered
+        thead
+          tr
+            th
+            th number submitted
+            th correct
+            th incorrect
+            th ungraded
+        tbody
+          tr
+            td.left All time
+            td #{number_submitted}
+            td #{percentCorrect}%
+            td #{percentIncorrect}%
+            td #{percentUngraded}%
+          tr
+            td.left last 7 days
+            td #{number_submitted_7days}
+            td #{percentCorrect7Days}%
+            td #{percentIncorrect7Days}%
+            td #{percentUngraded7Days}%
+      
+            
+      //-
+      //- p Exercises submitted (all time): #{number_submitted}
+      //-   span (#{percentCorrect}% correct, #{percentIncorrect}% incorrect, #{percentUngraded}% ungraded)
+      //- p Exercises submitted (last 7 days): #{number_submitted_7days}
+      //-   span (#{percentCorrect7Days}% correct, #{percentIncorrect7Days}% incorrect, #{percentUngraded7Days}% ungraded)
+      
       p Following these exercise sets:
       ul.collection
         each subscriptions
           li.collection-item 
             //- the `display_subscription` template is defined is defined in main.html.jade
             +display_subscription courseName=courseName variant=variant userQueryParam=userQueryParam
-            
-      p Exercises submitted (all time): #{number_submitted}
-        span (#{percentCorrect}% correct, #{percentIncorrect}% incorrect, #{percentUngraded}% ungraded)
-      p Exercises submitted (last 7 days): #{number_submitted_7days}
-        span (#{percentCorrect7Days}% correct, #{percentIncorrect7Days}% incorrect, #{percentUngraded7Days}% ungraded)
-      
       ul.collapsible.popout
         if percentCorrect7Days
           li
@@ -53,4 +144,3 @@ template(name='myTuteesProgress')
                     a(href="#{gradeURL}") #{exerciseLink}
     else
       p.orange-text Loading ...
-

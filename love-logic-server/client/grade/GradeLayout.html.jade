@@ -3,11 +3,29 @@ template(name="GradeLayout")
   //- Display something like ‘Topic: Rules of Proof for Identity --- normal exercises for UK_W20_PH126’
   +topic_header
   
-  //- +trans_ex_question
+  //- Controls for the grader
+  .right
+    .card.grey.lighten-2
+      .card-content.black-text
+        .card-title.black-text My answer
+        a(href="#{gradeURL}", target='_blank') Check your own answer to this exercise.
+    .card.grey.lighten-2
+      .card-content.black-text
+        .card-title.black-text Hide correct answers?
+        .switch
+          label.black-text
+            | Show
+            input.grey#hideCorrectAnswers(type='checkbox', checked='#{isHideCorrectAnswers}')
+            .lever.grey
+            | Hide
+
+
   +Template.dynamic(template=displayQuestion)
+          
 
   if Template.subscriptionsReady
     if isAnswers
+      .row
       each answers
         h4 #{ownerName} &lsaquo;#{email}&rsaquo;
         p Submitted #{dateSubmitted}:

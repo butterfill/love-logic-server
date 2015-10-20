@@ -84,8 +84,7 @@ Template.topic_header.helpers
     return ctx.exerciseSet.courseName
   variant : () ->
     ctx = Template.instance().exerciseContext.get()
-    return '' unless ctx
-    return ctx.exerciseSet.variant
+    return ctx?.exerciseSet?.variant or ''
 
 
 # ====

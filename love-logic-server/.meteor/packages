@@ -7,7 +7,6 @@
 coffeescript
 mquandalle:jade
 mquandalle:stylus
-useraccounts:materialize
 accounts-password
 momentjs:moment
 kadira:blaze-layout
@@ -31,3 +30,6 @@ ejson
 spacebars
 check
 kadira:debug
+http
+useraccounts:materialize
+msavin:mongol

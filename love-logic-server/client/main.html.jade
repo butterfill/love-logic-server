@@ -1,6 +1,6 @@
 
 template(name='display_subscription')
-  a(href="/course/#{courseName}/exercise-set/#{variant}?#{userQueryParam}") The ‘#{variant}’ exercises for #{courseName}
+  a(href="/course/#{courseName}/exerciseSet/#{variant}?#{userQueryParam}") The ‘#{variant}’ exercises for #{courseName}
 
 template(name='main')
   if isTutor
@@ -28,6 +28,15 @@ template(name='main')
     
 
   .row
+    if hasNoSubscriptions
+      .col.s12.m6.l4
+        .card
+          .card-content
+            span.card-title.black-text Exercises
+            p Follow one or more exercise sets.
+            .card-action: .right
+              a.waves-effect.blue-text(href="/courses")  Select an exercise set
+
     if hasNewHelpRequestAnswers
       .col.s12.m6.l4
         .card
@@ -108,13 +117,5 @@ template(name='main')
           p Please print or otherwise store a copy of the work you have submitted in case this service fails.
           .card-action: .right
             a(href='/mySubmittedExercises').waves-effect.blue-text View work
-    if hasNoSubscriptions
-      .col.s12.m6.l4
-        .card
-          .card-content
-            span.card-title.black-text Exercises
-            p You can follow one or more exercise sets.
-            .card-action: .right
-              a.waves-effect.blue-text(href="/courses")  Select an exercise set
 
   

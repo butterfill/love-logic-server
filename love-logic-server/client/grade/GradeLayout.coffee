@@ -1,5 +1,6 @@
 
 
+
 Template.GradeLayout.onCreated () ->
   self = this
   self.autorun () ->
@@ -19,7 +20,10 @@ Template.GradeLayout.onCreated () ->
       self.subscribe 'submitted_answers', exerciseId, userId
     
 
-
+isHideCorrectAnswers = () ->
+  stored = Session.get("#{ix.getUserId()}/hideCorrectAnswers")
+  return stored if stored?
+  return false
   
 Template.GradeLayout.helpers
   displayQuestion : () ->
@@ -27,6 +31,10 @@ Template.GradeLayout.helpers
     url = ix.url()
     type = url.split('/')[2]
     return "#{type}_ex_display_question"
+  gradeURL : () -> 
+    FlowRouter.watchPathChange()
+    return ix.url().replace(/\/grade(\/?)$/, '')
+  isHideCorrectAnswers : isHideCorrectAnswers
   displayAnswer : () ->
     url = ix.url()
     type = url.split('/')[2]
@@ -36,7 +44,15 @@ Template.GradeLayout.helpers
     return SubmittedExercises.find().count() >0
   answers : () ->
     exerciseId = ix.getExerciseId()
-    return SubmittedExercises.find({exerciseId}, {sort:{'created':-1}})
+    if isHideCorrectAnswers()
+      q = {
+        exerciseId : exerciseId
+        'humanFeedback.isCorrect':{$not:true}
+        'machineFeedback.isCorrect':{$not:true}
+      }
+      return SubmittedExercises.find(q, {sort:{'created':-1}})
+    else
+      return SubmittedExercises.find({exerciseId}, {sort:{'created':-1}})
   dateSubmitted : () ->
     return moment(@created).fromNow()
   isMachineFeedback : () ->
@@ -206,3 +222,5 @@ Template.GradeLayout.events
     key = "helpRequestAnswer/#{Meteor.userId()}/#{this._id}"
     Session.set(key, true)
 
+  'click #hideCorrectAnswers' : (event, target) ->
+    Session.setPersistent("#{ix.getUserId()}/hideCorrectAnswers", $('#hideCorrectAnswers').prop('checked'))

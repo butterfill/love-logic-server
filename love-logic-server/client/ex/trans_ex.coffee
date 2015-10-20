@@ -10,6 +10,7 @@ isTranslationToEn = false
 # ========
 # Template: trans_ex_display_question
 # (This is a fragment that is used both for students and graders)
+getNames = () -> decodeURIComponent(FlowRouter.getParam('_names')).replace(/\=/g,' : ').split('|')
 
 Template.trans_ex_display_question.helpers
   isTranslationToEn : () ->
@@ -19,8 +20,14 @@ Template.trans_ex_display_question.helpers
     if checkIfTranslationToEn()
       return fol.parse(decodeURIComponent(FlowRouter.getParam('_sentence'))).toString({replaceSymbols:true})
     return "#{decodeURIComponent(FlowRouter.getParam('_sentence'))}."
-  domain : () -> getDomainFromParams()
-  names : () -> decodeURIComponent(FlowRouter.getParam('_names')).replace(/\=/g,' : ').split('|')
+  domain : () -> getDomainFromParams().join(', ')
+  names : getNames
+  isNames : () ->
+    names = getNames()
+    return false unless names?.length > 0
+    if names.length is 1
+      return false if names[0].trim() is "" or names[0].trim() is "-"
+    return true
 
 
 checkIfTranslationToEn = () ->
@@ -84,7 +91,7 @@ getDomainFromParams = () ->
 # User interactions
 
 isAnswerFOLsentence = () ->
-  rawAnswer = ix.getAnswer()
+  rawAnswer = ix.getAnswer()?.sentence
   try 
     answer = fol.parse( rawAnswer.replace(/\n/g,' ') )
     return true
@@ -92,7 +99,7 @@ isAnswerFOLsentence = () ->
     return false
 
 getAnswerAsFOLsentence = () ->
-  rawAnswer = ix.getAnswer()
+  rawAnswer = ix.getAnswer().sentence
   try 
     answer = fol.parse( rawAnswer.replace(/\n/g,' ') )
     return answer
@@ -116,12 +123,12 @@ Template.trans_ex.helpers
     
 Template.trans_ex.events 
   'click button#submit' : (event, template) ->
-    answer = ix.getAnswer()
+    answer = ix.getAnswer()?.sentence
     
     doc = {
       answer : 
         type : 'trans'
-        content : answer
+        content : {sentence:answer}
     }
     
     answerShouldBeEnglish = checkIfTranslationToEn()
@@ -151,6 +158,7 @@ Template.trans_ex.events
       if not machineFeedback.hasFreeVariables
         answerPNFsimplifiedSorted = answerFOLobject.convertToPNFsimplifyAndSort().toString({replaceSymbols:true})
         machineFeedback.comment = "Your answer is a sentence of awFOL."
+        # TODO: check whether the answer uses only predicates and names which are allowed.
       else 
         machineFeedback.comment = "Your answer is a sentence of awFOL but it cannot be correct because it contains free variables (#{freeVariables}).  Have you forgotten a quantifier or made a mistake with brackets?"
         machineFeedback.isCorrect = false

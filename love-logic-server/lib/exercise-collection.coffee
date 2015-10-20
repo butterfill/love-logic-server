@@ -13,17 +13,17 @@ courses = [
     description : 'Exercises for Logic I (PH126) at the University of Warwick'
   }
   {
-    name : '_test'
-    description : 'Test exercises'
-  }
-  {
-    name : 'UK_W20_PH136'
-    description : 'Exercises for Logic I (PH136) at the University of Warwick'
-  }
-  {
     name : 'UK_W20_PH133'
     description : 'Exercises for Introduction to Philosophy (PH133) at the University of Warwick'
   }
+  {
+    name : '_test'
+    description : 'Test exercises'
+  }
+  # {
+  #   name : 'UK_W20_PH136'
+  #   description : 'Exercises for Logic I (PH136) at the University of Warwick'
+  # }
 ]
 
 exSets = [
@@ -106,6 +106,39 @@ exSets = [
               '/ex/proof/from/a=b|b=c/to/a=c'
               '/ex/proof/from/Loves(a,b)|a=c/to/Loves(c,b)'
               '/ex/proof/from/Loves(a,b)|Loves(b,a)|a=c/to/Loves(c,b) and Loves(b,c)'
+            ] #unit.exercises
+          } # unit
+          {
+            type : 'unit'
+            name : 'test tt one sentence'
+            slides : ''
+            rawReading : []
+            rawExercises : [
+              '/ex/tt/qq/A and B'
+              '/ex/tt/qq/A and not A'
+              '/ex/tt/qq/A or not A'
+            ] #unit.exercises
+          } # unit
+          {
+            type : 'unit'
+            name : 'test q'
+            slides : ''
+            rawReading : []
+            rawExercises : [
+              '/ex/q/Define logically valid argument'
+              '/ex/q/Define counterexample'
+            ] #unit.exercises
+          } # unit
+          {
+            type : 'unit'
+            name : 'test tt two sentences'
+            slides : ''
+            rawReading : []
+            rawExercises : [
+              '/ex/tt/qq/A and B|B and A'
+              '/ex/tt/qq/A|A and B'
+              '/ex/tt/qq/A and B|A'
+              '/ex/tt/qq/A arrow C|A or C'
             ] #unit.exercises
           } # unit
         ] #lecture.exercises

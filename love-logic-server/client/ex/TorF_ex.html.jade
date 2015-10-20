@@ -19,8 +19,7 @@ template(name='TorF_ex')
 template(name="TorF_ex_display_question")
   if isArgument
     h4 Consider this argument:
-    .row: .col.s11.offset-s1
-      +display_argument
+    +display_argument
   if isWorld
     h4 Here is a possible situation:
     +possible_world_from_param
@@ -53,7 +52,7 @@ template(name="TorF_ex_display_answer")
   
 
 template(name="display_argument")
-  table
+  table(style='width:auto; margin-left:2em;')
     tbody
       each premises
         tr(style="border-left: 1px solid black;")
@@ -63,4 +62,3 @@ template(name="display_argument")
         td(width="1em", style="border-top:1px solid black;padding-right:1em;")
         td: div(style="margin-left:-1em;") #{conclusion}
 
-    

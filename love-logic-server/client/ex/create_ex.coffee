@@ -1,10 +1,4 @@
-getDisplayCreateWorld = () ->
-  answer = ix.getAnswer()
-  if answer?.TorF?[0] is true and ix.isExerciseSubtype('orValid') 
-    return false
-  if answer?.TorF?[0] is true and ix.isExerciseSubtype('orInconsistent')
-    return false
-  return true
+
 
 
 Template.create_ex.onCreated () ->
@@ -15,14 +9,26 @@ Template.create_ex.onCreated () ->
     self.subscribe 'graded_answers', exerciseId
 
 Template.create_ex.helpers
-  exSubtypeIsValid : () -> ix.isExerciseSubtype('orValid')
-  exSubtypeIsInconsistent : () -> ix.isExerciseSubtype('orInconsistent')
+  exSubtypeIsValid : () -> 
+    FlowRouter.watchPathChange()
+    return ix.isExerciseSubtype('orValid')
+  exSubtypeIsInconsistent : () -> 
+    FlowRouter.watchPathChange()
+    ix.isExerciseSubtype('orInconsistent')
   sentences : () ->
+    FlowRouter.watchPathChange()
     if ix.isExerciseSubtype('orValid')
       return [{theSentence:'The argument is logically valid.', idx:0}]
     if ix.isExerciseSubtype('orInconsistent')
       return [{theSentence:'The sentences are logically inconsistent.', idx:0}]
-  displayCreateWorld : getDisplayCreateWorld
+  displayCreateWorld : () ->
+    FlowRouter.watchPathChange()
+    answer = ix.getAnswer()
+    if answer?.TorF?[0] is true and ix.isExerciseSubtype('orValid') 
+      return false
+    if answer?.TorF?[0] is true and ix.isExerciseSubtype('orInconsistent')
+      return false
+    return true
     
   
   

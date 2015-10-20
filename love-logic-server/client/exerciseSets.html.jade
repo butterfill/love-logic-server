@@ -12,7 +12,7 @@ template(name='exerciseSetsForCourse')
   ul.collection
     each exerciseSets
       li.collection-item
-        a(href="/course/#{courseName}/exercise-set/#{variant}") #{variant}
+        a(href="/course/#{courseName}/exerciseSet/#{variant}") #{variant}
         span --- #{description}
   
 
@@ -26,16 +26,38 @@ template(name='exerciseSet')
       br
     span #{exerciseSetName}
   p #{exerciseSetDescription}
+  
+  if Template.subscriptionsReady
+    h5 Progress
+    table.centered
+      thead
+        tr
+          th Number submitted
+          th correct
+          th incorrect
+          th ungraded
+      tbody
+        tr
+          td #{stats.submitted} of #{stats.nofExercises}
+          td #{stats.correct}
+          td #{stats.incorrect}
+          td #{stats.ungraded}
+  else
+    p.orange-text Loading ...
+  
+    
   if isForTutee
     .pass
   else
-    if isAlreadyFollowing
-      a#unfollow.btn.waves-effect.grey stop following ‘#{exerciseSetName}’
-    else
-      a#follow.btn.waves-effect.grey follow ‘#{exerciseSetName}’
+    if Template.subscriptionsReady
+      if isAlreadyFollowing
+        a#unfollow.btn.waves-effect.grey stop following ‘#{exerciseSetName}’
+      else
+        a#follow.btn.waves-effect.grey follow ‘#{exerciseSetName}’
 
   each lectures
-    h4 #{name}
+    h4(id="#{htmlAnchor}") 
+      a(href="#{exerciseSetLectureURL}") #{name}
     p
       span [
       a(href="#{slides}", target="_blank") slides
@@ -43,7 +65,8 @@ template(name='exerciseSet')
       a(href="#{handout}", target="_blank") handout
       span ] 
     each units
-      h5 #{name}
+      h5(id="#{htmlAnchor}") 
+        a(href="#{exerciseSetUnitURL}") #{name}
       if reading
         p Reading: #{reading}
       p 

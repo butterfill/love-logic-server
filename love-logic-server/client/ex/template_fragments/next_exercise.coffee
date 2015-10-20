@@ -2,6 +2,7 @@ Template.next_exercise.onCreated () ->
   # self is `Template.instance()`
   self = this
   self.autorun () ->
+    FlowRouter.watchPathChange()
     courseName = FlowRouter.getQueryParam 'courseName'
     variant = FlowRouter.getQueryParam 'variant'
     if courseName? And variant?

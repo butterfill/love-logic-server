@@ -41,7 +41,7 @@ Template.exerciseSet.onCreated () ->
     variant = FlowRouter.getParam('_variant')
     self.subscribe('course', courseName)
     self.subscribe('exercise_set', courseName, variant)
-    # This subscription provides `SubmittedExercises` but only some fields.
+    # This subscription provides all `SubmittedExercises` for the user but only some fields.
     userId = ix.getUserId()
     self.subscribe('dates_exercises_submitted', userId)
     self.subscribe('tutee_user_info', userId)
@@ -98,10 +98,36 @@ Template.exerciseSet.helpers
     tuteeId = ix.getUserId()
     return Meteor.users.findOne(ix.getUserId())?.emails?[0]?.address
   lectures : () ->
+    FlowRouter.watchPathChange()
     theLectures = ExerciseSets.findOne()?.lectures
     return [] if not theLectures
+    
+    # Filter the document if a particular lecture or unit is specified
+    if FlowRouter.getParam('_lecture')?
+      lectureToShow = FlowRouter.getParam('_lecture')
+      theLectures = (l for l in theLectures when l.name is lectureToShow)
+    if FlowRouter.getParam('_unit')? 
+      unitToShow = FlowRouter.getParam('_unit')
+      for lecture in theLectures
+        lecture.units = (u for u in lecture.units when u.name is unitToShow)
+    
+    # Build an object that makes blaze templating easier
     for l in theLectures
+      l.htmlAnchor = encodeURIComponent(l.name)
+      l.exerciseSetLectureURL = ''
+      if ix.url().indexOf('/unit/') is -1 and ix.url().indexOf('/lecture/') is -1
+          l.exerciseSetLectureURL = "#{ix.url().replace(/\/$/,'')}/lecture/#{l.name}#{document.location.search}"
+      if ix.url().indexOf('/unit/') isnt -1
+        # move up from unit to lecture
+        l.exerciseSetLectureURL = ix.url().replace(/\/unit\/.+/, '')
       for unit in l.units
+        unit.htmlAnchor = encodeURIComponent(unit.name)
+        unit.exerciseSetUnitURL = ''
+        if ix.url().indexOf('/unit/') is -1
+          if ix.url().indexOf('/lecture/') is -1
+            unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'')}/lecture/#{l.name}/unit/#{unit.name}#{document.location.search}"
+          else
+            unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'')}/unit/#{unit.name}#{document.location.search}"
         unit.exercises = (
           {
             name:e.replace('/ex/','')
@@ -118,6 +144,36 @@ Template.exerciseSet.helpers
         else 
           unit.reading =""
     return theLectures
+    
+  stats : () ->
+    theLectures = ExerciseSets.findOne()?.lectures
+    return {} if not theLectures
+    
+    # Filter the document if a particular lecture or unit is specified
+    if FlowRouter.getParam('_lecture')?
+      lectureToShow = FlowRouter.getParam('_lecture')
+      theLectures = (l for l in theLectures when l.name is lectureToShow)
+    if FlowRouter.getParam('_unit')? 
+      unitToShow = FlowRouter.getParam('_unit')
+      for lecture in theLectures
+        lecture.units = (u for u in lecture.units when u.name is unitToShow)
+    
+    stats = 
+      nofExercises: 0
+      submitted: 0
+      correct: 0
+      incorrect: 0
+      ungraded: 0 
+    for l in theLectures
+      for unit in l.units
+        for e in unit.rawExercises
+          stats.nofExercises += 1
+          stats.submitted += 1 if isSubmitted(e)
+          stats.correct += 1 if exerciseIsCorrect(e)
+          stats.incorrect += 1 if exerciseIsIncorrect(e)
+          stats.ungraded += 1 if exerciseIsUngraded(e)
+    return stats
+    
   'gradeURL' : () -> (@link.replace(/\/$/, ''))+"/grade"
   isAlreadyFollowing : () ->
     # Here we get the acutal user (this is for wheter to display the `follow button`)

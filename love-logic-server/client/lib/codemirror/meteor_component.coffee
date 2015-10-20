@@ -31,23 +31,21 @@ Template.editSentence.onRendered () ->
   editor = CodeMirror.fromTextArea(textarea, options)
   
   # TODO: this should go? (Superflous given the autorun below)
-  savedAnswer = ix.getAnswer()?.proof
+  savedAnswer = ix.getAnswer()?.sentence
   if savedAnswer? and savedAnswer.trim() isnt ''
     editor.setValue(savedAnswer)
   
   editor.on 'change', (doc) ->
     val = doc.getValue()
     textarea.value = val
-    ans = ix.getAnswer()
-    ans ?= {}
-    ans.proof = val
-    ix.setAnswer(ans)
+    ix.setAnswerKey(val, 'sentence')
+    
   
   # Allow the value of the editor to be updated by setting the session variable
   @autorun () ->
     # We need to `watchPathChange` so that the editor gets updated.
     FlowRouter.watchPathChange()
-    val = ix.getAnswer()?.proof or ''
+    val = ix.getAnswer()?.sentence or ''
     if val != editor.getValue()
       # Clear feedback because the answer has been changed from outside
       giveFeedback ""     
@@ -71,17 +69,14 @@ Template.editSentence.helpers
 
 Template.editSentence.events
   'click #convert-to-symbols' : (event, template) ->
-    answer = ix.getAnswer()?.proof
+    answer = ix.getAnswer()?.sentence
     try
       answerFOL = fol.parse( answer.replace(/\n/g,' ') )
     catch error
       giveFeedback "Your answer is not a correct sentence of awFOL. (#{error})"
       return
     giveFeedback ""
-    ans = ix.getAnswer()
-    ans ?= {}
-    ans.proof = answerFOL.toString({replaceSymbols:true})
-    ix.setAnswer(ans)
+    ix.setAnswerKey(answerFOL.toString({replaceSymbols:true}), 'sentence')
 
 
 
@@ -153,10 +148,7 @@ Template.editProof.onRendered () ->
   editor.on 'change', (doc) ->
     val = doc.getValue()
     textarea.value = val
-    ans = ix.getAnswer()
-    ans ?= {}
-    ans.proof = val
-    ix.setAnswer(ans)
+    ix.setAnswerKey(val, 'proof')
   
   editor.on "keyHandled", (instance, name, event) ->
     if name in ['Up']
@@ -219,8 +211,5 @@ Template.editProof.events
     
   'click #resetProof-confirm' : (event, template) ->
     giveFeedback ""
-    ans = ix.getAnswer()
-    ans ?= {}
-    ans.proof = ix.getProofFromParams()
-    ix.setAnswer(ans)
+    ix.setAnswerKey(ix.getProofFromParams(), 'proof')
     
