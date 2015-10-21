@@ -243,13 +243,12 @@ drawProgressChart = (chartElemId, daysQueryWrapper) ->
       row.push ''
       dataArray.push(row)
     data = google.visualization.arrayToDataTable dataArray
-    options = {
-      width: 600,
-      height: 400,
-      legend: { position: 'top', maxLines: 3 },
-      bar: { groupWidth: '75%' },
-      isStacked: true,
-    }
+    options = 
+      width: 600
+      height: 400
+      legend: { position: 'top', maxLines: 3 }
+      bar: { groupWidth: '75%' }
+      isStacked: true
     # Instantiate and draw our chart, passing in some options.
     chart = new google.visualization.BarChart(document.getElementById(chartElemId))
     chart.draw(data, options)

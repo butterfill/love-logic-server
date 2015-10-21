@@ -1,9 +1,3 @@
-getDisplayProofEditor = () ->
-  answer = ix.getAnswer()
-  if answer?.TorF?[0] is false and ix.isExerciseSubtype('orInvalid') 
-    return false
-  return true
-
 Template.proof_ex.onCreated () ->
   self=this
   @autorun () ->
@@ -20,7 +14,12 @@ Template.proof_ex.helpers
   sentences : () ->
     if ix.isExerciseSubtype('orInvalid')
       return [{theSentence:'The argument is logically valid.', idx:0}]
-  getDisplayProofEditor : getDisplayProofEditor
+  displayProofEditor : () ->
+    FlowRouter.watchPathChange()
+    answer = ix.getAnswer()
+    if answer?.TorF?[0] is false and ix.isExerciseSubtype('orInvalid') 
+      return false
+    return true
 
 
 Template.proof_ex_display_question.helpers

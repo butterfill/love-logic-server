@@ -8,6 +8,7 @@ exerciseSpecifiesAnArgument = (self) -> ix.getConclusionFromParams(self)?
 # This allows the function to be called both from exercise pages and when displaying answers
 # to multiple exercises on a single page.
 getQuestionsAboutTruthTable = (self) ->
+  return [] if dontAskQuestions(self)
   if exerciseSpecifiesAnArgument(self)
     ss = [{theSentence:'The argument is logically valid.', idx:0, doNotDisplayNumbers:true}]
     answerTT = ix.getAnswer()?.tt
@@ -34,7 +35,13 @@ getQuestionsAboutTruthTable = (self) ->
   # There are no sentences to display
   return []
 
+dontAskQuestions = (self) ->
+  url = self?.exerciseId or ix.url()
+  return url.indexOf('/noQ/') isnt -1
+    
+
 thereAreQuestionsToAsk = (self) -> getQuestionsAboutTruthTable(self)?.length > 0
+
 
 Template.tt_ex.helpers
   isAskQuestions : thereAreQuestionsToAsk
@@ -67,7 +74,7 @@ Template.tt_ex.events
     # we will have asked the student to say whether the argument is valid and 
     # which rows are counteexamples.  So check the answers about whether the 
     # argument is logically valid and which rows are counterexamples are also correct.
-    if machineFeedback.isCorrect and ix.getConclusionFromParams()?
+    if machineFeedback.isCorrect and thereAreQuestionsToAsk() and ix.getConclusionFromParams()?
       nofLetters = ix.truthTable.getSentenceLetters().length
       # check answers are correct
       rowIsCounterexample = []
@@ -90,7 +97,7 @@ Template.tt_ex.events
     # sentence, we will have asked the student to say whether the argument is a 
     # contradiction, a logical truth, or a logical possibility.
     # So check these answers.
-    if machineFeedback.isCorrect and ix.getSentencesFromParam()?.length is 1
+    if machineFeedback.isCorrect and thereAreQuestionsToAsk() and ix.getSentencesFromParam()?.length is 1
       truthValuesOfSentence = (x[x.length-1] for x in valuesFromTable)
       correctTorFAnswers = [
         (not (true in truthValuesOfSentence))
@@ -105,7 +112,7 @@ Template.tt_ex.events
     # two sentences, we will have asked the student to say whether the sentences
     # are logically equivalent, or whether one entails the other.
     # So check these answers.
-    if machineFeedback.isCorrect and ix.getSentencesFromParam()?.length is 2
+    if machineFeedback.isCorrect and thereAreQuestionsToAsk() and ix.getSentencesFromParam()?.length is 2
       truthValuesOfSentence2 = (x[x.length-1] for x in valuesFromTable)
       truthValuesOfSentence1 = (x[x.length-2] for x in valuesFromTable)
       truthValuesOfSentences = _.zip(truthValuesOfSentence1, truthValuesOfSentence2)

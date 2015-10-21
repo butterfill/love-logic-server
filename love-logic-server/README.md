@@ -1,4 +1,4 @@
-Server and web ui for setting logic exercises (individually or in sets) and tracking students’ progress.
+Server and web ui for setting logic exercises (individually or in sets), and tracking students’ progress.
 
 Exercises are URLs, e.g. to ask your students to write a truth table:
 
@@ -29,12 +29,14 @@ To ask you students to write a proof:
 ```
 
 There are also exercises involving translations to and from a first-order language, and evaluating
-sentences or arguments in a possible situation you specify. (See logic-ex.butterfill.com for further examples.)
+sentences or arguments in a possible situation you specify. (See logic-ex.butterfill.com for examples.)
 
-It's possible to set up a set of exercises linked to lecture topics (e.g. logic-1.butterfill.com).
+It's possible to link a set of exercises to a series of lectures (e.g. logic-1.butterfill.com).
 
 If students to specify a tutor, that tutor can monitor their progress, add comments, grade exercises that aren’t automatically graded and answer requests for help.
 
-(c) Stephen A. Butterfill 2015
+For exercises that aren’t automatically graded, tutors’ grades and comments are stored (against hashes of the answers) and automatically applied to future answers.
+
+(c) Stephen A. Butterfill 2015.
 All rights reserved.
 Contact me if you want to use this code.

@@ -28,7 +28,15 @@ template(name='exerciseSet')
   p #{exerciseSetDescription}
   
   if Template.subscriptionsReady
-    h5 Progress
+    h5 Progress with 
+        if paramsSpecifyUnit
+          | the unit ‘#{unitName}’ of
+        if paramsSpecifyLecture
+          | #{lectureName} 
+        else
+          | all exercises
+    
+    #progressChart
     table.centered
       thead
         tr

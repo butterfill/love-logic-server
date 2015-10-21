@@ -47,8 +47,8 @@ template(name="TorF_ex_display_answer")
   ul.collection
     each sentences
       li.collection-item 
+        span.right(style='font-weight:bold;margin-left:1em;') #{value}
         span.theSentence #{idx}. #{theSentence}
-        span.right #{value}
   
 
 template(name="display_argument")

@@ -122,12 +122,26 @@ FlowRouter.route '/ex/tt/qq/:_sentences',
 FlowRouter.route '/ex/tt/qq/:_sentences/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+# As above, but don’t ask the questions
+FlowRouter.route '/ex/tt/noQ/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'tt_ex'
+FlowRouter.route '/ex/tt/noQ/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
 # Construct truth tables for argument and say whether it is valid, specifying a counterexample if appropriate. TODO: update template so it copes with this  TODO: Add examples
 FlowRouter.route '/ex/tt/from/:_premises/to/:_conclusion',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'tt_ex'
 FlowRouter.route '/ex/tt/from/:_premises/to/:_conclusion/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+# As above, but don’t ask the questions
+FlowRouter.route '/ex/tt/noQ/from/:_premises/to/:_conclusion',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'tt_ex'
+FlowRouter.route '/ex/tt/noQ/from/:_premises/to/:_conclusion/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 

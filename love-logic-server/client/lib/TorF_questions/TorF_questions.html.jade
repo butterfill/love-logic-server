@@ -7,6 +7,12 @@ template(name="TorF_questions")
     //- `sentences` is provided as a parameter to the templae
     each sentences
       li.collection-item 
+        span.right.trueOrFalseInputs
+          form
+            input.true.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="true_for_#{idx}", value='true', checked='#{isTrueChecked}')
+            label(for="true_for_#{idx}") true
+            input.false.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="false_for_#{idx}", value='false', checked='#{isFalseChecked}')
+            label(for="false_for_#{idx}") false
         span.theSentence 
           if idx
             if doNotDisplayNumbers
@@ -15,10 +21,4 @@ template(name="TorF_questions")
               | #{idx}. #{theSentence}
           else
             | #{theSentence}
-        span.right.trueOrFalseInputs
-          form
-            input.true.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="true_for_#{idx}", value='true', checked='#{isTrueChecked}')
-            label(for="true_for_#{idx}") true
-            input.false.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="false_for_#{idx}", value='false', checked='#{isFalseChecked}')
-            label(for="false_for_#{idx}") false
 
