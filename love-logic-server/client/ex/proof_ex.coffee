@@ -24,9 +24,9 @@ Template.proof_ex.helpers
 
 Template.proof_ex_display_question.helpers
   conclusion : () ->
-    return ix.getConclusionFromParams().toString({replaceSymbols:true})
+    return ix.getConclusionFromParams()?.toString({replaceSymbols:true})
   premises : () -> 
-    folList = ix.getPremisesFromParams()
+    folList = ix.getPremisesFromParams() or []
     return (e.toString({replaceSymbols:true}) for e in folList)
   hasPremises : () -> 
     return ix.getPremisesFromParams()?.length > 0

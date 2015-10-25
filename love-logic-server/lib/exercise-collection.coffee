@@ -1,5 +1,6 @@
 @Courses = new Mongo.Collection('courses')
 @ExerciseSets = new Mongo.Collection('exercise_sets')
+# @ExerciseSets = new Ground.Collection('exercise_sets')
 
 # Structure : 
 #   country_institution_course
@@ -10,7 +11,7 @@
 courses = [
   {
     name : 'UK_W20_PH126'
-    description : 'Exercises for Logic I (PH126) at the University of Warwick'
+    description : 'Exercises for Logic I (PH126 and PH136) at the University of Warwick'
   }
   {
     name : 'UK_W20_PH133'

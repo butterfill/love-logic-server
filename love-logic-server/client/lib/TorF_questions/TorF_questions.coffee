@@ -16,8 +16,11 @@ Template.TorF_questions.onRendered () ->
       
 Template.TorF_questions.helpers
   isTrueChecked : () -> 
+    FlowRouter.watchPathChange()
     return (ix.getAnswer()?.TorF?[@idx] is true) 
-  isFalseChecked : () -> (ix.getAnswer()?.TorF?[@idx] is false)
+  isFalseChecked : () -> 
+    FlowRouter.watchPathChange()
+    return (ix.getAnswer()?.TorF?[@idx] is false)
   
 arrayToRadio = (array) ->
   $el = $('.trueOrFalseInputs')
@@ -34,8 +37,6 @@ clearRadios = () ->
     $('input.false', $el.eq(idx)).prop('checked', false)
   
 Template.TorF_questions.events 
-  'click input' : () -> 
-    answer = ix.getAnswer()
-    answer ?= {}
-    answer.TorF = ix.radioToArray()
-    ix.setAnswer(answer)
+  'click input' : () ->
+    ix.setAnswerKey( ix.radioToArray(), 'TorF')
+

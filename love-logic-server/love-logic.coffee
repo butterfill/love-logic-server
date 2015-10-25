@@ -7,9 +7,11 @@
 
 # Each time a student submits an exercise, store it here.  Update when it is marked.
 @SubmittedExercises = new Mongo.Collection('submitted_exercises')
+# @SubmittedExercises = new Ground.Collection('submitted_exercises')
 
 # Record which exercise sets a student has subscribed to.
 @Subscriptions = new Mongo.Collection('subscriptions')
+# @Subscriptions = new Ground.Collection('subscriptions')
 
 # When a grader grades an exercise, the results are stored here so that
 # students who submit the same answer can be auto-graded.

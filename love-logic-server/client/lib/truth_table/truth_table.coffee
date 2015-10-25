@@ -15,18 +15,18 @@ Template.truth_table.onRendered () ->
       
 Template.truth_table.helpers
   sentences : () ->
-    folSentences = ix.getSentencesOrPremisesAndConclusion()
+    folSentences = ix.getSentencesOrPremisesAndConclusion() or []
     return ({theSentence:x.toString({replaceSymbols:true}), idx:idx} for x, idx in folSentences)
       
   letters : () ->
-    ({theLetter:l} for l in ix.truthTable.getSentenceLetters())
+    ({theLetter:l} for l in (ix.truthTable.getSentenceLetters() or []))
   rows : () ->
     values = ix.getAnswer()?.tt
     if values? and _.isArray(values) and values.length > 0 
       return getRowsFromValues(values)
     else
-      result = (null for x in ix.truthTable.getSentenceLetters())
-      result = result.concat( (null for x in ix.getSentencesOrPremisesAndConclusion()) )
+      result = (null for x in (ix.truthTable.getSentenceLetters() or []))
+      result = result.concat( (null for x in (ix.getSentencesOrPremisesAndConclusion() or [])) )
       console.log result
       return result
 
@@ -77,7 +77,7 @@ resetTruthTable = () ->
   $('.truthtable tbody').append($tr)
 
 nofColumnsNeededInTruthTable = () ->
-  return ix.truthTable.getSentenceLetters().length + ix.getSentencesOrPremisesAndConclusion().length
+  ix.truthTable.getSentenceLetters().length + ix.getSentencesOrPremisesAndConclusion().length
   
 
 Template.truth_table.events 
@@ -115,10 +115,10 @@ valueToText = (v) -> (("T" if v) or ("F" if v is false)) or ("" if v is null)
 Template.truth_table_static.helpers
   letters : () ->
     self = this
-    ({theLetter:l} for l in ix.truthTable.getSentenceLetters(self))
+    ({theLetter:l} for l in (ix.truthTable.getSentenceLetters(self) or []))
   sentences : () ->
     self = this
-    ss = ix.getSentencesOrPremisesAndConclusion(self)
+    ss = ix.getSentencesOrPremisesAndConclusion(self) or []
     return ({theSentence:x.toString({replaceSymbols:true}), idx} for x, idx in ss)
   rows : () ->
     return getRowsFromValues(@answer.content.tt)

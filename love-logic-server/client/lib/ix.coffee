@@ -232,6 +232,7 @@ ix.setAnswerKey = (newValue, key) ->
 # TODO: update to provide optional use of `self` like `ix.getSentencesFromParam`
 ix.getPremisesFromParams = (self) ->
   _premises = FlowRouter.getParam('_premises')
+  return [] if _premises in [' ', '-']
   if not _premises?
     if self?.exerciseId?
       exercisesIdParts = self.exerciseId.split('/')
@@ -269,8 +270,11 @@ ix.getConclusionFromParams = (self) ->
 
 # Extract the proof to be written from the params.  
 ix.getProofFromParams = () ->
-  premiseTxt = (t.toString({replaceSymbols:true}) for t in ix.getPremisesFromParams()).join('\n| ')
-  conclusionTxt = ix.getConclusionFromParams().toString({replaceSymbols:true})
+  premises = ix.getPremisesFromParams() or []
+  conclusion = ix.getConclusionFromParams()
+  return undefined unless conclusion?
+  premiseTxt = (t.toString({replaceSymbols:true}) for t in premises).join('\n| ')
+  conclusionTxt = conclusion.toString({replaceSymbols:true})
   return "| #{premiseTxt}\n|---\n| \n| \n| #{conclusionTxt}"  
 
 ix.getTTrowFromParam = () ->
@@ -286,7 +290,7 @@ ix.getTTrowFromParam = () ->
 
 ix.checkPremisesAndConclusionOfProof = (theProof) ->
     # Now check the conclusion is what its supposed to be.
-    conclusionIsOk = theProof.getConclusion().isIdenticalTo( ix.getConclusionFromParams() )
+    conclusionIsOk = theProof.getConclusion()?.isIdenticalTo?( ix.getConclusionFromParams() )
     if not conclusionIsOk 
       return "Your conclusion (#{theProof.getConclusion()}) is not the one you were supposed to prove (#{ix.getConclusionFromParams()})."
     # Finally, check no premises other than those stipulated have been used (but
@@ -357,8 +361,16 @@ ix.radioToArray = () ->
   result = []
   $el.each (idx, $item) ->
     value = $('input:checked', $item).val()
-    if value isnt undefined
-       value = ((value + '').toLowerCase() is 'true')
+    value = (value + '').toLowerCase()
+    # I’m cautious about ‘value’ because have been getting weird effects
+    # where clicking one radio sets others (despite correctly setting `name` and `id`).
+    if value is 'true'
+      value = true
+    else
+      if value is 'false'
+        value = false
+      # else
+      #   console.log "Radio #{idx} has value #{value}."
     result.push value
   return result
 
@@ -368,24 +380,24 @@ ix.radioToArray = () ->
 
 ix.possibleWorld = 
   checkSentencesTrue : ($grid, giveFeedback) ->
-    return false unless ix.getSentencesFromParam()?
+    giveFeedback?("")
+    sentences = ix.getSentencesFromParam()
+    return false unless sentences?
     allTrue = true
     try
       possibleSituation = ix.possibleWorld.getSituationFromSerializedWord( ix.possibleWorld.serialize($grid) )
     catch error
-      #TODO THIS BELONGS ELSEWHERE
       giveFeedback?("Warning: #{error.message}")
-      # console.log "Warning: #{error.message}"
       return false
-    for sentence, idx in ix.getSentencesFromParam()
+    for sentence, idx in sentences
       try
         isTrue = sentence.evaluate(possibleSituation)
       catch error
         giveFeedback?("Warning: #{error.message}")
-        # console.log "Warning: #{error.message}"
         #TODO: this is part of another template!
         $(".sentenceIsTrue:eq(#{idx})").text('[not evaluable in this world]')
-        return false
+        allTrue = false
+        continue
       allTrue = allTrue and isTrue 
       #TODO: this is part of another template!
       $(".sentenceIsTrue:eq(#{idx})").text(('T' if isTrue) or 'F')
@@ -668,7 +680,7 @@ ix.truthTable =
   
   getSentenceLetters : (self) ->
     lttrs = []
-    folSentences = ix.getSentencesOrPremisesAndConclusion(self)
+    folSentences = ix.getSentencesOrPremisesAndConclusion(self) or []
     for s in folSentences
       moreLttrs = s.getSentenceLetters()
       lttrs = lttrs.concat moreLttrs

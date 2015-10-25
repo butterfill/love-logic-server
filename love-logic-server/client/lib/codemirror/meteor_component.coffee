@@ -92,6 +92,7 @@ Template.editSentence.events
 # Extract the proof from the editor and parse it.
 getProof = () ->
   proofText = ix.getAnswer()?.proof
+  return "There is no proof to check yet" unless proofText?
   theProof = proof.parse(proofText)
   return theProof
 
@@ -169,6 +170,9 @@ Template.editProof.onRendered () ->
       # Clear feedback because the answer has been changed from outside
       giveFeedback ""
       editor.setValue val
+      answer = ix.getAnswer()?.proof
+      if not answer?
+        ix.setAnswerKey(val, 'proof')
   
   
 Template.editProof.destroyed = () ->
@@ -188,6 +192,7 @@ Template.editProof.helpers
 Template.editProof.events
   'click button#checkProof' : (event, template) ->
     proofText = ix.getAnswer()?.proof
+    return undefined unless proofText?
     theProof = proof.parse(proofText)
     
     if _.isString theProof

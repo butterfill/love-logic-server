@@ -128,7 +128,7 @@ Template.exerciseSet.helpers
           l.exerciseSetLectureURL = "#{ix.url().replace(/\/$/,'')}/lecture/#{l.name}#{document.location.search}"
       if ix.url().indexOf('/unit/') isnt -1
         # move up from unit to lecture
-        l.exerciseSetLectureURL = ix.url().replace(/\/unit\/.+/, '')
+        l.exerciseSetLectureURL = "#{ix.url().replace(/\/unit\/.+/, '')}#{document.location.search}"
       for unit in l.units
         unit.htmlAnchor = encodeURIComponent(unit.name)
         unit.exerciseSetUnitURL = ''

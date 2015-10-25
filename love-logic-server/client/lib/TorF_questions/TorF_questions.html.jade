@@ -8,17 +8,13 @@ template(name="TorF_questions")
     each sentences
       li.collection-item 
         span.right.trueOrFalseInputs
-          form
-            input.true.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="true_for_#{idx}", value='true', checked='#{isTrueChecked}')
-            label(for="true_for_#{idx}") true
-            input.false.trueOrFalse.with-gap.grey.waves-effect(name="tOrF_for_#{idx}" type="radio",id="false_for_#{idx}", value='false', checked='#{isFalseChecked}')
-            label(for="false_for_#{idx}") false
+          input.true.trueOrFalse.with-gap.grey(name="tOrF_for_#{idx}", value="true", type="radio",id="true_for_#{idx}",  checked='#{isTrueChecked}')
+          label(for="true_for_#{idx}") true
+          input.false.trueOrFalse.with-gap.grey(name="tOrF_for_#{idx}", value="false", type="radio",id="false_for_#{idx}",  checked='#{isFalseChecked}')
+          label(for="false_for_#{idx}") false
         span.theSentence 
-          if idx
-            if doNotDisplayNumbers
-              | #{theSentence}
-            else
-              | #{idx}. #{theSentence}
-          else
+          if doNotDisplayNumbers
             | #{theSentence}
+          else
+            | #{idx}. #{theSentence}
 

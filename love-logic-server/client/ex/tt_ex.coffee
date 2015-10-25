@@ -88,7 +88,7 @@ Template.tt_ex.events
           rowIsCounterexample.push( conclusion is false )
       correctIsValid = not (true in rowIsCounterexample)
       correctTorFAnswers = [correctIsValid].concat(rowIsCounterexample)
-      console.log("correctTorFAnswers #{correctTorFAnswers}")
+      # console.log("correctTorFAnswers #{correctTorFAnswers}")
       machineFeedback.isCorrect = _.isEqual(correctTorFAnswers, answerTorF)
       if not machineFeedback.isCorrect
         machineFeedback.comment = "Your truth table is correct but you did not answer all of the questions about validity and counterexamples correctly."

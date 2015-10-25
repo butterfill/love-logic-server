@@ -8,6 +8,12 @@ Template.create_ex.onCreated () ->
     exerciseId = ix.getExerciseId()
     self.subscribe 'graded_answers', exerciseId
 
+Template.create_ex.onRendered () ->
+  @autorun () ->
+    FlowRouter.watchPathChange()
+    $grid = $('.grid-stack')
+    ix.possibleWorld.checkSentencesTrue($grid)
+
 Template.create_ex.helpers
   exSubtypeIsValid : () -> 
     FlowRouter.watchPathChange()
@@ -87,7 +93,7 @@ Template.create_ex_display_question.helpers
   isSentences : () -> ix.getSentencesFromParam()? and ix.getSentencesFromParam().length > 0
   isArgument : () -> ix.getConclusionFromParams()?
   sentences : () ->
-    folSentences = ix.getSentencesFromParam()
+    folSentences = ix.getSentencesFromParam() or []
     return ({theSentence:x.toString({replaceSymbols:true})} for x in folSentences)
   premises : () -> 
     premises = ix.getPremisesFromParams()

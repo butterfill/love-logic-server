@@ -229,7 +229,6 @@ Template.myTuteesProgress.events
     drawProgressChart 'progressChart7days', _onlyLast7Days
 
 drawProgressChart = (chartElemId, daysQueryWrapper) ->
-  console.log 'drawProgressChart'
   daysQueryWrapper ?= (a) -> a
   drawChart = () ->
     tutees = _getTutees()

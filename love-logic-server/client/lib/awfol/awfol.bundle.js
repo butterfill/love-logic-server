@@ -16804,13 +16804,18 @@ RequirementChecker = (function() {
   };
 
   RequirementChecker.prototype._checkOneLine = function(aReq, aLine, priorMatches) {
-    var aBox, iSALineContainingTheName, nameInBoxIsAlreadyUsedInProof, newMatches, reqClone, testVerbotenName, theName;
+    var aBox, aSentence, iSALineContainingTheName, nameInBoxIsAlreadyUsedInProof, newMatches, reqClone, testVerbotenName, theName;
     reqClone = aReq.clone().applyMatches(priorMatches);
     testVerbotenName = reqClone.applySubstitutions();
     if (testVerbotenName === null) {
       return false;
     }
-    newMatches = aLine.sentence.findMatches(reqClone, priorMatches);
+    aSentence = aLine.sentence;
+    if ((reqClone.box == null) && (aSentence.box != null)) {
+      aSentence = aSentence.clone();
+      delete aSentence.box;
+    }
+    newMatches = aSentence.findMatches(reqClone, priorMatches);
     if (newMatches === false) {
       return newMatches;
     }
@@ -17663,7 +17668,7 @@ expressionToString = function(expression, o) {
       middle = e.letter;
     }
     if (e.type === 'value') {
-      middle = "" + ((e.symbol != null ? e.symbol : void 0) || (e.value === "false" ? '⊥' : void 0) || e.value);
+      middle = "" + ((e.symbol != null ? e.symbol : void 0) || (e.value === "false" || e.value === false ? '⊥' : void 0) || e.value);
     }
     bracketsNeeded = e.right != null;
     left_bracket = " ";

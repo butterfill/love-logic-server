@@ -71,9 +71,9 @@ Template.possible_world.onRendered () ->
       currentAnswer = ix.possibleWorld.serializeAndAbbreviate($grid)
       if not (_.isEqual(currentAnswer, savedAnswer) )
         deserializeAndRestore(savedAnswer, $grid)
-        # Clear feedback because the answer has been changed from outside
-        giveFeedback ""
-        ix.possibleWorld.checkSentencesTrue($grid, giveFeedback) 
+    # Clear feedback and re-evaluate sentences
+    Meteor.defer () ->
+      ix.possibleWorld.checkSentencesTrue($grid, giveFeedback) 
 
 getNofElements = ($grid) ->
   return $('.grid-stack-item', $grid).length

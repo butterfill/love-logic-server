@@ -23,7 +23,7 @@ Template.TorF_ex_display_question.helpers
     return (v for own k,v of row)
   isJustOneSentence : () ->
     sentences = ix.getSentencesFromParam()
-    return sentences.length is 1
+    return sentences?.length is 1
 
 Template.display_argument.helpers  
   premises : () -> 
@@ -36,8 +36,8 @@ Template.display_argument.helpers
 
 Template.TorF_ex.helpers
   sentences : () ->
-    sentences = ix.getSentencesFromParam()
-    return ({theSentence:x.toString({replaceSymbols:true}), idx:(idx+1 if sentences.length > 1)} for x, idx in sentences)
+    sentences = ix.getSentencesFromParam() or []
+    return ({theSentence:x.toString({replaceSymbols:true}), idx:idx} for x, idx in sentences)
 
 # The world might either come from a TTrow or a possible situation
 getWorld = () ->
@@ -139,5 +139,5 @@ Template.TorF_ex_display_answer.helpers
   sentences : () ->
     ss = ix.getSentencesFromParam(this)
     ss = (x.toString({replaceSymbols:true}) for x in ss)
-    return ({value:"#{v}", idx:(idx+1 if ss.length > 1), theSentence:ss[idx]}  for v, idx in @answer.content.TorF)
+    return ({value:"#{v}", idx:idx, theSentence:ss[idx]}  for v, idx in @answer.content.TorF)
 
