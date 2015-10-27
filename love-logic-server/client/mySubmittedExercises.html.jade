@@ -2,10 +2,14 @@
 
 template(name='mySubmittedExercises')
   h2 Submitted Exercises
-  each exercises
-    section
-      div
-        h4: a(href="#{exerciseId}") #{exerciseLink}
-        span ---  #{date}
-        +Template.dynamic(template=displayAnswer)
-      .divider(style="margin-top:2em;")
+  if Template.subscriptionsReady
+    each exercises
+      section
+        div
+          h4: a(href="#{exerciseId}") #{exerciseLink}
+          span ---  #{date}
+          +Template.dynamic(template=displayAnswer)
+        .divider(style="margin-top:2em;")
+  else
+    +loading
+

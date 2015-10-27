@@ -210,7 +210,7 @@ Template.GradeLayout.events
   'blur .help-request-answer' : (event, template) ->
     helpReq = @
     answer = $(event.target).val()
-
+    return unless answer? and answer.trim() isnt ''
     # This session variable controls whether the input is shown
     key = "helpRequestAnswer/#{Meteor.userId()}/#{this._id}"
     Session.set(key, false)

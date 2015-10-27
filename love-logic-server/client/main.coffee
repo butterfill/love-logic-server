@@ -34,9 +34,9 @@ Template.main.helpers
     return getNextExercisesWithUnseenFeedback()?
   
   hasNewHelpRequestAnswers : () ->
-    return HelpRequest.find({ requesterId:Meteor.userId(), answer:{$exists:true}, studentSeen:{$exists:false}}).count() > 0
+    return HelpRequest.find({ requesterId:Meteor.userId(), answer:{$exists:true}, studentSeen:{$exists:false}}, {reactive:false}).count() > 0
   nextHelpRequestAnswerLink : () ->
-    helpReq = HelpRequest.findOne({ requesterId:Meteor.userId(), studentSeen:{$exists:false} })
+    helpReq = HelpRequest.findOne({ requesterId:Meteor.userId(), studentSeen:{$exists:false} }, {reactive:false})
     link = helpReq.exerciseId
     return link
   

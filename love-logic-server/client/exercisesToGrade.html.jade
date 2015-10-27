@@ -9,4 +9,4 @@ template(name='exercisesToGrade')
         li.collection-item
           a(href="#{gradeURL}") #{exerciseName}
   else
-    p.orange-text Loading ...
+    +loading

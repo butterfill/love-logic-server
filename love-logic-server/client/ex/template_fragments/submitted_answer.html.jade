@@ -13,11 +13,12 @@ template(name="submitted_answer")
            
           if displayMachineFeedback
             br
-            span.right  Machine says: #{machineFeedback.comment}
-              if isCorrectnessDetermined
-                span
-              else
-                |  I couldn’t tell whether it is correct.
+            if machineSays
+              span.right  Machine says: #{machineFeedback.comment}
+                if isCorrectnessDetermined
+                  span
+                else
+                  |  I couldn’t tell whether it is correct.
           if humanFeedback
             br
             span.right #{humanFeedback.comment}

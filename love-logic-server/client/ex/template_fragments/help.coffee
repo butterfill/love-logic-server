@@ -94,7 +94,8 @@ Template.ask_for_help.events
   'click #confirm-request-help' : (event, template) ->
     if notYetSubmitted()
       # must submit exercise
-      $('button#submit').click()
+      Materialize.toast "Please submit your answer (even if blank) before requesting help.", 4000
+      return
     owner = Meteor.userId()
     exerciseId = ix.getExerciseId()
     submittedExerciseId = SubmittedExercises.findOne({owner, exerciseId}, {sort:{'created':-1}})._id

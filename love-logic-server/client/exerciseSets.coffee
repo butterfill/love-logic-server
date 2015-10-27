@@ -4,7 +4,7 @@
 getExerciseSetName = () ->
   return decodeURIComponent(FlowRouter.getParam('_variant') or '')
 getCourseName = () ->
-  return Courses.findOne()?.name
+  return Courses.findOne({},{reactive:false})?.name
 
 Template.courses.onCreated () ->
   self = this
@@ -14,7 +14,7 @@ Template.courses.onCreated () ->
 
 Template.courses.helpers
   courses : () -> 
-    return Courses.find()
+    return Courses.find({}, {reactive:false})
 
 
 Template.exerciseSetsForCourse.onCreated () ->
@@ -27,11 +27,11 @@ Template.exerciseSetsForCourse.onCreated () ->
 
 Template.exerciseSetsForCourse.helpers
   courseName : () ->
-    return Courses.findOne()?.name
+    return Courses.findOne({},{reactive:false})?.name
   courseDescription : () ->
-    return Courses.findOne()?.description
+    return Courses.findOne({},{reactive:false})?.description
   exerciseSets : () -> 
-    return ExerciseSets.find()
+    return ExerciseSets.find({}, {reactive:false})
 
 
 Template.exerciseSet.onCreated () ->
@@ -40,43 +40,19 @@ Template.exerciseSet.onCreated () ->
     courseName = FlowRouter.getParam('_courseName')
     variant = FlowRouter.getParam('_variant')
     self.subscribe('course', courseName)
-    self.subscribe('exercise_set', courseName, variant)
-    # This subscription provides all `SubmittedExercises` for the user but only some fields.
+    self.exerciseSet = self.subscribe('exercise_set', courseName, variant)
+    
+    # The `dates_exercises_submitted` subscription provides all `SubmittedExercises` 
+    # for the user but only some fields.
     userId = ix.getUserId()
-    self.subscribe('dates_exercises_submitted', userId)
+    self.datesExercisesSubmitted = self.subscribe('dates_exercises_submitted', userId)
+    
     self.subscribe('tutee_user_info', userId)
     if userId is Meteor.userId()
       # This is only used to check whether the user wants to follow or stop following
       # an exercise set.
       self.subscribe('subscriptions')
 
-
-isSubmitted = (exerciseLink) ->
-  exerciseId = ix.convertToExerciseId(exerciseLink)
-  return ( SubmittedExercises.find({exerciseId}).count() > 0 )
-dateSubmitted = (exerciseLink) ->
-  exerciseId = ix.convertToExerciseId(exerciseLink)
-  return SubmittedExercises.findOne({exerciseId}, {sort:{created:-1}}).created
-
-exerciseIsCorrect = (exerciseLink) ->
-  exerciseId = ix.convertToExerciseId(exerciseLink)
-  ex = SubmittedExercises.findOne({exerciseId}, {sort:{created:-1}})
-  return true if ex?.humanFeedback?.isCorrect
-  return true if ex?.machineFeedback?.isCorrect
-  return false
-exerciseIsIncorrect = (exerciseLink) ->
-  exerciseId = ix.convertToExerciseId(exerciseLink)
-  ex = SubmittedExercises.findOne({exerciseId}, {sort:{created:-1}})
-  return true if ex?.humanFeedback?.isCorrect is false
-  return true if ex?.machineFeedback?.isCorrect is false
-  return false
-exerciseIsUngraded = (exerciseLink) ->
-  exerciseId = ix.convertToExerciseId(exerciseLink)
-  ex = SubmittedExercises.findOne({exerciseId}, {sort:{created:-1}})
-  return false unless ex?.created?
-  return false if ex?.humanFeedback?.isCorrect?
-  return false if ex?.machineFeedback?.isCorrect?
-  return true
   
 Template.exerciseSet.helpers
   # These are copied from `myTuteesProgress.coffee`
@@ -90,11 +66,11 @@ Template.exerciseSet.helpers
   courseName : () ->
     return getCourseName() 
   courseDescription : () ->
-    return Courses.findOne()?.description
+    return Courses.findOne({},{reactive:false})?.description
   exerciseSetName : () ->
     return getExerciseSetName()
   exerciseSetDescription : () ->
-    return ExerciseSets.findOne()?.description
+    return ExerciseSets.findOne({},{reactive:false})?.description
   isForTutee : () -> Meteor.users.find().count() > 1
   tuteeId : () -> 
     tuteeId = ix.getUserId()
@@ -105,9 +81,11 @@ Template.exerciseSet.helpers
   tuteeEmail : () -> 
     tuteeId = ix.getUserId()
     return Meteor.users.findOne(ix.getUserId())?.emails?[0]?.address
+  submittedDateAndCorrectnessInfoReady : () -> Template.instance().datesExercisesSubmitted.ready()
+  exerciseSetReady : () -> Template.instance().exerciseSet.ready()
   lectures : () ->
     FlowRouter.watchPathChange()
-    theLectures = ExerciseSets.findOne()?.lectures
+    theLectures = ExerciseSets.findOne({},{reactive:false})?.lectures
     return [] if not theLectures
     
     # Filter the document if a particular lecture or unit is specified
@@ -143,11 +121,6 @@ Template.exerciseSet.helpers
             name:e.replace('/ex/','')
             link:ix.convertToExerciseId(e)
             isSubmitted:false
-            # isSubmitted:isSubmitted(e)
-            # dateSubmitted:(moment(dateSubmitted(e)).fromNow() if isSubmitted(e))
-            # exerciseIsCorrect : exerciseIsCorrect(e)
-            # exerciseIsIncorrect : exerciseIsIncorrect(e)
-            # exerciseIsUngraded : exerciseIsUngraded(e)
           exercises.push exDoc
           exDict[exDoc.link] = exDoc
         unit.exercises = exercises
@@ -158,7 +131,7 @@ Template.exerciseSet.helpers
     
     # Now fill in details of exercises
     exLinks = _.keys exDict
-    allExIncludingResubmits = SubmittedExercises.find({exerciseId:{$in:exLinks}}).fetch()
+    allExIncludingResubmits = SubmittedExercises.find({exerciseId:{$in:exLinks}},{reactive:false}).fetch()
     exDup = {}  # used to keep track of multiple submissions for one exercise
     allEx = allExIncludingResubmits
     for ex in allEx
@@ -178,7 +151,7 @@ Template.exerciseSet.helpers
     
   # NB: has side-effect: draws the chart
   stats : () ->
-    theLectures = ExerciseSets.findOne()?.lectures
+    theLectures = ExerciseSets.findOne({},{reactive:false})?.lectures
     return {} if not theLectures
     
     # Filter the document if a particular lecture or unit is specified
@@ -197,7 +170,7 @@ Template.exerciseSet.helpers
           e = ix.convertToExerciseId(exLink)
           exLinksToCheck.push(e)
           
-    allExIncludingResubmits = SubmittedExercises.find({exerciseId:{$in:exLinksToCheck}}).fetch()
+    allExIncludingResubmits = SubmittedExercises.find({exerciseId:{$in:exLinksToCheck}},{reactive:false}).fetch()
     exDup = {}  # used to keep track of multiple submissions for one exercise
     for ex in allExIncludingResubmits
       if ex not of exDup
@@ -229,7 +202,7 @@ Template.exerciseSet.helpers
     courseName = getCourseName()
     variant = getExerciseSetName()
     return false unless userId? and courseName? and variant?
-    test = Subscriptions.findOne({$and:[{owner:userId},{courseName},{variant}]})
+    test = Subscriptions.findOne({$and:[{owner:userId},{courseName},{variant}]},{reactive:false})
     return test?
 
 # -------------

@@ -9,7 +9,7 @@ Template.mySubmittedExercises.onCreated () ->
 Template.mySubmittedExercises.helpers
   exercises : () ->
     userId = ix.getUserId()
-    return SubmittedExercises.find({ owner:userId }, {sort:{created:-1}})
+    return SubmittedExercises.find({ owner:userId }, {sort:{created:-1}, reactive:false})
   exerciseLink : () -> decodeURIComponent(@exerciseId)
   date : () ->
     return moment(@created).format("YYYY-MM-DD HH:mm")

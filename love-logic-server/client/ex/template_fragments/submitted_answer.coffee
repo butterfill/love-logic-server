@@ -36,6 +36,7 @@ Template.submitted_answer.helpers
     return SubmittedExercises.find({owner, exerciseId}, {sort:{'created':-1}})
   dateSubmitted : () ->
     return moment(@created).fromNow()
+  machineSays : () -> (@machineFeedback.comment? and @machineFeedback.comment isnt '') or @isCorrectnessDetermined()
   isCorrectnessDetermined : () ->
     return @humanFeedback?.isCorrect? or @machineFeedback?.isCorrect?
   # Only call this after establishing `isCorrectnessDetermined`
