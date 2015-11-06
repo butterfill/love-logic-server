@@ -2,12 +2,20 @@
   // Server authentication info
   "servers": [
     {
+      // vultr
       "host": "108.61.173.108",
       "username": "root",
       // "password": "password"
       // or pem file (ssh based authentication)
       "pem": "~/.ssh/id_rsa"
+    },
+    {
+      // rackulous logic-ex-uk
+      "host": "31.3.227.147",
+      "username": "root",
+      "pem": "~/.ssh/id_rsa"
     }
+    
   ],
 
   // Install MongoDB in the server, does not destroy local MongoDB on future setup

@@ -111,8 +111,7 @@ template(name='exerciseSet')
                 if isSubmitted
                   span.grey-text [submitted #{dateSubmitted}]
                 else
-                  if submittedDateAndCorrectnessInfoReady
-                    span.red-text [todo]
+                  span.red-text [todo]
 
   else
     +loading

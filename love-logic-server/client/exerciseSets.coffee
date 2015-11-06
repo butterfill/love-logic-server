@@ -82,7 +82,7 @@ Template.exerciseSet.helpers
     tuteeId = ix.getUserId()
     return Meteor.users.findOne(ix.getUserId())?.emails?[0]?.address
   submittedDateAndCorrectnessInfoReady : () -> Template.instance().datesExercisesSubmitted.ready()
-  exerciseSetReady : () -> Template.instance().exerciseSet.ready()
+  exerciseSetReady : () -> Template.instance().exerciseSet.ready() and Template.instance().datesExercisesSubmitted.ready()
   lectures : () ->
     FlowRouter.watchPathChange()
     theLectures = ExerciseSets.findOne({},{reactive:false})?.lectures

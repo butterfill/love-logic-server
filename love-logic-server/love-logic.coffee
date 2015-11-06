@@ -74,6 +74,8 @@ Meteor.methods
       created : new Date()
     })
     if Meteor.isClient
+      # TODO: write some code here (can find and then insert) so that
+      # client can do an optimistic update and give faster feedback.
       return undefined
     # Update exercise if not already graded by a human
     # This is a tiny bit tricky because Meteor doesn’t wrap `findAndModify` for us.
