@@ -34,3 +34,5 @@ http
 useraccounts:materialize
 msavin:mongol
 appcache
+meteorhacks:kadira
+meteorhacks:cluster
