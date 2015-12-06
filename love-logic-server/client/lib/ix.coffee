@@ -182,28 +182,44 @@ _gradePNF = (answerDoc) ->
 # Note: this should be called in a context where there is a subscription to a 
 # single `ExerciseSet`.
 ix.getExerciseContext = () ->
+  # First get the name of the unit and lecture from the url if possible.
+  # This will avoid problems when the same exercise is specified for different units 
+  # (providing that no two units in the same lecture have the same name).
+  # We will still be ok if unitName and lectureName are not specified in the url.
+  unitName = FlowRouter.current()?.queryParams?.unitName
+  lectureName = FlowRouter.current()?.queryParams?.lectureName
+  
   currentExLink = decodeURIComponent(ix.getExerciseId())
   exSet = ExerciseSets.findOne()
   return undefined unless exSet?.lectures?
   for lecture, lectureIdx in exSet.lectures
-    for unit, unitIdx in lecture.units
-      for link, linkIdx in unit.rawExercises
-        if link is currentExLink
-          next = undefined
-          if unit.rawExercises.length > linkIdx+1
-            next = unit.rawExercises[linkIdx+1]
-          else
-            if lecture.units.length > unitIdx+1
-              next = lecture.units[unitIdx+1].rawExercises[0]
-            else
-              if exSet.lectures.length > lectureIdx+1
-                next = exSet.lectures[lectureIdx+1].units?[0]?.rawExercises?[0]
-          return {
-            lecture
-            unit
-            next
-            exerciseSet : exSet
-          }
+    if (lecture.name is lectureName) or not lectureName?
+      for unit, unitIdx in lecture.units
+        if (unit.name is unitName) or not unitName?
+          nextUnit = unit
+          nextLecture = lecture
+          for link, linkIdx in unit.rawExercises
+            if link is currentExLink
+              nextExercise = undefined
+              if unit.rawExercises.length > linkIdx+1
+                nextExercise = unit.rawExercises[linkIdx+1]
+              else
+                if lecture.units.length > unitIdx+1
+                  nextUnit = lecture.units[unitIdx+1]
+                  nextExercise = nextUnit.rawExercises[0]
+                else
+                  if exSet.lectures.length > lectureIdx+1
+                    nextLecture = exSet.lectures[lectureIdx+1]
+                    nextUnit = nextLecture.units?[0]
+                    nextExercise = nextUnit?.rawExercises?[0]
+              return {
+                lecture
+                unit
+                nextExercise
+                nextUnit
+                nextLecture
+                exerciseSet : exSet
+              }
 
 # The student’s work in progress (in an editor) is stored under this key.
 ix.getSessionKeyForUserExercise = () ->
@@ -219,7 +235,8 @@ ix.setAnswerKey = (newValue, key) ->
   answer[key] = newValue
   ix.setAnswer(answer)
   
-
+ix.storeLastExercise = () ->
+  Session.setPersistent("#{ix.getUserId()}/lastExercise", FlowRouter.current().path)
 
 
 # ====

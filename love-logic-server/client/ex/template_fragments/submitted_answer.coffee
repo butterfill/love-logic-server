@@ -23,6 +23,15 @@ Template.submitted_answer.onCreated () ->
         Meteor.call "studentSeenFeedback", ex
   )
 
+# Keep track of the last exercise page the user loaded 
+# so that she can easily resume where she left off later.
+Template.submit_btn.onCreated () ->
+  self = this
+  self.autorun () ->
+    FlowRouter.watchPathChange()
+    ix.storeLastExercise()
+    
+
 isSubmitted = () ->
   exerciseId = ix.getExerciseId()
   return SubmittedExercises.find({exerciseId}).count() > 0

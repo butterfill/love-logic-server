@@ -99,9 +99,9 @@ template(name='exerciseSet')
             each exercises
               li
                 if isForTutee
-                  a(href="#{gradeURL}?variant=#{exerciseSetName}&courseName=#{courseName}&user=#{tuteeId}") #{name}
+                  a(href="#{gradeURL}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}&user=#{tuteeId}") #{name}
                 else
-                  a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}") #{name}
+                  a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
                 if exerciseIsCorrect
                   span.green-text ✔ 
                 if exerciseIsIncorrect

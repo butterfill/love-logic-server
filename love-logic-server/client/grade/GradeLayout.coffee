@@ -1,11 +1,23 @@
 
 
+Template.submit_btn.onCreated () ->
+  self = this
+  self.autorun () ->
+    FlowRouter.watchPathChange()
+
 
 Template.GradeLayout.onCreated () ->
   self = this
   self.autorun () ->
     FlowRouter.watchPathChange()
     exerciseId = ix.getExerciseId()
+    
+    # Keep track of the last exercise page the user loaded 
+    # so that she can easily resume where she left off later.
+    # (Currently we don't distinguish between grading and doing exercises)
+    # (Disabled because currently not very useful.)
+    # ix.storeLastExercise()
+    
     self.subscribe 'courses'
     self.subscribe 'graded_answers', exerciseId
     self.subscribe 'help_requests_for_tutor', exerciseId

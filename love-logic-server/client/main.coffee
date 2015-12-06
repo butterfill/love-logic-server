@@ -15,6 +15,7 @@ getNextExercisesWithUnseenFeedback = () ->
   return SubmittedExercises.findOne({ $and:[{owner:Meteor.userId()}, {'humanFeedback.studentSeen':false}] })
 
 Template.main.helpers
+  isLastExercise : () -> Session.get("#{ix.getUserId()}/lastExercise")?
   isTutor : () -> Meteor.user()?.profile?.is_seminar_tutor
   hasSubscriptions : () ->
     return Subscriptions.find().count() >0
@@ -44,6 +45,11 @@ Template.main.helpers
     return ix.getUserEmail()
 
 Template.main.events
+  'click #resume-last-exercise' : (event, template) ->
+    url = Session.get("#{ix.getUserId()}/lastExercise")
+    FlowRouter.go(url)
+    
+
   'click #confirm-set-seminar-tutor-email' : (event, template) ->
     newAddress = $('textarea.seminarTutor').val()
     Meteor.call "updateSeminarTutor", newAddress, (error) ->

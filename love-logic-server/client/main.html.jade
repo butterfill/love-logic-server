@@ -3,17 +3,16 @@ template(name='display_subscription')
   a(href="/course/#{courseName}/exerciseSet/#{variant}?#{userQueryParam}") The ‘#{variant}’ exercises for #{courseName}
 
 template(name='main')
-  if isTutor
-    h3 Links for tutors
-    ul.collection
-      li.collection-item: a(href="/exercisesToGrade") Exercises to grade
-      li.collection-item: a(href="/helpRequestsToAnswer") Help requests to answer
-      li.collection-item: a(href="/myTutees") List of tutees
-      li.collection-item: a(href="/myTuteesProgress") Tutees’ progress
-      li.collection-item: a(href="/upsertExerciseSet") Add or update an exercise set.
-
+  
+  
+  
   if hasSubscriptions
     h3 Exercises
+    if isLastExercise
+      p
+        a#resume-last-exercise.btn.waves-effect.grey.darken-1
+          | Resume from last exercise
+    
     ul.collection
       each subscriptions
         li.collection-item
@@ -26,6 +25,16 @@ template(name='main')
 
     .divider
     
+
+  if isTutor
+    h3 Links for tutors
+    ul.collection
+      li.collection-item: a(href="/exercisesToGrade") Exercises to grade
+      li.collection-item: a(href="/helpRequestsToAnswer") Help requests to answer
+      li.collection-item: a(href="/myTutees") List of tutees
+      li.collection-item: a(href="/myTuteesProgress") Tutees’ progress
+      li.collection-item: a(href="/upsertExerciseSet") Add or update an exercise set.
+
 
   .row
     if hasNoSubscriptions
