@@ -14506,7 +14506,7 @@ case 26: return 'invalid_character';
 break;
 }
 },
-rules: [/^(?:\s+)/,/^(?:\()/,/^(?:\))/,/^(?:\[)/,/^(?:\])/,/^(?:,)/,/^(?:[A-Z][A-Za-z0-9]*(?=(\()))/,/^(?:[tT][rR][uU][eE])/,/^(?:[fF][aA][lL][sS][eE]|⊥|[cC][oO][nN][tT][rR][aA][dD][iI][cC][tT][iI][oO][nN])/,/^(?:=)/,/^(?:[aA][nN][dD]|&|∧|•)/,/^(?:[aA][rR][rR][oO][wW]|->|⇒|→|⊃)/,/^(?:↔|≡|⇔|double_arrow\b)/,/^(?:[oO][rR]|∨|\+|ǀǀ)/,/^(?:[nN][oO][tT]|¬|˜|!)/,/^(?:[nN][oO][rR]|↓)/,/^(?:[nN][aA][nN][dD]|↑)/,/^(?:[aA][lL][lL]|∀|[eE][vV][eE][rR][yY])/,/^(?:[sS][oO][mM][eE]|[eE][xX][iI][sS][tT][sS]|∃)/,/^(?:[A-Z][0-9]*)/,/^(?:[a-d][0-9]*)/,/^(?:[etxyzw][0-9]*)/,/^(?:[φψχ][0-9]*)/,/^(?:[αβγτ][0-9]*)/,/^(?:[nN][uU][lL][lL])/,/^(?:$)/,/^(?:.)/],
+rules: [/^(?:\s+)/,/^(?:\()/,/^(?:\))/,/^(?:\[)/,/^(?:\])/,/^(?:,)/,/^(?:[A-Z][A-Za-z0-9]*(?=(\()))/,/^(?:[tT][rR][uU][eE])/,/^(?:[fF][aA][lL][sS][eE]|⊥|[cC][oO][nN][tT][rR][aA][dD][iI][cC][tT][iI][oO][nN])/,/^(?:=)/,/^(?:[aA][nN][dD]|&|∧|•)/,/^(?:[aA][rR][rR][oO][wW]|->|⇒|→|⊃)/,/^(?:↔|≡|⇔|double_arrow|<->)/,/^(?:[oO][rR]|∨|\+|ǀǀ)/,/^(?:[nN][oO][tT]|¬|˜|!)/,/^(?:[nN][oO][rR]|↓)/,/^(?:[nN][aA][nN][dD]|↑)/,/^(?:[aA][lL][lL]|∀|[eE][vV][eE][rR][yY])/,/^(?:[sS][oO][mM][eE]|[eE][xX][iI][sS][tT][sS]|∃)/,/^(?:[A-Z][0-9]*)/,/^(?:[a-d][0-9]*)/,/^(?:[etxyzw][0-9]*)/,/^(?:[φψχ][0-9]*)/,/^(?:[αβγτ][0-9]*)/,/^(?:[nN][uU][lL][lL])/,/^(?:$)/,/^(?:.)/],
 conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26],"inclusive":true}}
 });
 return lexer;
@@ -16361,7 +16361,7 @@ case 17: return 16;
 break;
 case 18: return 17; 
 break;
-case 19: /*  Skip whitespace, commas and dashes. 
+case 19: /*  Skip whitespace and commas. 
       */ 
     
 break;
@@ -16381,7 +16381,7 @@ case 23:console.log(yy_.yytext);
 break;
 }
 },
-rules: [/^(?:([0-9][^,\s]*)(\s+and\s+)(?=[0-9]))/i,/^(?:([0-9][^,\s]*)\s+to\s+([0-9][^,\s]*))/i,/^(?:([0-9][^,\s]*?)\s*(?:-+)\s*([0-9][^,\s]*))/i,/^(?:([0-9][^,\s]*)(?:(\s*,)*))/i,/^(?:elimination|eliminate|elim)/i,/^(?:introduction|introduce|intro)/i,/^(?:or|∨|\+|ǀǀ)/i,/^(?:=|identity)/i,/^(?:and|conjunction|∧|•)/i,/^(?:double arrow|↔|≡|⇔)/i,/^(?:arrow|->|⇒|→|⊃)/i,/^(?:not|¬|˜|!|negation)/i,/^(?:⊥|contradiction)/i,/^(?:reit|reiteration)/i,/^(?:premise|assumption)/i,/^(?:all|∀|every|universal)/i,/^(?:some|exists|∃|existential)/i,/^(?:left)/i,/^(?:right)/i,/^(?:[\s,\-]+)/i,/^(?:$)/i,/^(?:\w+)/i,/^(?:.)/i,/^(?:.)/i],
+rules: [/^(?:([0-9][^,\s]*)(\s+and\s+)(?=[0-9]))/i,/^(?:([0-9][^,\s]*)\s+to\s+([0-9][^,\s]*))/i,/^(?:([0-9][^,\s]*?)\s*(?:-+)\s*([0-9][^,\s]*))/i,/^(?:([0-9][^,\s]*)(?:(\s*,)*))/i,/^(?:elimination|eliminate|elim)/i,/^(?:introduction|introduce|intro)/i,/^(?:or|∨|\+|ǀǀ)/i,/^(?:=|identity)/i,/^(?:and|conjunction|∧|•)/i,/^(?:double_arrow|↔|≡|⇔|<->)/i,/^(?:arrow|->|⇒|→|⊃)/i,/^(?:not|¬|˜|!|negation)/i,/^(?:⊥|contradiction)/i,/^(?:reit|reiteration)/i,/^(?:premise|assumption)/i,/^(?:all|∀|every|universal)/i,/^(?:some|exists|∃|existential)/i,/^(?:left)/i,/^(?:right)/i,/^(?:[\s,]+)/i,/^(?:$)/i,/^(?:\w+)/i,/^(?:.)/i,/^(?:.)/i],
 conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],"inclusive":true}}
 });
 return lexer;

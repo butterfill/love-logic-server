@@ -51,12 +51,16 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
+# TODO: generic help by exercise type (e.g. how to write proofs).
+
 # TODO: only trusted users can create GradedAnswers
+
+# TODO: lecturer role; can monitor TAs’ marking and students’ progress.
+
+# TODO: admin role: can list all users, when registered, how many exercises submitted, date last exercise submitted.
 
 # TODO: exercise - specify the main connective (multiple choice)
 # TODO: exercise - write down the scopes of different operators.
-
-# TODO: generic help by exercise type?
 
 # TODO: Allow users to see and complete exercises, but not submit them, without being logged in? (Tricky because when the log in the saved answer will no longer appear; but maybe necessary for advertising?)
 

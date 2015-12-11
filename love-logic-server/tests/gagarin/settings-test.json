@@ -1,0 +1,5 @@
+{
+  "env" : {
+    "MONGO_URL": "localhost:3001/love-logic"
+  }
+}

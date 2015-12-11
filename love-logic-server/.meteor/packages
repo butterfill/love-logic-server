@@ -34,5 +34,6 @@ http
 useraccounts:materialize
 msavin:mongol
 appcache
-meteorhacks:kadira
 meteorhacks:cluster
+anti:gagarin@=0.4.11
+east5th:package-scan
