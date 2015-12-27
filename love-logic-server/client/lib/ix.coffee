@@ -96,17 +96,20 @@ ix.hash = (text) ->
   # console.log "to hash is #{text}"
   return XXH(text, 0xFFFA).toString(36)
 
+# TODO: sort out use of toLowerCase when awFOL expression is involved.
 ix.hashAnswer = (answerDoc) ->
   toHash = answerDoc.answer.content
   if _.isString(toHash)
     # Try to eliminate minor variations in text answer by, e.g.
     # making lower case, removing periods, commas and multiple spaces or tables, trim.
     # (Note: there is a small chance of a clash if the answer is awFOL because case is 
-    # significant in awFOL for distinguishing predicates from sentence letters, but it's
-    # hard to imagine this mattering within the answers to a single exercise.)
+    # significant in awFOL for distinguishing predicates from sentence letters;
+    # this matters because exists x happy(x) is not a sentence of awFOL!
     toHash = toHash.toLowerCase().replace(/\./,'').replace(/,/,'').replace(/\s+/g,' ').trim()
   else
     if _.isString(toHash.sentence)
+      # clone to avoid messing up the object
+      toHash = _.clone(toHash)
       toHash.sentence = toHash.sentence.toLowerCase().replace(/\./,'').replace(/,/,'').replace(/\s+/g,' ').trim()
     toHash = JSON.stringify(toHash)
   exerciseId = ix.getExerciseId()

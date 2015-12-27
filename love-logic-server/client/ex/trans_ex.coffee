@@ -133,7 +133,6 @@ Template.trans_ex.events
     
     answerShouldBeEnglish = checkIfTranslationToEn()
     if answerShouldBeEnglish
-      
       # Try to get human feedback from the grade and comments on a previous student’s answer.
       humanFeedback = ix.gradeUsingGradedAnswers()
       if humanFeedback?
@@ -144,6 +143,8 @@ Template.trans_ex.events
       )
       return
       
+    # Answer should be an awFOL sentence ...
+    
     isFOLsentence = isAnswerFOLsentence()
     answerFOLstring = undefined
     answerPNFSimplifiedSorted = undefined
@@ -172,7 +173,9 @@ Template.trans_ex.events
     # Try to get human feedback from the grade and comments on a previous student’s answer.
     humanFeedback = ix.gradeUsingGradedAnswers(doc)
     if humanFeedback?
-      doc.humanFeedback = humanFeedback
+      # May need to override humanFeedback because of issues with use of toLowerCase in hashing answers (TODO: fix!)
+      if (not machineFeedback.isCorrect?) or (machineFeedback.isCorrect is humanFeedback.isCorrect)
+        doc.humanFeedback = humanFeedback
       
     ix.submitExercise(doc, () ->
         Materialize.toast "Your translation has been submitted.", 4000

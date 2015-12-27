@@ -15268,7 +15268,7 @@ _ = require('lodash');
 util = require('../util');
 
 parse = function(lines) {
-  var blankLines, block, firstLine, j, k, l, len, len1, len2, len3, line, n, nextLineIndentation, o, parentBlock, previousBlock, topBlock;
+  var blankLines, block, firstLine, j, k, l, len, len1, len2, len3, line, n, nextLineIndentation, o, parentBlock, previousBlock, topBlock, usingBars;
   if (_.isString(lines)) {
     lines = lines.split('\n');
   }
@@ -15278,11 +15278,12 @@ parse = function(lines) {
   clean(lines);
   lines = extractIndentationAndContentFrom(lines);
   firstLine = lines[0];
+  usingBars = indexOf.call(firstLine.indentation, '|') >= 0;
   topBlock = new Block(firstLine.indentation);
   block = topBlock;
   while (lines.length > 0) {
     line = lines.shift();
-    if (line.type === 'line') {
+    if ((line.type === 'line') || (usingBars && line.type === 'blank_line')) {
       if (line.indentation.length > block.indentation.length) {
         block = block.newBlock(line.indentation);
       }
@@ -15299,7 +15300,7 @@ parse = function(lines) {
       block.newLine(line);
       continue;
     }
-    if (line.type === 'blank_line') {
+    if (line.type === 'blank_line' && !usingBars) {
       blankLines = [line];
       while (lines.length > 0 && lines[0].type === 'blank_line') {
         blankLines.push(lines.shift());
@@ -16381,7 +16382,7 @@ case 23:console.log(yy_.yytext);
 break;
 }
 },
-rules: [/^(?:([0-9][^,\s]*)(\s+and\s+)(?=[0-9]))/i,/^(?:([0-9][^,\s]*)\s+to\s+([0-9][^,\s]*))/i,/^(?:([0-9][^,\s]*?)\s*(?:-+)\s*([0-9][^,\s]*))/i,/^(?:([0-9][^,\s]*)(?:(\s*,)*))/i,/^(?:elimination|eliminate|elim)/i,/^(?:introduction|introduce|intro)/i,/^(?:or|∨|\+|ǀǀ)/i,/^(?:=|identity)/i,/^(?:and|conjunction|∧|•)/i,/^(?:double_arrow|↔|≡|⇔|<->)/i,/^(?:arrow|->|⇒|→|⊃)/i,/^(?:not|¬|˜|!|negation)/i,/^(?:⊥|contradiction)/i,/^(?:reit|reiteration)/i,/^(?:premise|assumption)/i,/^(?:all|∀|every|universal)/i,/^(?:some|exists|∃|existential)/i,/^(?:left)/i,/^(?:right)/i,/^(?:[\s,]+)/i,/^(?:$)/i,/^(?:\w+)/i,/^(?:.)/i,/^(?:.)/i],
+rules: [/^(?:([0-9][^,\s]*)(\s+and\s+)(?=[0-9]))/i,/^(?:([0-9][^,\s]*)\s+to\s+([0-9][^,\s]*))/i,/^(?:([0-9][^,\s]*?)\s*(?:-+)\s*([0-9][^,\s]*))/i,/^(?:([0-9][^,\s]*)(?:(\s*,)*))/i,/^(?:elimination|eliminate|elim)/i,/^(?:introduction|introduce|intro)/i,/^(?:or|∨|\+|ǀǀ)/i,/^(?:=|identity)/i,/^(?:and|conjunction|∧|•)/i,/^(?:double_arrow|↔|≡|⇔|<->)/i,/^(?:arrow|->|⇒|→|⊃)/i,/^(?:not|¬|˜|!|negation)/i,/^(?:⊥|contradiction|false)/i,/^(?:reit|reiteration)/i,/^(?:premise|assumption)/i,/^(?:all|∀|every|universal)/i,/^(?:some|exists|∃|existential)/i,/^(?:left)/i,/^(?:right)/i,/^(?:[\s,]+)/i,/^(?:$)/i,/^(?:\w+)/i,/^(?:.)/i,/^(?:.)/i],
 conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],"inclusive":true}}
 });
 return lexer;
