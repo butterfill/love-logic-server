@@ -17596,7 +17596,7 @@ SYMBOLS = {
 };
 
 expressionToString = function(expression, o) {
-  var _cleanUp, eClone, expressionStr, i, k, len, ref, rplc, test, walker;
+  var _cleanUp, eClone, expressionStr, i, k, len, ref, rplc, symbolNum, test, walker;
   if (o == null) {
     o = {};
   }
@@ -17607,11 +17607,13 @@ expressionToString = function(expression, o) {
       return "" + expression;
     }
   }
+  symbolNum = 0;
   walker = function(e) {
     var aBox, bracketsNeeded, j, left_bracket, len1, lhs, middle, ref1, ref2, ref3, ref4, rhs, right_bracket, symbol, theSubs, variableName, x;
     if (e === null) {
       return 'null';
     }
+    symbolNum += 1;
     ref1 = [_.isBoolean, _.isNumber, _.isString];
     for (j = 0, len1 = ref1.length; j < len1; j++) {
       test = ref1[j];
@@ -17678,17 +17680,23 @@ expressionToString = function(expression, o) {
       left_bracket = " (";
       right_bracket = " )";
     }
+    symbol = e.symbol || SYMBOLS[e.type] || e.type || '';
+    if (o.wrapWithDivs) {
+      symbol = "<span class='_symbolWrap' data-symbolNum='" + symbolNum + "'>" + symbol + "</span>";
+    }
     if (e.boundVariable != null) {
-      symbol = e.symbol || SYMBOLS[e.type] || e.type;
       variableName = e.boundVariable;
       middle = symbol + " " + variableName + " " + left_bracket + e.left + (e.right || '') + right_bracket;
     }
     if ((e.left != null) && (e.boundVariable == null)) {
       if (e.right == null) {
-        middle = "" + left_bracket + (e.symbol || SYMBOLS[e.type] || e.type || '') + " " + (e.left || '') + right_bracket;
+        middle = "" + left_bracket + symbol + " " + (e.left || '') + right_bracket;
       } else {
-        middle = "" + left_bracket + (e.left || '') + " " + (e.symbol || SYMBOLS[e.type] || e.type || '') + " " + (e.right || '') + right_bracket;
+        middle = "" + left_bracket + (e.left || '') + " " + symbol + " " + (e.right || '') + right_bracket;
       }
+    }
+    if (o.wrapWithDivs) {
+      middle = "<span class='_expressionWrap'>" + middle + "</span>";
     }
     return "" + (aBox || '') + middle + (theSubs || '');
   };

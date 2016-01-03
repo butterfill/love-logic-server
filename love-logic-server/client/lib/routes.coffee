@@ -149,6 +149,12 @@ FlowRouter.route '/ex/tt/noQ/from/:_premises/to/:_conclusion/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
+FlowRouter.route '/ex/scope/qq/:_sentences/',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'scope_ex'
+FlowRouter.route '/ex/scope/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
 
 # Answer a question in free text

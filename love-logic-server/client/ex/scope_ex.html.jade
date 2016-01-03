@@ -1,0 +1,37 @@
+template(name='scope_ex')
+  +topic_header
+
+
+  +scope_ex_display_question
+  
+  +scope_ex_display_sentences
+  
+  +submitted_answer
+
+  +help_with_this_exercise
+
+  .right
+    +ask_for_help
+    +submit_btn
+        
+  +next_exercise
+
+
+template(name="scope_ex_display_question")
+  p In each of the following sentences,
+  h5 select the connective or quantifier with widest scope.
+  p (That is, the connective or quantifier outermost of the brackets.)
+  
+
+  
+
+template(name="scope_ex_display_answer")
+  +scope_ex_display_sentences
+  div #{ans}
+
+template(name="scope_ex_display_sentences")
+  ul.collection.theScopeSentences
+    each sentences
+      li.collection-item.sentenceParent 
+        span.theSentence #{idx}. 
+        span!= theSentence
