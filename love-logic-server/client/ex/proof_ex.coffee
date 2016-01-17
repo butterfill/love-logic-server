@@ -12,9 +12,9 @@ Template.proof_ex.onCreated () ->
 Template.proof_ex.helpers
   exSubtypeIsOrInvalid : () -> 
     FlowRouter.watchPathChange()
-    ix.isExerciseSubtype('orInvalid')
+    ix.isExerciseSubtype('orInvalid', @)
   sentences : () ->
-    if ix.isExerciseSubtype('orInvalid')
+    if ix.isExerciseSubtype('orInvalid', @)
       return [{theSentence:'The argument is logically valid.', idx:0}]
   displayProofEditor : () ->
     FlowRouter.watchPathChange()
@@ -26,15 +26,15 @@ Template.proof_ex.helpers
 
 Template.proof_ex_display_question.helpers
   conclusion : () ->
-    return ix.getConclusionFromParams()?.toString({replaceSymbols:true})
+    return ix.getConclusionFromParams(@)?.toString({replaceSymbols:true})
   premises : () -> 
-    folList = ix.getPremisesFromParams() or []
+    folList = ix.getPremisesFromParams(@) or []
     return (e.toString({replaceSymbols:true}) for e in folList)
   hasPremises : () -> 
-    return ix.getPremisesFromParams()?.length > 0
+    return ix.getPremisesFromParams(@)?.length > 0
   exSubtypeIsOrInvalid : () -> 
     FlowRouter.watchPathChange()
-    ix.isExerciseSubtype('orInvalid')
+    ix.isExerciseSubtype('orInvalid', @)
   
     
     

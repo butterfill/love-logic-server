@@ -34,6 +34,15 @@ Template.exerciseSetsForCourse.helpers
     return ExerciseSets.find({}, {reactive:false})
 
 
+Template.listExercises.onCreated () ->
+  self = this
+  self.autorun () ->
+    courseName = FlowRouter.getParam('_courseName')
+    variant = FlowRouter.getParam('_variant')
+    self.subscribe('course', courseName)
+    self.exerciseSet = self.subscribe('exercise_set', courseName, variant)
+    
+
 Template.exerciseSet.onCreated () ->
   self = this
   self.autorun () ->
@@ -53,6 +62,68 @@ Template.exerciseSet.onCreated () ->
       # an exercise set.
       self.subscribe('subscriptions')
 
+
+# merely displays the questions (no progress or anything)
+Template.listExercises.helpers
+  courseName : () ->
+    return getCourseName() 
+  courseDescription : () ->
+    return Courses.findOne({},{reactive:false})?.description
+  displayQuestion : () ->
+    return "#{@type}_ex_display_question"
+
+  
+  # TODO: this is mostly copied from its counterpart in Template.exerciseSet.helpers
+  # minus the bits about a student’s progress
+  lectures : () ->
+    FlowRouter.watchPathChange()
+    theLectures = ExerciseSets.findOne({},{reactive:false})?.lectures
+    return [] if not theLectures
+    
+    # Filter the document if a particular lecture or unit is specified
+    if FlowRouter.getParam('_lecture')?
+      lectureToShow = FlowRouter.getParam('_lecture')
+      theLectures = (l for l in theLectures when l.name is lectureToShow)
+    if FlowRouter.getParam('_unit')? 
+      unitToShow = FlowRouter.getParam('_unit')
+      for lecture in theLectures
+        lecture.units = (u for u in lecture.units when u.name is unitToShow)
+    
+    # Build an object that makes blaze templating easier
+    exDict = {}
+    for l in theLectures
+      l.htmlAnchor = encodeURIComponent(l.name)
+      l.exerciseSetLectureURL = ''
+      if ix.url().indexOf('/unit/') is -1 and ix.url().indexOf('/lecture/') is -1
+          l.exerciseSetLectureURL = "#{ix.url().replace(/\/$/,'').replace(/\/listExercises/,'')}/lecture/#{l.name}/listExercises#{document.location.search}"
+      if ix.url().indexOf('/unit/') isnt -1
+        # move up from unit to lecture
+        l.exerciseSetLectureURL = "#{ix.url().replace(/\/unit\/.+/, '').replace(/\/listExercises/,'')}/listExercises#{document.location.search}"
+      for unit in l.units
+        unit.htmlAnchor = encodeURIComponent(unit.name)
+        unit.exerciseSetUnitURL = ''
+        if ix.url().indexOf('/unit/') is -1
+          if ix.url().indexOf('/lecture/') is -1
+            unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'').replace(/\/listExercises/,'')}/lecture/#{l.name}/unit/#{unit.name}/listExercises#{document.location.search}"
+          else
+            unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'').replace(/\/listExercises/,'')}/unit/#{unit.name}/listExercises#{document.location.search}"
+        exercises = []
+        for e in unit.rawExercises
+          exDoc = 
+            exerciseId:e
+            type:e.split('/')[2]
+            name:e.replace('/ex/','')
+            link:ix.convertToExerciseId(e)
+          exercises.push exDoc
+          exDict[exDoc.link] = exDoc
+        unit.exercises = exercises
+        if unit.rawReading?.length >0
+          unit.reading = "Sections §#{unit.rawReading.join(', §')} of Language, Proof and Logic (Barwise & Etchemendy; the course textbook)."
+        else 
+          unit.reading =""
+    
+    return theLectures
+ 
   
 Template.exerciseSet.helpers
   # These are copied from `myTuteesProgress.coffee`
@@ -62,6 +133,7 @@ Template.exerciseSet.helpers
   lectureName :  () -> FlowRouter.getParam('_lecture' )
   paramsSpecifyUnit : () -> FlowRouter.getParam('_unit' )?
   unitName : () -> FlowRouter.getParam('_unit' )
+  isTutor : ix.userIsTutor
 
   courseName : () ->
     return getCourseName() 
@@ -107,6 +179,8 @@ Template.exerciseSet.helpers
       if ix.url().indexOf('/unit/') isnt -1
         # move up from unit to lecture
         l.exerciseSetLectureURL = "#{ix.url().replace(/\/unit\/.+/, '')}#{document.location.search}"
+      # URL to take you to a list of questions for each lecture
+      l.listExercisesURL = "#{ix.url().replace(/\/$/,'')}/listExercises#{document.location.search}"
       for unit in l.units
         unit.htmlAnchor = encodeURIComponent(unit.name)
         unit.exerciseSetUnitURL = ''

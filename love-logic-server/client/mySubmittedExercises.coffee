@@ -14,6 +14,4 @@ Template.mySubmittedExercises.helpers
   date : () ->
     return moment(@created).format("YYYY-MM-DD HH:mm")
   displayAnswer : () ->
-    url = ix.url()
-    type = url.split('/')[2]
     return "#{@answer.type}_ex_display_answer"

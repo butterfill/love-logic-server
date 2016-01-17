@@ -1,7 +1,7 @@
 template(name='TorF_ex')
   +topic_header
 
-  +TorF_ex_display_question
+  +TorF_ex_display_question_header
 
   +TorF_questions sentences=sentences
   
@@ -16,7 +16,7 @@ template(name='TorF_ex')
   +next_exercise
 
 
-template(name="TorF_ex_display_question")
+template(name="TorF_ex_display_question_header")
   if isArgument
     h4 Consider this argument:
     +display_argument
@@ -42,6 +42,10 @@ template(name="TorF_ex_display_question")
   else
     h4 Which of the following are true and which false?
   
+
+template(name="TorF_ex_display_question")
+  +TorF_ex_display_question_header
+  +TorF_questions sentences=sentences
 
 template(name="TorF_ex_display_answer")
   ul.collection

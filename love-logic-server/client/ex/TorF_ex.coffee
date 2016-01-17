@@ -9,35 +9,41 @@ Template.TorF_ex.onCreated () ->
 
 
 
-Template.TorF_ex_display_question.helpers
+Template.TorF_ex_display_question_header.helpers
   isArgument : () ->
     # There is an argument exactly when there is a conclusion.
-    return ix.getConclusionFromParams()?
-  isWorld : () -> ix.getWorldFromParam()?
-  isTTrow : () -> ix.getTTrowFromParam()?
+    return ix.getConclusionFromParams(@)?
+  isWorld : () -> ix.getWorldFromParam(@)?
+  isTTrow : () -> ix.getTTrowFromParam(@)?
   TTletters : () ->
-    row = ix.getTTrowFromParam()
+    row = ix.getTTrowFromParam(@)
     return (k for own k of row)
   TTvalues : () ->
-    row = ix.getTTrowFromParam()
+    row = ix.getTTrowFromParam(@)
     return (v for own k,v of row)
   isJustOneSentence : () ->
-    sentences = ix.getSentencesFromParam()
+    sentences = ix.getSentencesFromParam(@)
     return sentences?.length is 1
 
 Template.display_argument.helpers  
   premises : () -> 
-    premises = ix.getPremisesFromParams()
+    premises = ix.getPremisesFromParams(@)
     # Premises may be awFOL objects or strings.
     # But because strings have `.toString`, this works either way.
     (e.toString({replaceSymbols:true}) for e in premises)
-  conclusion : () -> ix.getConclusionFromParams().toString({replaceSymbols:true})
+  conclusion : () -> ix.getConclusionFromParams(@).toString({replaceSymbols:true})
 
 
 Template.TorF_ex.helpers
   sentences : () ->
-    sentences = ix.getSentencesFromParam() or []
+    sentences = ix.getSentencesFromParam(@) or []
     return ({theSentence:x.toString({replaceSymbols:true}), idx:idx} for x, idx in sentences)
+
+Template.TorF_ex_display_question.helpers
+  sentences : () ->
+    sentences = ix.getSentencesFromParam(@) or []
+    return ({theSentence:x.toString({replaceSymbols:true}), idx:idx} for x, idx in sentences)
+
 
 # The world might either come from a TTrow or a possible situation
 getWorld = () ->

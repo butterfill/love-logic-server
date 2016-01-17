@@ -16,7 +16,7 @@ getNextExercisesWithUnseenFeedback = () ->
 
 Template.main.helpers
   isLastExercise : () -> Session.get("#{ix.getUserId()}/lastExercise")?
-  isTutor : () -> Meteor.user()?.profile?.is_seminar_tutor
+  isTutor : ix.userIsTutor
   hasSubscriptions : () ->
     return Subscriptions.find().count() >0
   hasNoSubscriptions : () ->

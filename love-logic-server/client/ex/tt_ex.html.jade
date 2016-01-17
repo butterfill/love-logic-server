@@ -24,7 +24,11 @@ template(name='tt_ex')
 template(name="tt_ex_display_question")
 
   if isSentences
-    h4 Construct truth tables for these sentences
+    h4 Construct 
+      if isOneSentence
+        span a truth table for this sentence
+      else
+        span truth tables for these sentences
     ul.collection
       each sentences
         li.collection-item 

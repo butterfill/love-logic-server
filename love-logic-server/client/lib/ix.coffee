@@ -42,7 +42,8 @@ ix.queryString = () ->
 
 # Use like `ix.isExerciseSubtype('orValid')` the url contains an exerciseId.
 # Otherwise ule like `ix.isExerciseSubtype('orValid', @)` when the data context contains a 
-#  `SubmittedAnswer`.
+#  `exerciseId` (either because it’s a SubmittedAnswer or else because it’s 
+# an exercise object (for the `listExercises` template)).
 ix.isExerciseSubtype = (type, submittedAnswer) ->
   if submittedAnswer?
     url = submittedAnswer.exerciseId
@@ -50,6 +51,8 @@ ix.isExerciseSubtype = (type, submittedAnswer) ->
     url = ix.url()
   return url.split('/')[3] is type
 
+ix.userIsTutor = () ->
+  Meteor.user()?.profile?.is_seminar_tutor
 
 # ----
 # Relating to Exercises
@@ -245,6 +248,13 @@ ix.storeLastExercise = () ->
 # ====
 
 
+ix.getQuestion = (self) ->
+  _question = FlowRouter.getParam('_question')
+  return _question if _question?
+  throw new Meteor.Error "Cannot get question" unless self?.exerciseId?
+  return self.exerciseId.split('/')[3]
+  
+
 # Extract premises from the URL.  Remove any premises which are `true`
 # (so you can set proofs with no premises).  Add an error if any 
 # sentences cannot be parsed.
@@ -324,6 +334,15 @@ ix.checkPremisesAndConclusionOfProof = (theProof) ->
       return "Your premises (#{proofPremisesStr.join(', ')}) are not the ones you were supposed to start from---you added #{proofPremisesNotInActualPremises.join(', ')}."
     #Everything is  ok
     return true
+
+ix.getSentenceFromParam = (self) ->
+  sentence = FlowRouter.getParam('_sentence')
+  if not sentence?
+    if self?.exerciseId?
+      parts = self.exerciseId.split('/')
+      idx = parts.indexOf('sentence')+1
+      sentence = parts[idx]
+  return decodeURIComponent(sentence)
 
 ix.getSentencesFromParam = (self) ->
   sentences = undefined

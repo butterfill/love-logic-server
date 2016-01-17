@@ -15,10 +15,10 @@ FlowRouter.route '/termsOfUse',
     BlazeLayout.render 'ApplicationLayout', main:'termsOfUse'
   name : 'termsOfUse'
 
+
+
 # ------
 # Admin routes for students
-
-
 
 FlowRouter.route '/courses', 
   action : (params, queryParams) ->
@@ -37,6 +37,12 @@ FlowRouter.route '/course/:_courseName/exerciseSet/:_variant/lecture/:_lecture',
 FlowRouter.route '/course/:_courseName/exerciseSet/:_variant/lecture/:_lecture/unit/:_unit',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'exerciseSet'
+FlowRouter.route '/course/:_courseName/exerciseSet/:_variant/lecture/:_lecture/listExercises',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'listExercises'
+FlowRouter.route '/course/:_courseName/exerciseSet/:_variant/lecture/:_lecture/unit/:_unit/listExercises',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'listExercises'
 
 FlowRouter.route '/feedbackToReview',
   action : (params, queryParams) ->

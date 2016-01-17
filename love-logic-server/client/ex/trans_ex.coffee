@@ -10,28 +10,35 @@ isTranslationToEn = false
 # ========
 # Template: trans_ex_display_question
 # (This is a fragment that is used both for students and graders)
-getNames = () -> decodeURIComponent(FlowRouter.getParam('_names')).replace(/\=/g,' : ').split('|')
+getNames = (self) -> 
+  rawNameText = FlowRouter.getParam('_names')
+  if not rawNameText?
+    if self?.exerciseId?
+      parts = self.exerciseId.split('/')
+      idx = parts.indexOf('names')+1
+      rawNameText = parts[idx]
+  decodeURIComponent(rawNameText).replace(/\=/g,' : ').split('|')
 
 Template.trans_ex_display_question.helpers
   isTranslationToEn : () ->
-    return checkIfTranslationToEn()
-  predicates : () -> getPredicatesFromParams()
+    return checkIfTranslationToEn(@)
+  predicates : () -> getPredicatesFromParams(@)
   sentence : () -> 
-    if checkIfTranslationToEn()
-      return fol.parse(decodeURIComponent(FlowRouter.getParam('_sentence'))).toString({replaceSymbols:true})
-    return "#{decodeURIComponent(FlowRouter.getParam('_sentence'))}."
-  domain : () -> getDomainFromParams().join(', ')
-  names : getNames
+    if checkIfTranslationToEn(@)
+      return fol.parse(ix.getSentenceFromParam(@)).toString({replaceSymbols:true})
+    return ix.getSentenceFromParam(@)
+  domain : () -> getDomainFromParams(@).join(', ')
+  names : () -> getNames(@)
   isNames : () ->
-    names = getNames()
+    names = getNames(@)
     return false unless names?.length > 0
     if names.length is 1
       return false if names[0].trim() is "" or names[0].trim() is "-"
     return true
 
 
-checkIfTranslationToEn = () ->
-  sentence = decodeURIComponent(FlowRouter.getParam('_sentence'))
+checkIfTranslationToEn = (self) ->
+  sentence = ix.getSentenceFromParam(self)
   try
     fol.parse sentence
     # If we can parse the sentence given, it is an awFOL sentence to be 
@@ -40,9 +47,15 @@ checkIfTranslationToEn = () ->
   catch error
     return false
 
-getPredicatesFromParams = () ->
-  raw = decodeURIComponent(FlowRouter.getParam('_predicates')).split('|')
-  predicates = (extractPredicteFromParam(p) for p in raw)
+getPredicatesFromParams = (self) ->
+  raw = FlowRouter.getParam('_predicates')
+  if not raw?
+    if self?.exerciseId?
+      parts = self.exerciseId.split('/')
+      idx = parts.indexOf('predicates')+1
+      raw = parts[idx]
+  rawParts = decodeURIComponent(raw).split('|')
+  predicates = (extractPredicteFromParam(p) for p in rawParts)
   return predicates
 
 # Predicates are like `Red1` (arity=1, uses the default descriptino)
@@ -70,8 +83,14 @@ extractPredicteFromParam = (rawPredicate) ->
   description = "#{name}(#{variables[0..arity-1]}) : #{predicateDescription}"
   return {name, arity, description}
 
-getDomainFromParams = () ->
-  parts = decodeURIComponent(FlowRouter.getParam('_domain')).split('|')
+getDomainFromParams = (self) ->
+  rawDomainText = FlowRouter.getParam('_domain')
+  if not rawDomainText?
+    if self?.exerciseId?
+      urlParts = self.exerciseId.split('/')
+      idx = urlParts.indexOf('domain')+1
+      rawDomainText = urlParts[idx]
+  parts = decodeURIComponent(rawDomainText).split('|')
   if parts.length > 1
     return parts
   raw = parts[0]

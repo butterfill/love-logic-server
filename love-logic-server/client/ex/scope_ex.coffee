@@ -90,15 +90,15 @@ Template.scope_ex.events
 
 Template.scope_ex_display_sentences.helpers
   sentences : () ->
-    ss = ix.getSentencesFromParam()
+    ss = ix.getSentencesFromParam(@)
     ss = (x.toString({replaceSymbols:true, wrapWithDivs:true}) for x in ss)
     ssObj = ({theSentence:x, idx} for x, idx in ss)
     return ssObj
 
 # Called from the `/grade` url to display multiple students’ answers on the same page
 Template.scope_ex_display_answer.onRendered () ->
-  console.log "rendered"
-  console.log @
+  # console.log "rendered"
+  # console.log @
   answer = @data.answer.content.scope
   setAnswer(answer, @)
 

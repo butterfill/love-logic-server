@@ -22,6 +22,40 @@ template(name='exerciseSetsForCourse')
     +loading
   
 
+//- displays only the questions for a lecture or unit
+template(name='listExercises')
+  if Template.subscriptionsReady
+    p #{courseName} --- #{courseDescription}
+    h2 #{exerciseSetName}
+  
+    each lectures
+      h4(id="#{htmlAnchor}") 
+        a(href="#{exerciseSetLectureURL}") #{name}
+      div(style="padding-left:2em;border-left:1px dotted black")
+        p
+          span [
+          a(href="#{slides}", target="_blank") slides
+          span ] [
+          a(href="#{handout}", target="_blank") handout
+          span ] 
+        each units
+          h5(id="#{htmlAnchor}") 
+            a(href="#{exerciseSetUnitURL}") #{name}
+          if reading
+            p Reading: #{reading}
+          p 
+            span [
+            a(href="#{slides}", target="_blank") slides
+            span ] 
+          ul.collection
+          each exercises
+            li
+              a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
+              +Template.dynamic(template=displayQuestion)
+  else
+    +loading
+
+
 template(name='exerciseSet')
   p #{courseName} --- #{courseDescription}
   
@@ -78,6 +112,10 @@ template(name='exerciseSet')
     each lectures
       h4(id="#{htmlAnchor}") 
         a(href="#{exerciseSetLectureURL}") #{name}
+        if isTutor
+          if paramsSpecifyLecture  
+            a(href="#{listExercisesURL}") [list questions]
+          
       div(style="padding-left:2em;border-left:1px dotted black")
         p
           span [

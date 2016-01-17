@@ -5,7 +5,8 @@
 # (This is a fragment that is used both for students and graders)
 
 Template.q_ex_display_question.helpers
-  theQuestion : () -> return FlowRouter.getParam('_question')
+  theQuestion : () -> 
+    return ix.getQuestion(@)
 
 Template.q_ex.onCreated () ->
   self = this

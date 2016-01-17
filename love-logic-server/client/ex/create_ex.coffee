@@ -17,15 +17,15 @@ Template.create_ex.onRendered () ->
 Template.create_ex.helpers
   exSubtypeIsValid : () -> 
     FlowRouter.watchPathChange()
-    return ix.isExerciseSubtype('orValid')
+    return ix.isExerciseSubtype('orValid', @)
   exSubtypeIsInconsistent : () -> 
     FlowRouter.watchPathChange()
-    ix.isExerciseSubtype('orInconsistent')
+    ix.isExerciseSubtype('orInconsistent', @)
   sentences : () ->
     FlowRouter.watchPathChange()
-    if ix.isExerciseSubtype('orValid')
+    if ix.isExerciseSubtype('orValid', @)
       return [{theSentence:'The argument is logically valid.', idx:0}]
-    if ix.isExerciseSubtype('orInconsistent')
+    if ix.isExerciseSubtype('orInconsistent', @)
       return [{theSentence:'The sentences are logically inconsistent.', idx:0}]
   displayCreateWorld : () ->
     FlowRouter.watchPathChange()
@@ -89,18 +89,18 @@ Template.create_ex.events
 
 
 Template.create_ex_display_question.helpers 
-  exSubtypeIsValid : () -> ix.isExerciseSubtype('orValid')
-  isSentences : () -> ix.getSentencesFromParam()? and ix.getSentencesFromParam().length > 0
-  isArgument : () -> ix.getConclusionFromParams()?
+  exSubtypeIsValid : () -> ix.isExerciseSubtype('orValid', @)
+  isSentences : () -> ix.getSentencesFromParam(@)? and ix.getSentencesFromParam(@).length > 0
+  isArgument : () -> ix.getConclusionFromParams(@)?
   sentences : () ->
-    folSentences = ix.getSentencesFromParam() or []
+    folSentences = ix.getSentencesFromParam(@) or []
     return ({theSentence:x.toString({replaceSymbols:true})} for x in folSentences)
   premises : () -> 
-    premises = ix.getPremisesFromParams()
+    premises = ix.getPremisesFromParams(@)
     # Premises may be awFOL objects or strings.
     # But because strings have `.toString`, this works either way.
     (e.toString({replaceSymbols:true}) for e in premises)
-  conclusion : () -> ix.getConclusionFromParams().toString({replaceSymbols:true})
+  conclusion : () -> ix.getConclusionFromParams(@).toString({replaceSymbols:true})
 
 Template.create_ex_display_answer.helpers
   exSubtypeIsValid : () -> ix.isExerciseSubtype('orValid', @)

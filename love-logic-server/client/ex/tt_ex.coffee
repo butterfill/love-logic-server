@@ -47,7 +47,7 @@ Template.tt_ex.helpers
   isAskQuestions : thereAreQuestionsToAsk
   sentences : () ->
     FlowRouter.watchPathChange()
-    return getQuestionsAboutTruthTable()
+    return getQuestionsAboutTruthTable(@)
       
 
 
@@ -139,19 +139,24 @@ Template.tt_ex.events
 # TorF_ex_display_answer
 
 Template.tt_ex_display_question.helpers
-  isSentences : () -> ix.getSentencesFromParam()? and ix.getSentencesFromParam().length > 0
-  isArgument : exerciseSpecifiesAnArgument
+  isSentences : () -> 
+    sentences = ix.getSentencesFromParam(@)
+    return sentences? and sentences.length? and sentences.length > 0
+  isOneSentence : () ->
+    sentences = ix.getSentencesFromParam(@)
+    return sentences?.length is 1
+  isArgument : () -> exerciseSpecifiesAnArgument(@)
   sentences : () ->
-    ss = ix.getSentencesFromParam()
+    ss = ix.getSentencesFromParam(@)
     ss = (x.toString({replaceSymbols:true}) for x in ss)
     ssObj = ({theSentence:x, idx} for x, idx in ss)
     return ssObj
   premises : () -> 
-    premises = ix.getPremisesFromParams()
+    premises = ix.getPremisesFromParams(@)
     # Premises may be awFOL objects or strings.
     # But because strings have `.toString`, this works either way.
     (e.toString({replaceSymbols:true}) for e in premises)
-  conclusion : () -> ix.getConclusionFromParams().toString({replaceSymbols:true})
+  conclusion : () -> ix.getConclusionFromParams(@).toString({replaceSymbols:true})
 
 Template.tt_ex_display_answer.helpers
   isAskQuestions : () -> thereAreQuestionsToAsk(@)

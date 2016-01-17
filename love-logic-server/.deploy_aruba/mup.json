@@ -18,6 +18,15 @@
       "env": {
         "CLUSTER_BALANCER_URL": "https://logic-ex-a-uk5.butterfill.com"
       }
+    },
+    {
+      // logic-vu-uk1
+      "host": "45.32.180.114",
+      "username": "root",
+      "pem": "~/.ssh/id_rsa",
+      "env": {
+        "CLUSTER_BALANCER_URL": "https://logic-ex-v-uk1.butterfill.com"
+      }
     }
     
     
