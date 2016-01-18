@@ -241,3 +241,15 @@ Meteor.methods
     result = SubmittedExercises.aggregate(pipeline)
     return result
 
+# -----
+# Stats
+Meteor.methods
+  getNofUsers : () ->
+    if Meteor.isClient
+      return undefined
+    return Meteor.users.find().count()
+  getNofSubmittedExercises : () ->
+    if Meteor.isClient
+      return undefined
+    return SubmittedExercises.find().count()
+  

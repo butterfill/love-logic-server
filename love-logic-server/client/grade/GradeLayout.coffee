@@ -175,7 +175,7 @@ Template.grading_form.events
   "click .modal-footer .add-human-comment" : (event, template) ->
     submission = this
     textareaId = $(event.target).attr('data-textarea')
-    console.log textareaId
+    # console.log textareaId
     rawComment = $("#"+"#{textareaId}").val()
     saveComment(submission, rawComment)
     $(template.find('.addComment.modal-trigger')).leanModal()    

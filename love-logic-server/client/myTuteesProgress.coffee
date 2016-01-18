@@ -128,7 +128,7 @@ Template.myTuteesProgress.helpers
       key = "#{sub.courseName}/#{sub.variant}"
       result.push(sub) unless key in alreadyGot
       alreadyGot.push(key)
-    console.log result
+    # console.log result
     return result
   nofTutees : () -> _getTutees().count()
   'tutees' : _getTutees

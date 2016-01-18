@@ -264,3 +264,7 @@ FlowRouter.route '/upsertExerciseSet',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'upsertExerciseSet'
 
+# Stats (nof exercises submitted, etc)
+FlowRouter.route '/stats',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'stats'
