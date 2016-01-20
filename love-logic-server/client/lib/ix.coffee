@@ -45,7 +45,7 @@ ix.queryString = () ->
 #  `exerciseId` (either because it’s a SubmittedAnswer or else because it’s 
 # an exercise object (for the `listExercises` template)).
 ix.isExerciseSubtype = (type, submittedAnswer) ->
-  if submittedAnswer?
+  if submittedAnswer?.exerciseId?
     url = submittedAnswer.exerciseId
   else
     url = ix.url()
