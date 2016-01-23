@@ -57,7 +57,23 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
+# TODO: test the fix to the GradedAnswers Leftof(b,a) is LeftOf(b,a) bug
+
 # TODO: link to guides for specific types of exercise from each type of exercise
+
+# TODO: exercisesToGrade doesn’t pick up on ‘Beatrice is’.  Why not?
+
+# TODO: Speed up Tutees’ progress page (break up list of students?)
+
+# TODO: create an admin role.
+
+# TODO: Barney’s bug with http://logic-ex.butterfill.com/ex/tt/from/A%20and%20not%20A/to/B%20and%20not%20B 
+# (Was this the old version or will it still give incorrect answers? [Have png]
+# Hemdat has also seen a case of the same problem: db.submitted_exercises.find({owner:'sw7X8bwBTtYYxkW9j','exerciseId':'/ex/tt/from/B/to/A%20or%20not%20A'})
+
+# TODO: make translation exercises check that students have used only the predicates specified in the question, and have used them with the correct arity.
+
+# TODO: if can’t read answer on TorF, create an error warning instead of simply submitting the exercise.
 
 # TODO: exercises to grade sorted by course and lecture
 
@@ -273,3 +289,8 @@ FlowRouter.route '/upsertExerciseSet',
 FlowRouter.route '/stats',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'stats'
+
+FlowRouter.route '/resetTester',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'resetTester'
+

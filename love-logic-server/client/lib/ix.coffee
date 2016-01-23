@@ -99,7 +99,6 @@ ix.hash = (text) ->
   # console.log "to hash is #{text}"
   return XXH(text, 0xFFFA).toString(36)
 
-# TODO: sort out use of toLowerCase when awFOL expression is involved.
 ix.hashAnswer = (answerDoc) ->
   toHash = answerDoc.answer.content
   if _.isString(toHash)
@@ -111,9 +110,11 @@ ix.hashAnswer = (answerDoc) ->
     toHash = toHash.toLowerCase().replace(/\./,'').replace(/,/,'').replace(/\s+/g,' ').trim()
   else
     if _.isString(toHash.sentence)
-      # clone to avoid messing up the object
-      toHash = _.clone(toHash)
-      toHash.sentence = toHash.sentence.toLowerCase().replace(/\./,'').replace(/,/,'').replace(/\s+/g,' ').trim()
+      # Avoid using toLowerCase when an awFOL expression is involved.
+      unless answerDoc.answerPNFsimplifiedSorted?
+        # clone to avoid messing up the object
+        toHash = _.clone(toHash)
+        toHash.sentence = toHash.sentence.toLowerCase().replace(/\./,'').replace(/,/,'').replace(/\s+/g,' ').trim()
     toHash = JSON.stringify(toHash)
   exerciseId = ix.getExerciseId()
   if not exerciseId?
@@ -399,17 +400,25 @@ ix.radioToArray = () ->
   $el = $('.trueOrFalseInputs')
   result = []
   $el.each (idx, $item) ->
-    value = $('input:checked', $item).val()
+    # value = $('input:checked', $item).val()
+    checked = $('input', $item).filter(':checked')
+    if checked?.length isnt 1
+      result.push undefined
+      return
+    value = checked.eq(0).val()
+    # I’m going to be cautious about ‘value’ because have been getting weird
+    # effects where clicking one radio sets others (despite correctly setting
+    # `name` and `id`).
     value = (value + '').toLowerCase()
-    # I’m cautious about ‘value’ because have been getting weird effects
-    # where clicking one radio sets others (despite correctly setting `name` and `id`).
     if value is 'true'
       value = true
     else
       if value is 'false'
         value = false
-      # else
-      #   console.log "Radio #{idx} has value #{value}."
+      else
+        console.log "Radio #{idx} has value #{value}."
+        # TODO inform user about error!
+        throw new Meteor.Error("Can’t read answer (old browser version?). Radio #{idx} has value #{value}.")
     result.push value
   return result
 

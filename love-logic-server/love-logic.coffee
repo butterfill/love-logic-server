@@ -253,3 +253,11 @@ Meteor.methods
       return undefined
     return SubmittedExercises.find().count()
   
+Meteor.methods
+  resetTester : () ->
+    if Meteor.isClient
+      return undefined
+    i = Meteor.users.findOne({'profile.name':'tester'})?._id
+    if i?
+      SubmittedExercises.remove({owner:i})
+    return true

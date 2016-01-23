@@ -14,13 +14,17 @@ Template.create_ex.onRendered () ->
     $grid = $('.grid-stack')
     ix.possibleWorld.checkSentencesTrue($grid)
 
+
+exSubtypeIsValid = () -> 
+  FlowRouter.watchPathChange()
+  return true if ix.isExerciseSubtype('orValid', @)
+exSubtypeIsInconsistent = () -> 
+  FlowRouter.watchPathChange()
+  return true if ix.isExerciseSubtype('orInconsistent', @)
+
 Template.create_ex.helpers
-  exSubtypeIsValid : () -> 
-    FlowRouter.watchPathChange()
-    return ix.isExerciseSubtype('orValid', @)
-  exSubtypeIsInconsistent : () -> 
-    FlowRouter.watchPathChange()
-    ix.isExerciseSubtype('orInconsistent', @)
+  exSubtypeIsValid : exSubtypeIsValid
+  exSubtypeIsInconsistent : exSubtypeIsInconsistent 
   sentences : () ->
     FlowRouter.watchPathChange()
     if ix.isExerciseSubtype('orValid', @)
@@ -89,7 +93,8 @@ Template.create_ex.events
 
 
 Template.create_ex_display_question.helpers 
-  exSubtypeIsValid : () -> ix.isExerciseSubtype('orValid', @)
+  exSubtypeIsValid : exSubtypeIsValid
+  exSubtypeIsInconsistent : exSubtypeIsInconsistent 
   isSentences : () -> ix.getSentencesFromParam(@)? and ix.getSentencesFromParam(@).length > 0
   isArgument : () -> ix.getConclusionFromParams(@)?
   sentences : () ->
@@ -103,8 +108,8 @@ Template.create_ex_display_question.helpers
   conclusion : () -> ix.getConclusionFromParams(@).toString({replaceSymbols:true})
 
 Template.create_ex_display_answer.helpers
-  exSubtypeIsValid : () -> ix.isExerciseSubtype('orValid', @)
-  exSubtypeIsInconsistent : () -> ix.isExerciseSubtype('orInconsistent', @)
+  exSubtypeIsValid : exSubtypeIsValid
+  exSubtypeIsInconsistent : exSubtypeIsInconsistent 
   displayCreateWorld : () -> @answer.content.world?
   sentences : () ->
     answerTorF = @answer.content.TorF?[0]
