@@ -1,0 +1,5 @@
+V	251118130529Z		01	unknown	/C=UK/ST=Hampshire/L=Southampton/O=logic-ex/OU=none/CN=server/name=EasyRSA/emailAddress=stephen@butterfill.com
+V	251118130715Z		02	unknown	/C=UK/ST=Hampshire/L=Southampton/O=logic-ex/OU=none/CN=logic-w-nyc/name=EasyRSA/emailAddress=stephen@butterfill.com
+V	251118132428Z		03	unknown	/C=UK/ST=Hampshire/L=Southampton/O=logic-ex/OU=none/CN=logic-w-nyc2/name=EasyRSA/emailAddress=stephen@butterfill.com
+V	251118132448Z		04	unknown	/C=UK/ST=Hampshire/L=Southampton/O=logic-ex/OU=none/CN=logic-w-dallas/name=EasyRSA/emailAddress=stephen@butterfill.com
+V	251118132500Z		05	unknown	/C=UK/ST=Hampshire/L=Southampton/O=logic-ex/OU=none/CN=logic-w-seattle/name=EasyRSA/emailAddress=stephen@butterfill.com

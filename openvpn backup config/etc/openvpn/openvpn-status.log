@@ -1,0 +1,16 @@
+OpenVPN CLIENT LIST
+Updated,Sat Nov 21 14:09:30 2015
+Common Name,Real Address,Bytes Received,Bytes Sent,Connected Since
+logic-w-dallas,107.155.88.153:45440,10001567,10310112,Sat Nov 21 13:36:29 2015
+logic-w-seattle,23.29.125.135:52765,11497634,11673222,Sat Nov 21 13:35:59 2015
+logic-w-nyc2,107.155.107.190:55369,10880054,10546455,Sat Nov 21 13:36:30 2015
+logic-w-nyc,107.155.107.85:47892,13220578,11992815,Sat Nov 21 13:19:47 2015
+ROUTING TABLE
+Virtual Address,Common Name,Real Address,Last Ref
+10.8.0.9,logic-w-seattle,23.29.125.135:52765,Sat Nov 21 14:09:29 2015
+10.8.0.14,logic-w-nyc2,107.155.107.190:55369,Sat Nov 21 14:09:29 2015
+10.8.0.24,logic-w-dallas,107.155.88.153:45440,Sat Nov 21 14:09:29 2015
+10.8.0.19,logic-w-nyc,107.155.107.85:47892,Sat Nov 21 14:09:29 2015
+GLOBAL STATS
+Max bcast/mcast queue length,1
+END

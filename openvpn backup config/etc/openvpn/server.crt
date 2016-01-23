@@ -1,0 +1,100 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1 (0x1)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=UK, ST=Hampshire, L=Southampton, O=logic-ex, OU=none, CN=logic-ex CA/name=EasyRSA/emailAddress=stephen@butterfill.com
+        Validity
+            Not Before: Nov 21 13:05:29 2015 GMT
+            Not After : Nov 18 13:05:29 2025 GMT
+        Subject: C=UK, ST=Hampshire, L=Southampton, O=logic-ex, OU=none, CN=server/name=EasyRSA/emailAddress=stephen@butterfill.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:f5:7b:45:cb:fb:e2:2d:b2:50:92:4e:45:36:24:
+                    73:2c:60:0e:f0:7c:06:15:b8:2d:99:01:30:c6:48:
+                    bd:aa:c8:33:3d:fa:93:60:d0:7b:39:1e:be:34:e5:
+                    00:4a:7b:08:d3:6b:0f:0d:b0:ce:45:88:a1:e1:ec:
+                    51:2c:34:38:82:e1:42:b5:7c:f1:88:9c:e9:eb:ca:
+                    7d:c6:3a:9d:8b:1d:ba:28:fa:42:20:34:3f:c3:4b:
+                    d9:c9:db:a3:d5:17:e8:c7:54:19:d6:56:7b:cd:80:
+                    31:02:a0:4c:e5:a1:bb:6f:a4:98:9b:ce:2e:38:6d:
+                    14:30:07:cc:44:49:1a:23:8d:cb:16:96:16:98:66:
+                    4e:b9:9d:08:f1:d6:01:28:c8:69:d6:38:28:49:79:
+                    ff:51:ea:c4:55:a2:c4:eb:ce:19:0e:4d:ce:4a:a3:
+                    3c:a5:ec:ff:5f:7b:e1:77:22:83:ba:ab:25:d8:72:
+                    60:32:ea:17:04:83:ec:07:8e:cc:a1:cc:ff:b8:ac:
+                    f7:66:00:df:af:97:cd:dc:f6:d0:0e:57:98:12:6f:
+                    16:d6:d9:e9:9c:d4:53:c1:d4:d6:a3:d4:d3:42:61:
+                    f2:81:1e:f9:15:00:7c:3d:45:d9:b6:55:08:13:fb:
+                    d4:0a:62:8b:93:8f:cb:11:96:f2:e7:5a:82:ad:7e:
+                    d3:63
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Cert Type: 
+                SSL Server
+            Netscape Comment: 
+                Easy-RSA Generated Server Certificate
+            X509v3 Subject Key Identifier: 
+                7C:2A:59:93:0B:AF:C5:05:A5:3B:6E:A0:C3:A7:72:3A:34:07:36:D2
+            X509v3 Authority Key Identifier: 
+                keyid:AF:AE:3A:6E:08:20:81:98:19:31:02:05:01:8D:1B:B7:D7:21:39:01
+                DirName:/C=UK/ST=Hampshire/L=Southampton/O=logic-ex/OU=none/CN=logic-ex CA/name=EasyRSA/emailAddress=stephen@butterfill.com
+                serial:B2:91:60:12:6D:BA:E7:A8
+
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication
+            X509v3 Key Usage: 
+                Digital Signature, Key Encipherment
+            X509v3 Subject Alternative Name: 
+                DNS:server
+    Signature Algorithm: sha256WithRSAEncryption
+         2f:2a:a0:99:ea:8d:52:ad:03:e3:d0:ec:4f:2c:48:67:6d:e6:
+         a4:07:1a:97:df:0d:1e:4a:89:d6:c9:5d:9f:e6:80:35:21:55:
+         d2:dc:5a:5e:58:ad:f8:c2:e0:64:cf:35:d8:87:42:a7:04:24:
+         d4:49:98:bc:4d:99:ea:7f:65:7e:67:8d:0a:5a:5d:0d:8b:4f:
+         e3:4e:ef:c4:20:c5:fa:f1:63:1e:03:13:c4:85:38:59:e4:8b:
+         f1:d2:5b:e2:d6:35:71:2e:73:16:95:46:35:f5:f0:85:ca:e6:
+         7a:a0:16:9d:d8:d0:e2:71:b4:fc:05:69:17:19:55:7a:b3:7e:
+         8e:04:f3:77:db:70:7b:7a:c7:f7:5a:42:d4:69:07:a8:28:bc:
+         2d:58:9e:6c:77:42:44:4b:73:9f:9b:39:ba:e5:e0:ee:c4:f4:
+         24:b5:eb:9e:d3:b5:56:1d:56:ee:f1:8b:1b:fa:d1:d0:52:64:
+         b5:46:b4:10:67:e6:94:ed:5a:98:82:a1:13:ac:49:c8:f1:03:
+         58:bd:11:c2:dd:9a:a8:2a:11:b0:25:7a:b5:5d:f9:7a:71:fb:
+         7b:56:a7:0a:12:fb:6b:5e:e5:b3:4e:c5:16:27:fb:43:f3:fc:
+         a1:03:ad:bd:e1:cf:a6:44:6e:a6:9a:f5:1d:74:e5:0a:bf:d4:
+         58:1b:12:74
+-----BEGIN CERTIFICATE-----
+MIIFVjCCBD6gAwIBAgIBATANBgkqhkiG9w0BAQsFADCBqDELMAkGA1UEBhMCVUsx
+EjAQBgNVBAgTCUhhbXBzaGlyZTEUMBIGA1UEBxMLU291dGhhbXB0b24xETAPBgNV
+BAoTCGxvZ2ljLWV4MQ0wCwYDVQQLEwRub25lMRQwEgYDVQQDEwtsb2dpYy1leCBD
+QTEQMA4GA1UEKRMHRWFzeVJTQTElMCMGCSqGSIb3DQEJARYWc3RlcGhlbkBidXR0
+ZXJmaWxsLmNvbTAeFw0xNTExMjExMzA1MjlaFw0yNTExMTgxMzA1MjlaMIGjMQsw
+CQYDVQQGEwJVSzESMBAGA1UECBMJSGFtcHNoaXJlMRQwEgYDVQQHEwtTb3V0aGFt
+cHRvbjERMA8GA1UEChMIbG9naWMtZXgxDTALBgNVBAsTBG5vbmUxDzANBgNVBAMT
+BnNlcnZlcjEQMA4GA1UEKRMHRWFzeVJTQTElMCMGCSqGSIb3DQEJARYWc3RlcGhl
+bkBidXR0ZXJmaWxsLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+APV7Rcv74i2yUJJORTYkcyxgDvB8BhW4LZkBMMZIvarIMz36k2DQezkevjTlAEp7
+CNNrDw2wzkWIoeHsUSw0OILhQrV88Yic6evKfcY6nYsduij6QiA0P8NL2cnbo9UX
+6MdUGdZWe82AMQKgTOWhu2+kmJvOLjhtFDAHzERJGiONyxaWFphmTrmdCPHWASjI
+adY4KEl5/1HqxFWixOvOGQ5NzkqjPKXs/1974Xcig7qrJdhyYDLqFwSD7AeOzKHM
+/7is92YA36+Xzdz20A5XmBJvFtbZ6ZzUU8HU1qPU00Jh8oEe+RUAfD1F2bZVCBP7
+1Apii5OPyxGW8udagq1+02MCAwEAAaOCAYwwggGIMAkGA1UdEwQCMAAwEQYJYIZI
+AYb4QgEBBAQDAgZAMDQGCWCGSAGG+EIBDQQnFiVFYXN5LVJTQSBHZW5lcmF0ZWQg
+U2VydmVyIENlcnRpZmljYXRlMB0GA1UdDgQWBBR8KlmTC6/FBaU7bqDDp3I6NAc2
+0jCB3QYDVR0jBIHVMIHSgBSvrjpuCCCBmBkxAgUBjRu31yE5AaGBrqSBqzCBqDEL
+MAkGA1UEBhMCVUsxEjAQBgNVBAgTCUhhbXBzaGlyZTEUMBIGA1UEBxMLU291dGhh
+bXB0b24xETAPBgNVBAoTCGxvZ2ljLWV4MQ0wCwYDVQQLEwRub25lMRQwEgYDVQQD
+Ewtsb2dpYy1leCBDQTEQMA4GA1UEKRMHRWFzeVJTQTElMCMGCSqGSIb3DQEJARYW
+c3RlcGhlbkBidXR0ZXJmaWxsLmNvbYIJALKRYBJtuueoMBMGA1UdJQQMMAoGCCsG
+AQUFBwMBMAsGA1UdDwQEAwIFoDARBgNVHREECjAIggZzZXJ2ZXIwDQYJKoZIhvcN
+AQELBQADggEBAC8qoJnqjVKtA+PQ7E8sSGdt5qQHGpffDR5KidbJXZ/mgDUhVdLc
+Wl5YrfjC4GTPNdiHQqcEJNRJmLxNmep/ZX5njQpaXQ2LT+NO78QgxfrxYx4DE8SF
+OFnki/HSW+LWNXEucxaVRjX18IXK5nqgFp3Y0OJxtPwFaRcZVXqzfo4E83fbcHt6
+x/daQtRpB6govC1Ynmx3QkRLc5+bObrl4O7E9CS1657TtVYdVu7xixv60dBSZLVG
+tBBn5pTtWpiCoROsScjxA1i9EcLdmqgqEbAlerVd+Xpx+3tWpwoS+2te5bNOxRYn
++0Pz/KEDrb3hz6ZEbqaa9R105Qq/1FgbEnQ=
+-----END CERTIFICATE-----
