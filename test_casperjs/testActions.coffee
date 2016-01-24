@@ -49,6 +49,7 @@ doLogin = (casper, test, x) ->
   
   # Check that I can see some courses
   casper.then () ->
+    LOGIN_EMAIL = config.LOGIN_EMAIL
     @waitForSelector 'a[href="/courses"]', () ->
       test.assertEval (txt) ->
         return $("body:contains(#{txt})").length > 0
