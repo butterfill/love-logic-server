@@ -28,8 +28,8 @@ doLogin = (casper, test, x) ->
       test.assertEval () ->
         FlowRouter.go('/')
         return true
-    @waitForSelector 'a[href="/courses"]', () ->
-    @waitForSelector x("//*[contains(., 'Sign Out' )]"), () ->
+    # @waitForSelector 'a[href="/courses"]', () ->
+    # @waitForSelector x("//*[contains(., 'Sign Out' )]"), () ->
   casper.then () ->
     @waitForSelector 'a[href="/courses"]', () ->
       test.assertEval (txt) ->
