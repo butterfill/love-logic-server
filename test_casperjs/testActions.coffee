@@ -16,11 +16,13 @@ doLogin = (casper, test, x) ->
     loginPage.goSignIn()
   casper.then () ->
     @capture 'login.png'
-    LOGIN_EMAIL = config.LOGIN_EMAIL
-    LOGIN_PW = config.LOGIN_PW
     @waitForSelector 'form#at-pwd-form', () ->
       test.assertExists 'form#at-pwd-form', 'login form is found'
-      @fill 'form#at-pwd-form', { 'at-field-email':LOGIN_EMAIL, 'at-field-password':LOGIN_PW}, true
+  casper.then () ->
+    LOGIN_EMAIL = config.LOGIN_EMAIL
+    LOGIN_PW = config.LOGIN_PW
+    @fill 'form#at-pwd-form', { 'at-field-email':LOGIN_EMAIL, 'at-field-password':LOGIN_PW}, true
+    @capture 'login-done.png'
   casper.then () ->
     @wait 50, () ->
       test.assertEval () ->
