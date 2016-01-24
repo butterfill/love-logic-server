@@ -19,13 +19,13 @@ doLogin = (casper, test, x) ->
     @waitForSelector 'form#at-pwd-form', () ->
       test.assertExists 'form#at-pwd-form', 'login form is found'
       @fill 'form#at-pwd-form', { 'at-field-email':config.LOGIN_EMAIL, 'at-field-password':config.LOGIN_PW}, true
-  casper.then () ->
-    # @wait 50, () ->
-    #   test.assertEval () ->
-    #     FlowRouter.go('/')
-    #     return true
-    # @waitForSelector 'a[href="/courses"]', () ->
-    # @waitForSelector x("//*[contains(., 'Sign Out' )]"), () ->
+  # casper.then () ->
+  #   @wait 50, () ->
+  #     test.assertEval () ->
+  #       FlowRouter.go('/')
+  #       return true
+  #   @waitForSelector 'a[href="/courses"]', () ->
+  #   @waitForSelector x("//*[contains(., 'Sign Out' )]"), () ->
   casper.then () ->
     @waitForSelector 'a[href="/courses"]', () ->
       test.assertEval (txt) ->
