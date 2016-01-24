@@ -4,7 +4,7 @@ pageObjects = require("#{pwd}/pageObjects")
 config = require("#{pwd}/config")
 
 
-# x = require('casper').selectXPath
+x = require('casper').selectXPath
 
 
 doLogin = (casper, test) ->
@@ -24,8 +24,7 @@ doLogin = (casper, test) ->
       test.assertEval () ->
         FlowRouter.go('/')
         return true
-    # @waitForSelector x("//*[contains(., 'Sign Out' )]"), () ->
-    @wait 500, () ->
+    @waitForSelector x("//*[contains(., 'Sign Out' )]"), () ->
       test.assertEval (txt) ->
         return $("body:contains(#{txt})").length > 0
       , "logged in, home page displays my email address"
