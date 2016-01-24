@@ -18,3 +18,7 @@ template(name='header')
       .right
         span #{currentUserEmail}
         +atNavButton
+      if isBrowserNotCompatible
+        .container
+          p.red.center Your web browser is too old for this site: there may be errors.
+            a(href='/oldBrowserSorry') more info

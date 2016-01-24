@@ -1,6 +1,13 @@
 template(name='myTutees')
   h2 My Tutees
   p The following currently list you as their seminar tutor:
-  ul.collection
+  .tuteeList
     each tutees
-      li.collection-item #{profile.name} &lt;#{email}&gt;
+      h5.tuteeName #{profile.name} &lt;#{email}&gt;
+      
+      p Following these exercise sets:
+      ul.collection.subscriptionsForTutee
+        each subscriptions
+          li.collection-item.subscriptionForTutee
+            //- the `display_subscription` template is defined is defined in main.html.jade
+            +display_subscription courseName=courseName variant=variant userQueryParam=userQueryParam

@@ -5,11 +5,19 @@
 
 Template.main.onCreated () ->
   self = this
+  
+  self.nofHelpRequestsForTutor = new ReactiveVar()
+
   self.autorun () ->
     self.subscribe('subscriptions')
     self.subscribe('next_exercise_with_unseen_feedback')
     self.subscribe('next_help_request_with_unseen_answer')
+    if ix.userIsTutor()
+      Meteor.call "nofHelpRequestsForTutor", (error, result) ->
+        self.nofHelpRequestsForTutor.set(result)
 
+Template.main.onRendered () ->
+  ix.checkBrowserCompatible()
 
 getNextExercisesWithUnseenFeedback = () ->
   return SubmittedExercises.findOne({ $and:[{owner:Meteor.userId()}, {'humanFeedback.studentSeen':false}] })
@@ -43,7 +51,10 @@ Template.main.helpers
   
   emailAddress : () ->
     return ix.getUserEmail()
-
+  
+  nofHelpRequestsForTutor : () ->
+    return Template.instance().nofHelpRequestsForTutor?.get?()
+    
 Template.main.events
   'click #resume-last-exercise' : (event, template) ->
     url = Session.get("#{ix.getUserId()}/lastExercise")

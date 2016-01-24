@@ -139,6 +139,8 @@ Meteor.publish "all_unanswered_help_requests_for_tutor", () ->
   tutor_email = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
   tuteeIds = wy.getTuteeIds(tutor_email)
   return HelpRequest.find({ requesterId:{$in:tuteeIds}, answer:{$exists:false}})
+Meteor.startup ->
+  HelpRequest._ensureIndex({requesterId:1})
 
 # Return fields from `SubmittedExercises` for working out what proportion of exercises tutees have completed.
 Meteor.publish "tutees_progress", () ->

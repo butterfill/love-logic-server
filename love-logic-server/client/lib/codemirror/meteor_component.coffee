@@ -34,6 +34,9 @@ Template.editSentence.onRendered () ->
   savedAnswer = ix.getAnswer()?.sentence
   if savedAnswer? and savedAnswer.trim() isnt ''
     editor.setValue(savedAnswer)
+  unless savedAnswer?
+    # Ensure that there is always an answer to submit, even if blank
+    ix.setAnswerKey('', 'sentence')
   
   editor.on 'change', (doc) ->
     val = doc.getValue()

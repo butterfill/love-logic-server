@@ -54,6 +54,28 @@ ix.isExerciseSubtype = (type, submittedAnswer) ->
 ix.userIsTutor = () ->
   Meteor.user()?.profile?.is_seminar_tutor
 
+ix.isBrowserCompatible = () ->
+  testElementStyle = document.createElement("detect").style
+  return false unless testElementStyle.flexWrap is ''
+  return false unless testElementStyle.backgroundBlendMode is ''
+  # NOT NEEDED : backgroundBlendMode should cover it
+  # # check for any version of IE
+  # ua = window.navigator.userAgent
+  # msie = ua.indexOf("MSIE ");
+  # return false if (msie > 0 or not not navigator.userAgent.match(/Trident.*rv\:11\./))
+  return true
+
+ix.checkBrowserCompatible = () ->
+  key = "#{ix.getUserId()}/oldBrowserIgnoreWarning"
+  ignoreWarning = Session.get(key)
+  return if ignoreWarning
+  
+  # check for flex support (excludes most old browsers, should catch old Safari)
+  testElementStyle = document.createElement("detect").style
+  unless ix.isBrowserCompatible()
+    FlowRouter.go('/oldBrowserSorry')
+
+
 # ----
 # Relating to Exercises
 

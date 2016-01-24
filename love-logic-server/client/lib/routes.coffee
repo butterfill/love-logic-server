@@ -15,7 +15,10 @@ FlowRouter.route '/termsOfUse',
     BlazeLayout.render 'ApplicationLayout', main:'termsOfUse'
   name : 'termsOfUse'
 
-
+FlowRouter.route '/oldBrowserSorry', 
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'oldBrowserSorry'
+  name : 'oldBrowserSorry'
 
 # ------
 # Admin routes for students
@@ -57,19 +60,20 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
+# TODO: warning your browser is too old for logic-ex
+
 # TODO: test the fix to the GradedAnswers Leftof(b,a) is LeftOf(b,a) bug
 
 # TODO: link to guides for specific types of exercise from each type of exercise
+# TODO: generic help by exercise type (e.g. how to write proofs).
 
 # TODO: exercisesToGrade doesn’t pick up on ‘Beatrice is’.  Why not?
 
 # TODO: Speed up Tutees’ progress page (break up list of students?)
 
-# TODO: create an admin role.
+# TODO: Show more than 7 days answers on tutees’ progress
 
-# TODO: Barney’s bug with http://logic-ex.butterfill.com/ex/tt/from/A%20and%20not%20A/to/B%20and%20not%20B 
-# (Was this the old version or will it still give incorrect answers? [Have png]
-# Hemdat has also seen a case of the same problem: db.submitted_exercises.find({owner:'sw7X8bwBTtYYxkW9j','exerciseId':'/ex/tt/from/B/to/A%20or%20not%20A'})
+# TODO: create an admin role.
 
 # TODO: make translation exercises check that students have used only the predicates specified in the question, and have used them with the correct arity.
 
@@ -78,8 +82,6 @@ FlowRouter.route '/mySubmittedExercises',
 # TODO: exercises to grade sorted by course and lecture
 
 # TODO: all emails are lower case 
-
-# TODO: generic help by exercise type (e.g. how to write proofs).
 
 # TODO: only trusted users can create GradedAnswers
 
@@ -90,6 +92,11 @@ FlowRouter.route '/mySubmittedExercises',
 # TODO: exercise - write down the scopes of different operators.
 
 # TODO: Allow users to see and complete exercises, but not submit them, without being logged in? (Tricky because when the log in the saved answer will no longer appear; but maybe necessary for advertising?)
+
+
+# DONE: Barney’s bug with http://logic-ex.butterfill.com/ex/tt/from/A%20and%20not%20A/to/B%20and%20not%20B 
+# (Was this the old version or will it still give incorrect answers? [Have png]
+# Hemdat has also seen a case of the same problem: db.submitted_exercises.find({owner:'sw7X8bwBTtYYxkW9j','exerciseId':'/ex/tt/from/B/to/A%20or%20not%20A'})
 
 
 # Write a proof exercise

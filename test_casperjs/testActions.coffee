@@ -28,10 +28,9 @@ doLogin = (casper, test, x) ->
       test.assertEval () ->
         FlowRouter.go('/')
         return true
-    # @waitForSelector 'a[href="/courses"]', () ->
-    # @waitForSelector x("//*[contains(., 'Sign Out' )]"), () ->
   casper.then () ->
-    @waitForSelector 'a[href="/courses"]', () ->
+    # @waitForSelector 'a[href="/courses"]', () ->
+    @waitForSelector x("//*[contains(., 'Sign Out' )]"), () ->
       test.assertEval (txt) ->
         return $("body:contains(#{txt})").length > 0
       , "logged in, home page displays my email address"

@@ -12,7 +12,7 @@ Template.exercisesToGrade.onCreated () ->
 Template.exercisesToGrade.helpers
   'exercises' : () ->
     # console.log Template.instance().exercises.get()
-    return Template.instance().exercises.get()
+    return Template.instance().exercises?.get?()
   'gradeURL' : () ->
     return (@exerciseId.replace(/\/$/, ''))+"/grade"
   'exerciseName' : () ->

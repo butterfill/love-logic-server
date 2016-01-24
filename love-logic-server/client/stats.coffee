@@ -11,8 +11,8 @@ Template.stats.onCreated () ->
 
 Template.stats.helpers
   'nofUsers' : () ->
-    return Template.instance().nofUsers.get()
+    return Template.instance().nofUsers?.get?()
   'nofSubmittedExercises' : () ->
-    return Template.instance().nofSubmittedExercises.get()
+    return Template.instance().nofSubmittedExercises?.get?()
 
     

@@ -19,6 +19,9 @@ Template.q_ex.events
   'click button#submit' : (event, template) ->
     answer = ix.getAnswer()
     
+    # Answer may be blank if student hits 
+    answer ?= ''
+    
     doc = 
       answer : 
         type : 'q'

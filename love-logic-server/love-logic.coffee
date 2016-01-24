@@ -241,6 +241,16 @@ Meteor.methods
     result = SubmittedExercises.aggregate(pipeline)
     return result
 
+
+  "nofHelpRequestsForTutor" : () ->
+    #restrict to TA’s own students
+    if Meteor.isClient
+      return 99
+    tutor_email = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+    tuteeIds = wy.getTuteeIds(tutor_email)
+    return HelpRequest.find({ requesterId:{$in:tuteeIds}, answer:{$exists:false}}).count()
+
+
 # -----
 # Stats
 Meteor.methods
@@ -261,3 +271,5 @@ Meteor.methods
     if i?
       SubmittedExercises.remove({owner:i})
     return true
+    
+    
