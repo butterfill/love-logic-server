@@ -26,7 +26,8 @@ doLogin = (casper, test, x) ->
     #     return true
     # @waitForSelector 'a[href="/courses"]', () ->
     # @waitForSelector x("//*[contains(., 'Sign Out' )]"), () ->
-    @wait 500, () ->
+  casper.then () ->
+    @waitForSelector 'a[href="/courses"]', () ->
       test.assertEval (txt) ->
         return $("body:contains(#{txt})").length > 0
       , "logged in, home page displays my email address"
