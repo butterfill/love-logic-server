@@ -14,10 +14,10 @@ doLogin = (casper, test, x) ->
       loginPage.logout()
   casper.then () ->
     loginPage.goSignIn()
-  casper.then () ->
-    @capture 'login.png'
-    @waitForSelector 'form#at-pwd-form', () ->
-      test.assertExists 'form#at-pwd-form', 'login form is found'
+  # casper.then () ->
+  #   @capture 'login.png'
+  #   @waitForSelector 'form#at-pwd-form', () ->
+  #     test.assertExists 'form#at-pwd-form', 'login form is found'
   # casper.then () ->
   #   LOGIN_EMAIL = config.LOGIN_EMAIL
   #   LOGIN_PW = config.LOGIN_PW
