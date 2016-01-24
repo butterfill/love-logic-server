@@ -14,10 +14,13 @@ casper.test.begin 'open a logic-ex page', (test) ->
   casper.start config.URL, () ->
     test.assertTitle 'love-logic', 'title is unchanged'
     test.assertExists '.brand-logo', 'logo is found'
-    
-  testActions.doLogin(casper, test)
+  
+  
+  x = require('casper').selectXPath
+  
+  testActions.doLogin(casper, test, x)
         
-  testActions.resetTester(casper, test)
+  testActions.resetTester(casper, test, x)
 
   # --- tests for /ex/TorF 
   casper.then () ->

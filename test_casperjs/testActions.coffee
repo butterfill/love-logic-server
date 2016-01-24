@@ -4,11 +4,11 @@ pageObjects = require("#{pwd}/pageObjects")
 config = require("#{pwd}/config")
 
 
-x = require('casper').selectXPath
 
 
-doLogin = (casper, test) ->
-  loginPage = pageObjects.LoginPageObject(casper, test)
+doLogin = (casper, test, x) ->
+  
+  loginPage = pageObjects.LoginPageObject(casper, test, x)
   casper.then () ->
     @waitForSelector 'body', () ->
       loginPage.logout()
