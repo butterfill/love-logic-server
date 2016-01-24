@@ -13,8 +13,9 @@ catch e
   require('es6-shim')
   localStorage.clear()
 
+x = require('casper').selectXPath
 
-casper.options.viewportSize = {width: 1436, height: 805}
+casper.options.viewportSize = {width: 1024, height: 768}
 
 
 # This ensures tests fail if there’s an error in the code behind a template which Meteor catches
@@ -140,7 +141,6 @@ casper.test.begin 'open a logic-ex page', (test) ->
   casper.then () ->
     @click '.removeRow'
     @wait 25
-    
   casper.then () ->
     test.assertEval () ->
       return true if $(".truthtable tbody tr").length is 3
@@ -154,7 +154,86 @@ casper.test.begin 'open a logic-ex page', (test) ->
     
   casper.then () ->
     @click '.addRow'
+  casper.then () ->
+    test.assertEval () ->
+      return true if $(".truthtable tbody tr").length is 4
+      console.log "$('.truthtable tbody tr').length = #{$('.truthtable tbody tr').length}"
+      return false
+    , "the correct number of rows appear after adding one back"
+  
+  casper.then () ->
+    @evaluate () ->
+      rows = [
+        ['T','T','F','F']
+        ['T','F','F','F']
+        ['F','T','F','F']
+        ['F','F','F','F']
+      ]
+      for rIdx in [0..3]
+        row = rows[rIdx]
+        for cIdx in [0..3]
+          theVal = row[cIdx]
+          $(".truthtable tbody tr:eq(#{rIdx}) td:eq(#{cIdx}) input").val( theVal )
+  casper.then () ->
+    @waitForSelector 'button#submit', () ->
+      @wait 500, () ->
+        @click 'button#submit'
+    @waitForSelector ".submittedAnswer", () ->
+      test.assertEval () ->
+        txt = "truth table is correct but"
+        return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
+      , "the partially correct answer is submitted and marked" 
     
+  casper.then () ->
+    # For some reason this is necessary; otherwise clicking the label 
+    # resets the truthtable!
+    @wait 25, () ->
+      @click '#view-answer'
+      
+    @wait 25, () ->
+      @click 'label[for="true_for_0"]'
+    @wait 25, () ->
+      @click 'label[for="false_for_1"]'
+    @wait 25, () ->
+      @click 'label[for="false_for_2"]'
+    @wait 25, () ->
+      @click 'label[for="false_for_3"]'
+    @wait 25, () ->
+      @click 'label[for="false_for_4"]'
+    @wait 25, () ->
+      @click 'button#submit'
+    @waitForSelector ".submittedAnswer", () ->
+      test.assertEval () ->
+        txt = "Your answer is correct"
+        return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
+      , "the correct answer is submitted and marked correctly" 
+  
+  casper.then () ->
+    @wait 25, () ->
+      # nasty xpath selector for the fourth .addRow
+      @click x('(//*[contains(concat(" ", normalize-space(@class), " "), " addRow ")])[4]')
+    @waitForSelector 'label[for="false_for_5"]', () ->
+      @wait 25, () ->
+        @click 'label[for="false_for_5"]'
+    @waitForSelector x('(//*[contains(concat(" ", normalize-space(@class), " "), " removeRow ")])[5]'), () ->
+      @wait 25, () ->
+        @click x('(//*[contains(concat(" ", normalize-space(@class), " "), " removeRow ")])[5]')
+  casper.then () ->
+    @wait 25, () ->
+      @click 'button#submit'
+    @waitForSelector ".submittedAnswer", () ->
+      # Need to wait for the server to update the correctness of the answer!
+      @wait 500, () ->
+        test.assertEval () ->
+          console.log "submittedAnswer #{$('.submittedAnswer').text()}"
+          console.log "ix.getAnswer().TorF = #{ix.getAnswer().TorF}"
+          txt = "Your answer is correct"
+          return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
+        , "the correct answer is submitted and marked correctly even after extending the truth table" 
+    
+    
+  
+  
   casper.then () ->
     @capture 'tt.png'
     

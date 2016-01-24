@@ -67,6 +67,9 @@ Template.tt_ex.events
       machineFeedback : machineFeedback
     
     if thereAreQuestionsToAsk()
+      # update answers (should not be necessary but is because
+      # changing size of truthtable changes how many TorF questions there are.)
+      ix.setAnswerKey( ix.radioToArray(), 'TorF')
       answerTorF = ix.getAnswer()?.TorF
       answerDoc.answer.content.TorF = answerTorF
 

@@ -3,13 +3,15 @@ CLIENT_SERVER_DELAY = 5000;
 LOGIN_EMAIL = 'tester@'
 LOGIN_PW = 'tester'
 # URL = 'http://logic-ex.butterfill.com/sign-in'
-# URL = 'http://logic-ex-test.butterfill.com/sign-in'
-URL = 'http://localhost:3000/sign-in'
+URL = 'http://logic-ex-test.butterfill.com/sign-in'
+# URL = 'http://localhost:3000/sign-in'
 
 try
   slimer
 catch e
   require('es6-shim')
+
+x = require('casper').selectXPath
 
 
 # if getCasperEngine() is  'phantom'
@@ -39,6 +41,8 @@ casper.test.begin 'open a logic-ex page', (test) ->
         Meteor.logout()
         FlowRouter.go('/sign-in')
         return true
+    @evaluate () ->
+      FlowRouter.go('/sign-in')
         
   casper.then () ->
     @capture 'login.png'
@@ -94,11 +98,14 @@ casper.test.begin 'open a logic-ex page', (test) ->
     @waitForSelector 'button#submit', () ->
       @click 'button#submit'
   casper.then () ->
-    @waitForSelector ".submittedAnswer", () ->
-      test.assertEval () ->
-        txt = "is incorrect"
-        return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
-      , "the incorrect answer is submitted and marked correctly" 
+    # nasty xpath selector for the second .submittedAnswer
+    @waitForSelector x('//*[contains(concat(" ", normalize-space(@class), " "), " submittedAnswer ")][2]'), () ->
+      @wait 50, () ->
+        test.assertEval () ->
+          txt = "is incorrect"
+          return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
+        , "the incorrect answer is submitted and marked correctly" 
+
   
   # ---  tests for navigation
   
@@ -118,7 +125,8 @@ casper.test.begin 'open a logic-ex page', (test) ->
     , "the second task is displayed"
   
   casper.then () ->
-    @click 'label.true'
+    @wait 50, () ->
+      @click 'label.true'
     @waitForSelector 'button#submit', () ->
       @click 'button#submit'      
   casper.then () ->
@@ -131,18 +139,25 @@ casper.test.begin 'open a logic-ex page', (test) ->
     @click 'label.true[for="true_for_1"]'
     @click 'button#submit'      
   casper.then () ->
-    @waitForSelector ".submittedAnswer", () ->
+    # @waitForSelector ".submittedAnswer", () ->
+    # nasty xpath selector for the second .submittedAnswer
+    @waitForSelector x('//*[contains(concat(" ", normalize-space(@class), " "), " submittedAnswer ")][2]'), () ->
       test.assertEval () ->
         txt = "is incorrect"
         return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
       , "the incorrect answer is submitted and marked correctly" 
       
   casper.then () ->
-    @click 'label.false[for="false_for_0"]'
-    @click 'label.false[for="false_for_1"]'
-    @click 'button#submit'      
+    @wait 50, () ->
+      @click 'label.false[for="false_for_0"]'
+    @wait 50, () ->
+      @click 'label.false[for="false_for_1"]'
+    @wait 50, () ->
+      @click 'button#submit'      
   casper.then () ->
-    @waitForSelector ".submittedAnswer", () ->
+    # @waitForSelector ".submittedAnswer", () ->
+    # nasty xpath selector for the second .submittedAnswer
+    @waitForSelector x('//*[contains(concat(" ", normalize-space(@class), " "), " submittedAnswer ")][3]'), () ->
       test.assertEval () ->
         txt = "is correct"
         return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0

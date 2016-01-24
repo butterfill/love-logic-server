@@ -3,8 +3,8 @@ CLIENT_SERVER_DELAY = 5000;
 LOGIN_EMAIL = 'tester@'
 LOGIN_PW = 'tester'
 # URL = 'http://logic-ex.butterfill.com/sign-in'
-# URL = 'http://logic-ex-test.butterfill.com/sign-in'
-URL = 'http://localhost:3000/sign-in'
+URL = 'http://logic-ex-test.butterfill.com/sign-in'
+# URL = 'http://localhost:3000/sign-in'
 
 
 try
@@ -15,6 +15,7 @@ catch e
 
 casper.options.viewportSize = {width: 1436, height: 805}
 
+x = require('casper').selectXPath
 
 # This ensures tests fail if there’s an error in the code behind a template which Meteor catches
 casper.on 'remote.message', (message) ->
@@ -133,13 +134,19 @@ casper.test.begin 'open a logic-ex page', (test) ->
     
     casper.then () ->
       @click 'label.false[for="false_for_0"]'
-      @click 'button#submit'      
+      @wait 50, () ->
+        @click 'button#submit'      
     casper.then () ->
-      @waitForSelector ".submittedAnswer", () ->
-        test.assertEval () ->
-          txt = "is incorrect"
-          return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
-        , "the incorrect answer is submitted and marked correctly" 
+      # DOESNT WORK (never found)
+      # @waitForSelector x("//*[text()='answer is incorrect']"), () ->
+      # DOESNT WORK (never found)
+      # nasty xpath selector for the second .submittedAnswer
+      @waitForSelector x('//*[contains(concat(" ", normalize-space(@class), " "), " submittedAnswer ")][2]'), () ->
+        @wait 50, () ->
+          test.assertEval () ->
+            txt = "is incorrect"
+            return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
+          , "the incorrect answer is submitted and marked correctly" 
     
   
   casper.then () ->

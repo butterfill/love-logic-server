@@ -91,6 +91,8 @@ Template.truth_table.events
     $tr.remove()
     newValues = ix.truthTable.getValuesFromTable()
     ix.setAnswerKey(newValues, 'tt')
+    if ix.getAnswer().TorF?
+      ix.setAnswerKey( ix.radioToArray(), 'TorF')
     
   'blur .truthtable input' : (event, template) ->
     $input = $(event.target)
