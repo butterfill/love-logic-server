@@ -1,27 +1,20 @@
 #!/bin/bash
 
-echo slimerjs ex_create
-casperjs --engine=slimerjs test ex_create.coffee 
-echo
+echo 
 echo ---
-echo phantomjs ex_create
-casperjs test ex_create.coffee 
+echo casperjs test page_courses.coffee --engine=$1
+casperjs test ./page_courses.coffee --engine=$1
+
+
+echo casperjs --engine=$1 test ex_create.coffee 
+casperjs test ex_create.coffee --engine=$1 
 
 echo 
 echo ---
-echo slimerjs ex_TorF
-casperjs --engine=slimerjs test ex_TorF.coffee 
-echo 
-echo ---
-echo phantomjs ex_TorF
-casperjs test ex_TorF.coffee 
+echo casperjs test ex_TorF.coffee --engine=$1
+casperjs test ex_TorF.coffee --engine=$1
 
 echo 
 echo ---
-echo slimerjs : casperjs --engine=slimerjs test ex_tt.coffee 
-casperjs --engine=slimerjs test ex_tt.coffee 
-echo 
-echo ---
-echo phantomjs : casperjs test ex_tt.coffee 
-casperjs test ex_tt.coffee 
-
+echo casperjs test ex_tt.coffee --engine=$1
+casperjs test ex_tt.coffee --engine=$1

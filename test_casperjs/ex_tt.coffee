@@ -1,62 +1,25 @@
-CLIENT_SERVER_DELAY = 5000;
-
-LOGIN_EMAIL = 'tester@'
-LOGIN_PW = 'tester'
-# URL = 'http://logic-ex.butterfill.com/sign-in'
-# URL = 'http://logic-ex-test.butterfill.com/sign-in'
-URL = 'http://localhost:3000/sign-in'
-
-
-try
-  slimer
-catch e
-  require('es6-shim')
-  localStorage.clear()
-
 x = require('casper').selectXPath
 
-casper.options.viewportSize = {width: 1024, height: 768}
+pwd = '.'
+config = require("#{pwd}/config")
+config.configure(casper)
 
+pageObjects = require("#{pwd}/pageObjects")
+testActions = require("#{pwd}/testActions")
 
-# This ensures tests fail if there’s an error in the code behind a template which Meteor catches
-casper.on 'remote.message', (message) ->
-  # if message.startsWith('Exception in template helper')
-  @echo 'console: ' + message.substring(0,300)
-    # throw new Error "meteor exception in template"
-
-casper.on 'page.error', (msg, trace) ->
-  @echo('Error: ' + msg, 'ERROR')
-  # for step in trace
-  #   @echo('   ' + step.file + ' (line ' + step.line + ')', 'ERROR')
 
 
 
 casper.test.begin 'open a logic-ex page', (test) ->
   
-  casper.start URL, () ->
+  casper.start config.URL, () ->
     test.assertTitle 'love-logic', 'title is unchanged'
     # @capture 'login.png'
     test.assertExists '.brand-logo', 'logo is found'
-    @waitForSelector 'body', () ->
-      # log out (phantomjs stores session)
-      test.assertEval () ->
-        Meteor.logout()
-        FlowRouter.go('/sign-in')
-        return true
-    @wait 25
-
-  casper.then () ->
-    @capture 'login.png'
-    @waitForSelector 'form#at-pwd-form', () ->
-      test.assertExists 'form#at-pwd-form', 'login form is found'
-      this.fill 'form#at-pwd-form', { 'at-field-email':LOGIN_EMAIL, 'at-field-password':LOGIN_PW}, true
-
-  # --- reset tester
-  casper.then () ->
-    test.assertEval () ->
-      FlowRouter.go('/resetTester')
-      return true
-    @waitForSelector '.itIsDone'
+    
+  testActions.doLogin(casper, test)
+  
+  testActions.resetTester(casper, test)
 
 
 
@@ -130,13 +93,13 @@ casper.test.begin 'open a logic-ex page', (test) ->
       return true if $(".truthtable tbody tr").length is 4
       console.log "$('.truthtable tbody tr').length = #{$('.truthtable tbody tr').length}"
       return false
-    , "the correct number of rows appear"
+    , "the correct number of rows appear  [ignore phantomjs sporadic fail]"
       
     test.assertEval () ->
       return true if $('.trueOrFalseInputs').length is 5
       console.log "$('.trueOrFalseInputs').length = #{$('.trueOrFalseInputs').length}"
       return false
-    , "the correct number of questions about the truth table appear"
+    , "the correct number of questions about the truth table appear  [ignore phantomjs sporadic fail]"
       
   casper.then () ->
     @click '.removeRow'
@@ -149,7 +112,7 @@ casper.test.begin 'open a logic-ex page', (test) ->
     , "the correct number of rows appear after removing one"
     test.assertEval () ->
       return $('.trueOrFalseInputs').length is 4
-    , "the correct number of questions about the truth table appear after removing a row of the truth table"
+    , "the correct number of questions about the truth table appear after removing a row of the truth table  [ignore phantomjs sporadic fail]"
     
     
   casper.then () ->
@@ -159,7 +122,7 @@ casper.test.begin 'open a logic-ex page', (test) ->
       return true if $(".truthtable tbody tr").length is 4
       console.log "$('.truthtable tbody tr').length = #{$('.truthtable tbody tr').length}"
       return false
-    , "the correct number of rows appear after adding one back"
+    , "the correct number of rows appear after adding one back [ignore phantomjs sporadic fail]"
   
   casper.then () ->
     @evaluate () ->
@@ -187,26 +150,32 @@ casper.test.begin 'open a logic-ex page', (test) ->
   casper.then () ->
     # For some reason this is necessary; otherwise clicking the label 
     # resets the truthtable!
-    @wait 25, () ->
-      @click '#view-answer'
+    @waitForSelector '#view-answer', () ->
+      @wait 25, () ->
+        @click '#view-answer'
       
-    @wait 25, () ->
+  casper.then () ->
+    @wait 50, () ->
       @click 'label[for="true_for_0"]'
-    @wait 25, () ->
+    @wait 50, () ->
       @click 'label[for="false_for_1"]'
-    @wait 25, () ->
+    @wait 50, () ->
       @click 'label[for="false_for_2"]'
-    @wait 25, () ->
+    @wait 50, () ->
       @click 'label[for="false_for_3"]'
-    @wait 25, () ->
+    @wait 50, () ->
       @click 'label[for="false_for_4"]'
-    @wait 25, () ->
+    @wait 150, () ->
       @click 'button#submit'
-    @waitForSelector ".submittedAnswer", () ->
-      test.assertEval () ->
-        txt = "Your answer is correct"
-        return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
-      , "the correct answer is submitted and marked correctly" 
+  casper.then () ->
+    @waitForSelector x("//*[contains(.,'Your answer is correct')]"), () ->
+      @wait 50, () ->
+        @capture 'step2.png'
+        test.assertEval () ->
+          console.log "step 2 submittedAnswer #{$('.submittedAnswer').text()}"
+          txt = "Your answer is correct"
+          return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
+        , "the correct answer is submitted and marked correctly" 
   
   casper.then () ->
     @wait 25, () ->
@@ -225,7 +194,7 @@ casper.test.begin 'open a logic-ex page', (test) ->
       # Need to wait for the server to update the correctness of the answer!
       @wait 500, () ->
         test.assertEval () ->
-          console.log "submittedAnswer #{$('.submittedAnswer').text()}"
+          console.log "after extended submittedAnswer #{$('.submittedAnswer').text()}"
           console.log "ix.getAnswer().TorF = #{ix.getAnswer().TorF}"
           txt = "Your answer is correct"
           return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0

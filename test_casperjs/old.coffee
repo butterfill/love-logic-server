@@ -1,23 +1,77 @@
+CLIENT_SERVER_DELAY = 5000;
+
+LOGIN_EMAIL = 'tester@'
+LOGIN_PW = 'tester'
+# URL = 'http://logic-ex.butterfill.com/sign-in'
+URL = 'http://logic-ex-test.butterfill.com/sign-in'
+# URL = 'http://localhost:3000/sign-in'
+
+
+try
+  slimer
+catch e
+  require('es6-shim')
+
+
+casper.options.viewportSize = {width: 1436, height: 805}
+
 x = require('casper').selectXPath
 
-pwd = '.'
-config = require("#{pwd}/config")
-config.configure(casper)
+# This ensures tests fail if there’s an error in the code behind a template which Meteor catches
+casper.on 'remote.message', (message) ->
+  if message.startsWith('Exception in template helper')
+    @echo 'error caught: ' #+ message
+    throw new Error "meteor exception in template"
 
-pageObjects = require("#{pwd}/pageObjects")
-testActions = require("#{pwd}/testActions")
+casper.on 'page.error', (msg, trace) ->
+  @echo('Error: ' + msg, 'ERROR')
+  for step in trace
+    @echo('   ' + step.file + ' (line ' + step.line + ')', 'ERROR')
 
 
 
 casper.test.begin 'open a logic-ex page', (test) ->
-
-  casper.start config.URL, () ->
+  
+  casper.start URL, () ->
     test.assertTitle 'love-logic', 'title is unchanged'
+    # @capture 'login.png'
     test.assertExists '.brand-logo', 'logo is found'
-    
-  testActions.doLogin(casper, test)
-        
-  testActions.resetTester(casper, test)
+    @waitForSelector 'body', () ->
+      # log out (phantomjs stores session)
+      test.assertEval () ->
+        Meteor.logout()
+        FlowRouter.go('/sign-in')
+        return true
+
+  casper.then () ->
+    @waitForSelector 'form#at-pwd-form', () ->
+      test.assertExists 'form#at-pwd-form', 'login form is found'
+      this.fill 'form#at-pwd-form', { 'at-field-email':LOGIN_EMAIL, 'at-field-password':LOGIN_PW}, true
+  
+  
+  # Check that I can see some courses
+  casper.then () ->
+    @waitForSelector 'a[href="/courses"]', () ->
+      test.assertEval (txt) ->
+        return $("body:contains(#{txt})").length > 0
+      , "logged in, link to select course exists, page displays my email address"
+      , LOGIN_EMAIL
+      @click 'a[href="/courses"]'
+      @waitForSelector 'a[href="/course/UK_W20_PH126"]', () ->
+        test.assertExists 'a[href="/course/UK_W20_PH126"]', 'PH126 exercises are shown'
+        test.assertExists 'a[href="/course/UK_W20_PH133"]', 'PH133 exercises are shown'
+
+  # TODO: get an exercise set and visit all the links
+
+
+  # --- reset tester
+  casper.then () ->
+    test.assertEval () ->
+      FlowRouter.go('/resetTester')
+      return true
+    @waitForSelector '.itIsDone'
+
+
 
   # --- tests for /ex/create 
   casper.then () ->
