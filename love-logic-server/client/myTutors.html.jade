@@ -1,0 +1,7 @@
+template(name='myTutors')
+  h2 My Tutors
+  p The following tutors currently list you as instructor:
+  .tutorList
+    each tutors
+      h5.tutorName #{profile.name} &lt;#{email}&gt;
+      

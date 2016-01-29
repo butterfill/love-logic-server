@@ -60,28 +60,24 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
-# TODO: warning your browser is too old for logic-ex
-
-# TODO: test the fix to the GradedAnswers Leftof(b,a) is LeftOf(b,a) bug
+# TODO: show line numbers when proofs presented to graders
 
 # TODO: link to guides for specific types of exercise from each type of exercise
 # TODO: generic help by exercise type (e.g. how to write proofs).
 
+# TODO: test the fix to the GradedAnswers Leftof(b,a) is LeftOf(b,a) bug
+
 # TODO: exercisesToGrade doesn’t pick up on ‘Beatrice is’.  Why not?
 
-# TODO: Speed up Tutees’ progress page (break up list of students?)
-
-# TODO: Show more than 7 days answers on tutees’ progress
-
-# TODO: create an admin role.
+# TODO: Speed up Tutees’ progress page
 
 # TODO: make translation exercises check that students have used only the predicates specified in the question, and have used them with the correct arity.
-
-# TODO: if can’t read answer on TorF, create an error warning instead of simply submitting the exercise.
 
 # TODO: exercises to grade sorted by course and lecture
 
 # TODO: all emails are lower case 
+
+# TODO: can review GradedAnswers
 
 # TODO: only trusted users can create GradedAnswers
 
@@ -260,6 +256,10 @@ FlowRouter.route '/ex/TorF/qq/:_sentences/grade',
 FlowRouter.route '/myTutees',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'myTutees'
+
+FlowRouter.route '/myTutors',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'myTutors'
 
 FlowRouter.route '/exercisesToGrade',
   action : (params, queryParams) ->

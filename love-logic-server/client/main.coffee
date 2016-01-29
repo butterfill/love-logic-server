@@ -25,6 +25,7 @@ getNextExercisesWithUnseenFeedback = () ->
 Template.main.helpers
   isLastExercise : () -> Session.get("#{ix.getUserId()}/lastExercise")?
   isTutor : ix.userIsTutor
+  isInstructor : ix.userIsInstructor
   hasSubscriptions : () ->
     return Subscriptions.find().count() >0
   hasNoSubscriptions : () ->
@@ -34,10 +35,14 @@ Template.main.helpers
 
   hasSeminarTutor : () ->
     return Meteor.user()?.profile?.seminar_tutor?
+  hasInstructor : () ->
+    return Meteor.user()?.profile?.instructor?
   seminarTutor : () ->
     return Meteor.user()?.profile?.seminar_tutor
-  seminarTutorEmail : () ->
-    return Meteor.user()?.profile?.seminar_tutor
+  instructor : () ->
+    return Meteor.user()?.profile?.instructor
+  instructorEmail : () ->
+    return Meteor.user()?.profile?.instructor
   
   hasNewGrades : () ->
     return getNextExercisesWithUnseenFeedback()?
@@ -68,6 +73,14 @@ Template.main.events
         Materialize.toast error.message, 4000
       else
         Materialize.toast "Your seminar tutor has been updated", 4000
+
+  'click #confirm-set-instructor-email' : (event, template) ->
+    newAddress = $('textarea.instructor').val()
+    Meteor.call "updateInstructor", newAddress, (error) ->
+      if error
+        Materialize.toast error.message, 4000
+      else
+        Materialize.toast "Your instructor has been updated", 4000
   
   'click #confirm-update-email' : (event, template) ->
     newAddress = $('textarea.newEmailAddress').val()
@@ -80,6 +93,8 @@ Template.main.events
   
   'click .changeSeminarTutor' : (event, template) ->
     $('#seminar-tutor-modal').openModal()
+  'click .changeInstructor' : (event, template) ->
+    $('#instructor-modal').openModal()
   'click .changeEmail' : (event, template) ->
     $('#change-email-modal').openModal()
 

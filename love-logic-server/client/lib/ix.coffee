@@ -53,6 +53,8 @@ ix.isExerciseSubtype = (type, submittedAnswer) ->
 
 ix.userIsTutor = () ->
   Meteor.user()?.profile?.is_seminar_tutor
+ix.userIsInstructor = () ->
+  Meteor.user()?.profile?.is_instructor
 
 ix.isBrowserCompatible = () ->
   testElementStyle = document.createElement("detect").style

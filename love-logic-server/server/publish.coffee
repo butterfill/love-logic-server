@@ -43,12 +43,23 @@ Meteor.publish "submitted_exercises", (userId) ->
 
 # check `userId` is a tutee of the currently logged-in user.
 checkIsTutee = (userId, studentId) ->
-  user = Meteor.users.findOne(userId)
   student = Meteor.users.findOne(studentId)
+  seminarTutorEmail = student?.profile?.seminar_tutor
+  return false unless seminarTutorEmail?
+
+  user = Meteor.users.findOne(userId)
   currentUserEmail = user?.emails?[0]?.address
-  seminarTutor = student?.profile?.seminar_tutor
-  isTutee = seminarTutor? and (seminarTutor is currentUserEmail)
-  return isTutee
+  
+  isTutee = (seminarTutorEmail is currentUserEmail)
+  return isTutee unless user.profile?.is_instructor and not isTutee
+  
+  # special case: user is an instructor
+  # so we want to check whether the studentId is a tutee of a tutor of the instructor
+  instructorEmail = currentUserEmail
+  tutorsOfInstructor = Meteor.users.find({'profile.instructor':instructorEmail}).fetch()
+  tutorEmails = (x.emails?[0]?.address for x in tutorsOfInstructor)
+  isTutee = seminarTutorEmail in tutorEmails
+  
 
 Meteor.publish "submitted_exercise", (exerciseId) ->
   # if(Meteor.isServer)
@@ -109,6 +120,16 @@ Meteor.publish "tutees_subscriptions", () ->
   tutor_email = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
   tuteeIds = wy.getTuteeIds(tutor_email)
   return Subscriptions.find( {owner:{$in:tuteeIds}} )
+  
+Meteor.publish "tutors_for_instructor", () ->
+  instructorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+  if not instructorEmail
+    console.log "Current user has no email address!"
+    return [] 
+  return Meteor.users.find({'profile.instructor':instructorEmail})
+Meteor.startup ->
+  Meteor.users._ensureIndex({"profile.instructor":1})
+  
 
 # If `tuteeId` is not specified, return submitted answers by the current user’s tutees.
 # If `tuteeId` is specified, return submitted answers by that tutee.

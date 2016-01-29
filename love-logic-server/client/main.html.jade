@@ -35,6 +35,10 @@ template(name='main')
       li.collection-item: a(href="/myTuteesProgress") Tutees’ progress
       li.collection-item: a(href="/upsertExerciseSet") Add or update an exercise set.
 
+  if isInstructor
+    h3 Links for instructors
+    ul.collection
+      li.collection-item: a(href="/myTutors") List of tutors on your course(s)
 
   .row
     if hasNoSubscriptions
@@ -64,6 +68,38 @@ template(name='main')
             .card-action: .right
               a(href="/feedbackToReview").waves-effect.blue-text See feedback
   
+    //- instructor card
+    if isTutor
+      .col.s12.m6.l4
+        .card
+          .card-content
+            span.card-title.black-text Instructor
+            if hasInstructor
+              p #{instructor} is the instructor (who usually gives lectures and has overall responsibility for the course you teach on).
+            else
+              p You have not specified the instructor of your tutees (who usually gives lectures and has overall responsibility for the course you teach on).
+            .card-action: .right
+              if hasInstructor
+                a.changeInstructor.waves-effect.blue-text(data-target="instructor-modal") Change instructor
+              else
+                a.changeInstructor.waves-effect.blue-text(data-target="instructor-modal") Add instructor
+          
+          
+              #instructor-modal.modal
+                .modal-content
+                  h4  Instructor
+                  form
+                    p 
+                    .input-field
+                      textarea.instructor.materialize-textarea(id='set-instructor-email') #{instructorEmail}
+                      label(for='set-instructor-email') Enter the email address your instructor has asked you to use.
+                    p
+                      em Note that your instructor may not be registered under all her email addresses; if in doubt, please ask your instructor to confirm her email address.
+                .modal-footer
+                  a(href="").modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel
+                  a(href="")#confirm-set-instructor-email.modal-action.modal-close.waves-effect.waves-grey.btn-flat update
+
+    //- Tutor card
     .col.s12.m6.l4
       .card
         .card-content
@@ -92,7 +128,7 @@ template(name='main')
               .modal-footer
                 a(href="").modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel
                 a(href="")#confirm-set-seminar-tutor-email.modal-action.modal-close.waves-effect.waves-grey.btn-flat update
-          
+      
           
     .col.s12.m6.l4
       .card

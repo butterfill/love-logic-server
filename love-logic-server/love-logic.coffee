@@ -38,6 +38,18 @@ Meteor.methods
       throw new Meteor.Error "No tutor is registered with that email address."
     Meteor.users.update(userId, {$set: {"profile.seminar_tutor":emailAddress}})
 
+  updateInstructor : (emailAddress) ->
+    userId = Meteor.user()?._id
+    if not userId 
+      throw new Meteor.Error "not-authorized"
+    if Meteor.isClient
+      # Can’t simulate
+      return undefined
+    test = Meteor.users.find({'emails.address':emailAddress,  'profile.is_instructor':true}).count()
+    if test is 0
+      throw new Meteor.Error "No instructor is registered with that email address."
+    Meteor.users.update(userId, {$set: {"profile.instructor":emailAddress}})
+
   updateEmailAddress : (emailAddress) ->
     userId = Meteor.user()?._id
     if not userId 
@@ -57,6 +69,12 @@ Meteor.methods
     if not userId 
       throw new Meteor.Error "not-authorized"
     Meteor.users.update(userId, {$set: {'profile.is_seminar_tutor':true}})
+    
+  makeMeAnInstructor : () ->
+    userId = Meteor.user()?._id
+    if not userId 
+      throw new Meteor.Error "not-authorized"
+    Meteor.users.update(userId, {$set: {'profile.is_instructor':true}})
     
     
   
