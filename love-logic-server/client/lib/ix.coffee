@@ -131,14 +131,14 @@ ix.hashAnswer = (answerDoc) ->
     # (Note: there is a small chance of a clash if the answer is awFOL because case is 
     # significant in awFOL for distinguishing predicates from sentence letters;
     # this matters because exists x happy(x) is not a sentence of awFOL!
-    toHash = toHash.toLowerCase().replace(/\./,'').replace(/,/,'').replace(/\s+/g,' ').trim()
+    toHash = toHash.toLowerCase().replace(/\s+/g,' ').trim()
   else
     if _.isString(toHash.sentence)
       # Avoid using toLowerCase when an awFOL expression is involved.
       unless answerDoc.answerPNFsimplifiedSorted?
         # clone to avoid messing up the object
         toHash = _.clone(toHash)
-        toHash.sentence = toHash.sentence.toLowerCase().replace(/\./,'').replace(/,/,'').replace(/\s+/g,' ').trim()
+        toHash.sentence = toHash.sentence.toLowerCase().replace(/\s+/g,' ').trim()
     toHash = JSON.stringify(toHash)
   exerciseId = ix.getExerciseId()
   if not exerciseId?
