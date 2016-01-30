@@ -14,7 +14,7 @@ template(name="TorF_questions")
           label.false(for="false_for_#{idx}") false
         span.theSentence 
           if doNotDisplayNumbers
-            | #{theSentence}
+            | !{theSentence}
           else
-            | #{idx}. #{theSentence}
+            | #{idx}. !{theSentence}
 

@@ -20,16 +20,16 @@ getQuestionsAboutTruthTable = (self) ->
   nofSentences = ix.getSentencesFromParam(self)?.length
   if nofSentences is 1
     ss = [
-      {theSentence:'The sentence is a contradiction.', idx:0, doNotDisplayNumbers:true}
-      {theSentence:'The sentence is a logical truth.', idx:1, doNotDisplayNumbers:true}
-      {theSentence:'The sentence is a logical possibility.', idx:2, doNotDisplayNumbers:true}
+      {theSentence:'The sentence is a <span class="hint--bottom" data-hint="a sentence that is false in every possible situation">contradiction</span>.', idx:0, doNotDisplayNumbers:true}
+      {theSentence:'The sentence is a <span class="hint--bottom" data-hint="a sentence that is true in every possible situation">logical truth</span>.', idx:1, doNotDisplayNumbers:true}
+      {theSentence:'The sentence is a <span class="hint--top" data-hint="a sentence that is true in at least one possible situation">logical possibility</span>.', idx:2, doNotDisplayNumbers:true}
     ]
     return ss
   if nofSentences is 2
     ss = [
-      {theSentence:'The two sentences are logically equivalent.', idx:0, doNotDisplayNumbers:true}
-      {theSentence:'The first sentence logically entails the second.', idx:1, doNotDisplayNumbers:true}
-      {theSentence:'The second sentence logically entails the first.', idx:2, doNotDisplayNumbers:true}
+      {theSentence:'The two sentences are <span class="hint--bottom" data-hint="Two sentences are logically equivalent just if there’s no possible situation where one is true and the other false.">logically equivalent</span>.', idx:0, doNotDisplayNumbers:true}
+      {theSentence:'The first sentence <span class="hint--bottom" data-hint="One sentence logically entails another just if there is no possible situation where the first is true and the second false">logically entails</span> the second.', idx:1, doNotDisplayNumbers:true}
+      {theSentence:'The second sentence <span class="hint--top" data-hint="One sentence logically entails another just if there is no possible situation where the first is true and the second false">logically entails</span>  the first.', idx:2, doNotDisplayNumbers:true}
     ]
     return ss
   # There are no sentences to display
