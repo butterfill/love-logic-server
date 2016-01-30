@@ -45,9 +45,9 @@ template(name="proof_ex_display_question")
 
 template(name="proof_ex_display_answer")
   if displayProof
-    p.monospace.grey.lighten-2 
+    p.monospace.grey.lighten-2(style="white-space:pre") 
       each answerLines
-        .grey.lighten-2(style='padding-left:2px;padding-right:2px;margin-bottom:-4px;') #{line}
+        .grey.lighten-2(style='padding-left:2px;padding-right:2px;margin-bottom:-4px;') #{lineNumber} #{line}
     
   if exSubtypeIsOrInvalid
     ul.collection

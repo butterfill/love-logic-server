@@ -106,7 +106,7 @@ Template.proof_ex.events
 Template.proof_ex_display_answer.helpers
   displayProof : () -> @answer.content.proof?
   answerLines : () ->
-    return ({line:x} for x in @answer.content.proof?.split('\n'))
+    return ({line:x, lineNumber:"  #{idx+1}".slice(-3)} for x, idx in @answer.content.proof?.split('\n'))
   exSubtypeIsOrInvalid : () -> ix.isExerciseSubtype('orInvalid', @)
   sentences : () ->
     answerTorF = @answer.content.TorF?[0]

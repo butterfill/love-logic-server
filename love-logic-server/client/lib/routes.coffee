@@ -77,6 +77,10 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: all emails are lower case 
 
+# TODO: tidy up feedback on incorrect proofs
+
+# TODO: proofs can be formatted (symbols; neat spacing)
+
 # TODO: can review GradedAnswers
 
 # TODO: only trusted users can create GradedAnswers
