@@ -2,11 +2,11 @@
 (function() {
   describe('zoxiy', function() {
     return describe('Page title', function() {
-      it('should be set by the Meteor method @watch', function() {
+      it('should be set by the Meteor method', function() {
+        browser.url('http://localhost:3000/sign-in');
         browser.deleteCookie();
         browser.sessionStorage('DELETE');
         browser.localStorage('DELETE');
-        browser.url('http://localhost:3000/sign-in');
         expect(browser.getTitle()).to.equal('love-logic');
       });
     });

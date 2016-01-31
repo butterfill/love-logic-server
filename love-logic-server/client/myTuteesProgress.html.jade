@@ -1,5 +1,8 @@
 template(name='myTuteesProgress')
-  h2 My Tutees’ Progress
+  if forSelf
+    h2 My Tutees’ Progress
+  else 
+    h2 #{tutorName}’s tutees’ progress
   
   if paramsSpecifyExerciseSet
     h5 On 
@@ -42,28 +45,31 @@ template(name='myTuteesProgress')
   if Template.subscriptionsReady
     p #{drawProgressCharts}
   
-  h4 Means for your #{nofTutees} tutees:
-  table.centered
-    thead
-      tr
-        th
-        th number submitted
-        th correct
-        th incorrect
-        th ungraded
-    tbody
-      tr
-        td.left All time
-        td #{meanNumberSubmitted}
-        td #{percentCorrect}%
-        td #{percentIncorrect}%
-        td #{percentUngraded}%
-      tr
-        td.left last 7 days
-        td #{meanNumberSubmitted7days}
-        td #{percentCorrect7Days}%
-        td #{percentIncorrect7Days}%
-        td #{percentUngraded7Days}%
+  if Template.subscriptionsReady
+    h4 Means for your #{nofTutees} tutees:
+    table.centered
+      thead
+        tr
+          th
+          th number submitted
+          th correct
+          th incorrect
+          th ungraded
+      tbody
+        tr
+          td.left All time
+          td #{meanNumberSubmitted}
+          td #{percentCorrect}%
+          td #{percentIncorrect}%
+          td #{percentUngraded}%
+        tr
+          td.left last 7 days
+          td #{meanNumberSubmitted7days}
+          td #{percentCorrect7Days}%
+          td #{percentIncorrect7Days}%
+          td #{percentUngraded7Days}%
+  else
+    +loading
   
   
   //- p Mean  (all time): #{meanNumberSubmitted} exercises submitted

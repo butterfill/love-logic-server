@@ -3,5 +3,12 @@ template(name='myTutors')
   p The following tutors currently list you as instructor:
   .tutorList
     each tutors
-      h5.tutorName #{profile.name} &lt;#{email}&gt;
+      h5
+        span.tutorName #{profile.name} 
+        span.tutorEmail &lt;#{email}&gt;
+      ul.collection
+        li.collection-item
+          a(href="/myTutees?tutor=#{_id}") list tutees
+        li.collection-item
+          a(href="/myTuteesProgress?tutor=#{_id}") summary of tutees’ progress
       

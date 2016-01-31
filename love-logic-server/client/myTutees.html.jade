@@ -1,6 +1,11 @@
 template(name='myTutees')
-  h2 My Tutees
-  p The following currently list you as their seminar tutor:
+  if forSelf
+    h2 My Tutees
+    p The following currently list you as their seminar tutor:
+  else
+    h2 Tutees of #{tutorName}  &lt;#{tutorEmail}&gt;
+    p The following currently list #{tutorName} as their seminar tutor:
+    
   .tuteeList
     each tutees
       h5.tuteeName #{profile.name} &lt;#{email}&gt;

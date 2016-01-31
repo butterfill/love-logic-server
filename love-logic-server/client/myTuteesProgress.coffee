@@ -1,10 +1,15 @@
 
 Template.myTuteesProgress.onCreated () ->
   templateInstance = this
+  tutorId = FlowRouter.getQueryParam('tutor') 
   templateInstance.autorun () ->
-    templateInstance.subscribe 'tutees'
-    templateInstance.subTuteesProgress = templateInstance.subscribe 'tutees_progress'
-    templateInstance.subscribe 'tutees_subscriptions'
+    if tutorId
+      templateInstance.subscribe 'tutors_for_instructor', tutorId
+    
+    # For the following, `tutorId` can be undefined
+    templateInstance.subscribe 'tutees', tutorId
+    templateInstance.subTuteesProgress = templateInstance.subscribe 'tutees_progress', tutorId
+    templateInstance.subscribe 'tutees_subscriptions', tutorId
     
     FlowRouter.watchPathChange()
     variant = FlowRouter.getParam '_variant' 
@@ -107,10 +112,19 @@ _onlyLast7Days = (q) ->
   return q
   
 _getTutees = () ->
-  tutor_email = Meteor.user()?.emails?[0]?.address
-  return Meteor.users.find({'profile.seminar_tutor':tutor_email})
+  tutorId = FlowRouter.getQueryParam('tutor')
+  if tutorId?
+    tutorEmail = Meteor.users.findOne(tutorId)?.emails?[0]?.address
+  else
+    tutorEmail = Meteor.user()?.emails?[0]?.address
+  return Meteor.users.find({'profile.seminar_tutor':tutorEmail})
   
 Template.myTuteesProgress.helpers
+  forSelf : () -> FlowRouter.getQueryParam('tutor') is undefined
+  tutorName : () ->
+    tutorId = FlowRouter.getQueryParam('tutor')
+    return Meteor.users.findOne(tutorId)?.profile?.name
+  
   paramsSpecifyExerciseSet : () -> FlowRouter.getParam('_variant' )?
   exerciseSetName : () -> "the #{FlowRouter.getParam('_variant' )} exercises for #{FlowRouter.getParam('_courseName' )}"
   paramsSpecifyLecture : () -> FlowRouter.getParam('_lecture' )?

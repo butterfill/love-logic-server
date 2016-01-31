@@ -106,27 +106,45 @@ Meteor.publish "tutee_user_info", (userId) ->
   return Meteor.users.find(userId, {fields:{emails:1, "profile.name":1}})
 
 
-Meteor.publish "tutees", () ->
-  tutor_email = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
-  if not tutor_email
-    console.log "Current user has no email address!"
+Meteor.publish "tutees", (tutorId) ->
+  unless tutorId
+    tutorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+  else
+    instructorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+    # query for tutor ensures that the current user is the instructor for the tutor’s course
+    tutor = Meteor.users.findOne({_id:tutorId, 'profile.instructor':instructorEmail})
+    tutorEmail = tutor.emails?[0]?.address
+  if not tutorEmail
+    console.log "Tutor has no email address!"
     return [] 
-  return Meteor.users.find({'profile.seminar_tutor':tutor_email})
+  return Meteor.users.find({'profile.seminar_tutor':tutorEmail})
 Meteor.startup ->
   Meteor.users._ensureIndex({"profile.seminar_tutor":1})
 
-Meteor.publish "tutees_subscriptions", () ->
-  #restrict to TA’s own students
-  tutor_email = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
-  tuteeIds = wy.getTuteeIds(tutor_email)
+Meteor.publish "tutees_subscriptions", (tutorId) ->
+  unless tutorId
+    tutorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+  else
+    instructorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+    # query for tutor ensures that the current user is the instructor for the tutor’s course
+    tutor = Meteor.users.findOne({_id:tutorId, 'profile.instructor':instructorEmail})
+    tutorEmail = tutor.emails?[0]?.address
+  if not tutorEmail
+    console.log "Tutor has no email address!"
+    return [] 
+  tuteeIds = wy.getTuteeIds(tutorEmail)
   return Subscriptions.find( {owner:{$in:tuteeIds}} )
-  
-Meteor.publish "tutors_for_instructor", () ->
+
+# Leave `tutorId` undefined to get them all
+Meteor.publish "tutors_for_instructor", (tutorId) ->
   instructorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
   if not instructorEmail
     console.log "Current user has no email address!"
     return [] 
-  return Meteor.users.find({'profile.instructor':instructorEmail})
+  unless tutorId
+    return Meteor.users.find({'profile.instructor':instructorEmail})
+  else
+    return Meteor.users.find({_id:tutorId, 'profile.instructor':instructorEmail})
 Meteor.startup ->
   Meteor.users._ensureIndex({"profile.instructor":1})
   
@@ -140,8 +158,8 @@ Meteor.publish "submitted_answers", (exerciseId, tuteeId) ->
     return SubmittedExercises.find({exerciseId:exerciseId, owner:tuteeId})
   else
     #restrict to TA’s own students
-    tutor_email = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
-    tuteeIds = wy.getTuteeIds(tutor_email)
+    tutorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+    tuteeIds = wy.getTuteeIds(tutorEmail)
     return SubmittedExercises.find({exerciseId:exerciseId, owner:{$in:tuteeIds}})
 Meteor.startup ->
   SubmittedExercises._ensureIndex({exerciseId:1, owner:1})
@@ -149,23 +167,34 @@ Meteor.startup ->
 # Return help requests by the current user’s tutees.
 Meteor.publish "help_requests_for_tutor", (exerciseId) ->
   #restrict to TA’s own students
-  tutor_email = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
-  tuteeIds = wy.getTuteeIds(tutor_email)
+  tutorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+  tuteeIds = wy.getTuteeIds(tutorEmail)
   return HelpRequest.find({exerciseId:exerciseId, requesterId:{$in:tuteeIds}})
 Meteor.startup ->
   HelpRequest._ensureIndex({exerciseId:1, requesterId:1})
 
 Meteor.publish "all_unanswered_help_requests_for_tutor", () ->
   #restrict to TA’s own students
-  tutor_email = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
-  tuteeIds = wy.getTuteeIds(tutor_email)
+  tutorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+  tuteeIds = wy.getTuteeIds(tutorEmail)
   return HelpRequest.find({ requesterId:{$in:tuteeIds}, answer:{$exists:false}})
 Meteor.startup ->
   HelpRequest._ensureIndex({requesterId:1})
 
 # Return fields from `SubmittedExercises` for working out what proportion of exercises tutees have completed.
-Meteor.publish "tutees_progress", () ->
-  #restrict to TA’s own students
-  tutor_email = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
-  tuteeIds = wy.getTuteeIds(tutor_email)
+Meteor.publish "tutees_progress", (tutorId) ->
+  unless tutorId
+    tutorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+  else
+    instructorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
+    # query for tutor ensures that the current user is the instructor for the tutor’s course
+    tutor = Meteor.users.findOne({_id:tutorId, 'profile.instructor':instructorEmail})
+    tutorEmail = tutor.emails?[0]?.address
+  
+  if not tutorEmail
+    console.log "Tutor has no email address!"
+    return [] 
+
+  tuteeIds = wy.getTuteeIds(tutorEmail)
   return SubmittedExercises.find( {owner:{$in:tuteeIds}}, {fields:{'owner':1, 'exerciseId':1, 'humanFeedback.isCorrect':1, 'machineFeedback.isCorrect':1, 'created':1}} )
+

@@ -6,6 +6,7 @@ FlowRouter.notFound =
     BlazeLayout.render 'ApplicationLayout', main:'routeNotFound'
 
 
+
 FlowRouter.route '/', 
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'main'
@@ -60,7 +61,15 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
-# TODO: show line numbers when proofs presented to graders
+# TODO: add tutor provides a list to select from (or can enter custom email), the list is restricted to the domain of the user’s email address
+
+# TODO: tutees’ can see their progress on exercise sets the tutor is following
+
+# TODO: speed up myTuteesProgress!
+
+# TODO: seminar_tutor should specify id, not email address!
+
+# TODO: stats - how many Warwick people
 
 # TODO: link to guides for specific types of exercise from each type of exercise
 # TODO: generic help by exercise type (e.g. how to write proofs).
@@ -93,10 +102,6 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: Allow users to see and complete exercises, but not submit them, without being logged in? (Tricky because when the log in the saved answer will no longer appear; but maybe necessary for advertising?)
 
-
-# DONE: Barney’s bug with http://logic-ex.butterfill.com/ex/tt/from/A%20and%20not%20A/to/B%20and%20not%20B 
-# (Was this the old version or will it still give incorrect answers? [Have png]
-# Hemdat has also seen a case of the same problem: db.submitted_exercises.find({owner:'sw7X8bwBTtYYxkW9j','exerciseId':'/ex/tt/from/B/to/A%20or%20not%20A'})
 
 
 # Write a proof exercise

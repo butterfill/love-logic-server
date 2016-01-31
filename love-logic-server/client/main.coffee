@@ -18,6 +18,10 @@ Template.main.onCreated () ->
 
 Template.main.onRendered () ->
   ix.checkBrowserCompatible()
+  
+  @autorun () ->
+    FlowRouter.go('/sign-in') unless Meteor.userId()?
+  
 
 getNextExercisesWithUnseenFeedback = () ->
   return SubmittedExercises.findOne({ $and:[{owner:Meteor.userId()}, {'humanFeedback.studentSeen':false}] })

@@ -2,17 +2,17 @@
 (function() {
   describe('zoxiy', function() {
     describe('Page title', function() {
-      return it('should be set by the Meteor method @watch', function() {
+      return it('should be set by the Meteor method', function() {
+        browser.url('http://localhost:3000/sign-in');
         browser.deleteCookie();
         browser.sessionStorage('DELETE');
         browser.localStorage('DELETE');
-        browser.url('http://localhost:3000/sign-in');
         return expect(browser.getTitle()).to.equal('love-logic');
       });
     });
     return describe('student login', function() {
-      return it('should be possible to login as a student @watch', function() {
-        browser.setValue('input[name=at-field-email]', 'sb@');
+      return it('should be possible to login as a student', function() {
+        browser.setValue('input[name=at-field-email]', 'student@');
         browser.setValue('input[name=at-field-password]', 'lovelogic');
         return browser.submitForm('form#at-pwd-form');
       });
