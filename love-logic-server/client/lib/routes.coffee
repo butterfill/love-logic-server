@@ -61,9 +61,9 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
-# TODO: add tutor provides a list to select from (or can enter custom email), the list is restricted to the domain of the user’s email address
+# TODO: add tutor: provide a list of tutors to select from (or can enter custom email), the list is restricted to the domain of the user’s email address
 
-# TODO: tutees’ can see their progress on exercise sets the tutor is following
+# TODO: tutees: can see their progress on exercise sets the tutor is following
 
 # TODO: speed up myTuteesProgress!
 

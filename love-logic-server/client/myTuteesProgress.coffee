@@ -1,6 +1,7 @@
 
 Template.myTuteesProgress.onCreated () ->
   templateInstance = this
+  templateInstance.stats = new ReactiveVar()
   tutorId = FlowRouter.getQueryParam('tutor') 
   templateInstance.autorun () ->
     if tutorId
@@ -8,17 +9,25 @@ Template.myTuteesProgress.onCreated () ->
     
     # For the following, `tutorId` can be undefined
     templateInstance.subscribe 'tutees', tutorId
-    templateInstance.subTuteesProgress = templateInstance.subscribe 'tutees_progress', tutorId
+    progressSub = templateInstance.subTuteesProgress = templateInstance.subscribe 'tutees_progress', tutorId
     templateInstance.subscribe 'tutees_subscriptions', tutorId
     
     FlowRouter.watchPathChange()
     variant = FlowRouter.getParam '_variant' 
     if variant?
       courseName = FlowRouter.getParam '_courseName'
-      templateInstance.subscribe 'exercise_set', courseName, variant
+      exSub = templateInstance.subscribe 'exercise_set', courseName, variant
+      if exSub.ready() and progressSub.ready()
+        ex = getCurrentExercises()
+        templateInstance.stats.set( getAllStats(DAYSAGO7, ex) )
+    else
+      if progressSub.ready()
+        templateInstance.stats.set( getAllStats(DAYSAGO7) )
+      
     
 
 isPageForParticularExercises = () ->
+  FlowRouter.watchPathChange()
   variant = FlowRouter.getParam '_variant' 
   return variant?
 
@@ -44,6 +53,55 @@ getCurrentExercises = () ->
             ex.push ix.convertToExerciseId(e)
   return ex
 
+getAllStats = (sinceDate, exercises) ->
+  q = {}
+  # if sinceDate?
+  #   q.created = {$gte:sinceDate}
+  if exercises?
+    q.exerciseId = {$in:exercises}
+  allSubmittedExercises = SubmittedExercises.find(q).fetch()
+  
+  stats = {}
+  
+  addKey = (key) ->
+    if not stats[key]?
+      stats[key] = { 
+        allTime : {num:0, correct:0, correctEx:[], incorrect:0, incorrectEx:[], ungraded:0, ungradedEx:[]}
+        recent : {num:0, correct:0, correctEx:[], incorrect:0, incorrectEx:[], ungraded:0, ungradedEx:[]}
+      }
+  
+  updateKey = (key, isCorrect, isIncorrect, isUngraded, isSinceDate, exerciseId) ->
+    addKey(key)
+    toUpdate = [stats[key].allTime]
+    toUpdate.push(stats[key].recent) if isSinceDate
+    for object in toUpdate
+      object.num += 1
+      if isCorrect
+        object.correct += 1 
+        object.correctEx.push(exerciseId)
+      if isIncorrect
+        object.incorrect +=1 
+        object.incorrectEx.push(exerciseId)
+      if isUngraded
+        object.ungraded +=1 
+        object.ungradedEx.push(exerciseId)
+
+  for se in allSubmittedExercises
+    isCorrect = se.humanFeedback?.isCorrect is true or se.machineFeedback?.isCorrect is true
+    isIncorrect = se.humanFeedback?.isCorrect is false or se.machineFeedback?.isCorrect is false
+    # isUngraded = (not se.humanFeedback?.isCorrect?) or (not se.machineFeedback?.isCorrect?)
+    isUngraded = (not isCorrect) and (not isIncorrect)
+    isSinceDate = se.created >= sinceDate
+    updateKey('all', isCorrect, isIncorrect, isUngraded, isSinceDate, se.exerciseId)
+    updateKey(se.owner, isCorrect, isIncorrect, isUngraded, isSinceDate, se.exerciseId)
+  
+  # This is the number of students who have submitted at least one exercise.
+  stats.numStudents = Object.keys(stats).length - 1
+  
+  return stats
+
+
+
 getLectureNamesOfCurrentExerciseSet = () ->
   FlowRouter.watchPathChange()
   exerciseSet = getCurrentExerciseSet()
@@ -66,17 +124,20 @@ getNumberSubmitted = (dataCtx, sinceDate) ->
   FlowRouter.watchPathChange()
   dataCtx ?= this
   if dataCtx._id?
-    # Restrict the query to SubmittedExercises owned by a particular tutee.
-    q = {owner:dataCtx._id}
+    key = dataCtx._id
   else
-    q = {}
+    key = 'all'
+    
+  stats = Template.instance().stats?.get()
+  return 0 unless stats?[key]?
+  
   if sinceDate?
-    q.created = {$gte:sinceDate}
-  if isPageForParticularExercises()
-    ex = getCurrentExercises() or []
-    q.exerciseId = {$in:ex}
-  return SubmittedExercises.find(q).count()
-
+    # assume it’s always the same date
+    return stats[key].recent.num
+    
+  return stats[key].allTime.num
+  
+  
 DAYSAGO7 = moment().subtract(7, "days").toDate()
 
 getNumberSubmitted7Days = (dataCtx) ->
@@ -84,32 +145,6 @@ getNumberSubmitted7Days = (dataCtx) ->
   getNumberSubmitted(dataCtx, DAYSAGO7)  
   
 getPercent = (value, total) -> Math.floor((value / total) * 100) or 0
-
-_getQuery = (dataCtx) ->
-  # Restrict the query to SubmittedExercises owned by a particular tutee.
-  q = {}
-  if dataCtx?._id?
-    q.owner = dataCtx._id
-  if isPageForParticularExercises()
-    ex = getCurrentExercises() or []
-    q.exerciseId = {$in:ex}
-  return q
-_onlyCorrect = (dataCtx) ->
-  q = _getQuery(dataCtx)
-  q.$or = [ {'humanFeedback.isCorrect': true}, {'machineFeedback.isCorrect': true} ]
-  return q
-_onlyIncorrect = (dataCtx) ->
-  q = _getQuery(dataCtx)
-  q.$or = [ {'humanFeedback.isCorrect': false}, {'machineFeedback.isCorrect': false} ]
-  return q
-_onlyUngraded = (dataCtx) ->
-  q = _getQuery(dataCtx)
-  q['humanFeedback.isCorrect'] = {$exists:false}
-  q['machineFeedback.isCorrect'] = {$exists:false}
-  return q
-_onlyLast7Days = (q) ->
-  q.created = {$gte:DAYSAGO7}
-  return q
   
 _getTutees = () ->
   tutorId = FlowRouter.getQueryParam('tutor')
@@ -151,13 +186,15 @@ Template.myTuteesProgress.helpers
 
   meanNumberSubmitted : () ->
     # We assume that all `SubmittedExercises` currently available are from tutees.
-    q = _getQuery()
-    return Math.floor(SubmittedExercises.find(q).count() / _getTutees().count())
+    stats = Template.instance().stats?.get()
+    return 0 unless stats?.all?
+    return Math.floor( stats.all.allTime.num / stats.numStudents )
+    # q = _getQuery()
+    # return Math.floor(SubmittedExercises.find(q).count() / _getTutees().count())
   meanNumberSubmitted7days : () ->
-    q = _getQuery()
-    q = _onlyLast7Days(q)
-    return Math.floor(SubmittedExercises.find(q).count() / _getTutees().count())
-    
+    stats = Template.instance().stats?.get()
+    return 0 unless stats?.all?
+    return Math.floor( stats.all.recent.num / stats.numStudents )
     
   
   # These are called where the data context is a tutee (`Meteor.user`)
@@ -167,51 +204,61 @@ Template.myTuteesProgress.helpers
   # and for the individual tutees.  When called with individual tutees, @ will be
   # the user record for the tutee; when called for the overall figures, @_id? will be false.
   'percentCorrect' : () -> 
-    q = _onlyCorrect(@)
-    numCorrect = SubmittedExercises.find(q).count()
-    numSubmitted = getNumberSubmitted(@)
+    key = @?._id or 'all'
+    stats = Template.instance().stats?.get()
+    return 0 unless stats?[key]?
+    numCorrect = stats[key].allTime.correct
+    numSubmitted = stats[key].allTime.num
     return getPercent(numCorrect, numSubmitted)
   'percentCorrect7Days' : () -> 
-    q = _onlyCorrect(@)
-    q = _onlyLast7Days(q)
-    numCorrect = SubmittedExercises.find(q).count()
-    numSubmitted = getNumberSubmitted7Days(@)
+    key = @?._id or 'all'
+    stats = Template.instance().stats?.get()
+    return 0 unless stats?[key]?
+    numCorrect = stats[key].recent.correct
+    numSubmitted = stats[key].recent.num
     return getPercent(numCorrect, numSubmitted)
   'percentIncorrect' : () -> 
-    q = _onlyIncorrect(@)
-    numIncorrect = SubmittedExercises.find(q).count()
-    numSubmitted = getNumberSubmitted(@)
-    return getPercent(numIncorrect, numSubmitted)
+    key = @?._id or 'all'
+    stats = Template.instance().stats?.get()
+    return 0 unless stats?[key]?
+    numCorrect = stats[key].allTime.incorrect
+    numSubmitted = stats[key].allTime.num
+    return getPercent(numCorrect, numSubmitted)
   'percentIncorrect7Days' : () -> 
-    q = _onlyIncorrect(@)
-    q = _onlyLast7Days(q)
-    numIncorrect = SubmittedExercises.find(q).count()
-    numSubmitted = getNumberSubmitted7Days(@)
-    return getPercent(numIncorrect, numSubmitted)
+    key = @?._id or 'all'
+    stats = Template.instance().stats?.get()
+    return 0 unless stats?[key]?
+    numCorrect = stats[key].recent.incorrect
+    numSubmitted = stats[key].recent.num
+    return getPercent(numCorrect, numSubmitted)
   'percentUngraded' : () -> 
-    q = _onlyUngraded(@)
-    numUngraded = SubmittedExercises.find(q).count()
-    numSubmitted = getNumberSubmitted(@)
-    return getPercent(numUngraded, numSubmitted)
+    key = @?._id or 'all'
+    stats = Template.instance().stats?.get()
+    return 0 unless stats?[key]?
+    numCorrect = stats[key].allTime.ungraded
+    numSubmitted = stats[key].allTime.num
+    return getPercent(numCorrect, numSubmitted)
   'percentUngraded7Days' : () -> 
-    q = _onlyUngraded(@)
-    q = _onlyLast7Days(q)
-    numUngraded = SubmittedExercises.find(q).count()
-    numSubmitted = getNumberSubmitted7Days(@)
-    return getPercent(numUngraded, numSubmitted)
+    key = @?._id or 'all'
+    stats = Template.instance().stats?.get()
+    return 0 unless stats?[key]?
+    numCorrect = stats[key].recent.ungraded
+    numSubmitted = stats[key].recent.num
+    return getPercent(numCorrect, numSubmitted)
+    
     
   'correct7Days' : () -> 
-    q = _onlyCorrect(@)
-    q = _onlyLast7Days(q)
-    return SubmittedExercises.find(q)
+    key = @?._id or 'all'
+    stats = Template.instance().stats?.get()
+    return stats?[key]?.recent.correctEx
   'incorrect7Days' : () -> 
-    q = _onlyIncorrect(@)
-    q = _onlyLast7Days(q)
-    return SubmittedExercises.find(q)
+    key = @?._id or 'all'
+    stats = Template.instance().stats?.get()
+    return stats?[key]?.recent.incorrectEx
   'ungraded7Days' : () -> 
-    q = _onlyUngraded(@)
-    q = _onlyLast7Days(q)
-    return SubmittedExercises.find(q)
+    key = @?._id or 'all'
+    stats = Template.instance().stats?.get()
+    return stats?[key]?.recent.ungradedEx
   
   'subscriptions' : () -> Subscriptions.find({owner:@_id})
   
@@ -219,15 +266,16 @@ Template.myTuteesProgress.helpers
   # Used to pass to the `display_subscription` template
   'userQueryParam' :() -> "user=#{@owner}"
   
-  # These are called when the data context is a SubmittedExercise
-  gradeURL : () -> (@exerciseId.replace(/\/$/, ''))+"/grade?user=#{@owner}"
-  exerciseLink : () -> decodeURIComponent(@exerciseId)
+  # These are called when the data context is an exerciseId<String>
+  gradeURL : () ->
+    (@.replace(/\/$/, ''))+"/grade?user=#{@owner}"
+  exerciseLink : () -> decodeURIComponent(@)
   
   # This is only here for the side-effects
   drawProgressCharts : () ->
     FlowRouter.watchPathChange()
     drawProgressChart 'progressChart'
-    drawProgressChart 'progressChart7days', _onlyLast7Days
+    drawProgressChart 'progressChart7days', true
     return ''
     
     
@@ -238,27 +286,28 @@ Template.myTuteesProgress.events
       $('.collapsible').collapsible()
       template.doneInitCollapsible = true
       $(event.target).click()
-  'click #showChart' : (event, template) ->
-    drawProgressChart 'progressChart'
-    drawProgressChart 'progressChart7days', _onlyLast7Days
 
-drawProgressChart = (chartElemId, daysQueryWrapper) ->
-  daysQueryWrapper ?= (a) -> a
+drawProgressChart = (chartElemId, showRecent) ->
+  stats = Template.instance().stats?.get()
+  return unless stats?
   drawChart = () ->
     tutees = _getTutees()
     dataArray = [ ['Status', 'Correct', 'Incorrect', 'Ungraded', { role: 'annotation' } ] ]
     for t in tutees.fetch()
       row = [t.profile.name]
-      for fn in [_onlyCorrect, _onlyIncorrect, _onlyUngraded]
-        q = daysQueryWrapper(fn(t))
-        num = SubmittedExercises.find(q).count() 
-        row.push( num )
+      if showRecent
+        nums = stats[t._id]?.recent or {correct:0, incorrect:0, ungraded:0}
+      else
+        nums = stats[t._id]?.allTime or {correct:0, incorrect:0, ungraded:0}
+      row.push( nums.correct )
+      row.push( nums.incorrect )
+      row.push( nums.ungraded )
       row.push ''
       dataArray.push(row)
     data = google.visualization.arrayToDataTable dataArray
     options = 
       width: 600
-      height: 400
+      height: 400 + (10 * (stats.numStudents))
       legend: { position: 'top', maxLines: 3 }
       bar: { groupWidth: '75%' }
       isStacked: true

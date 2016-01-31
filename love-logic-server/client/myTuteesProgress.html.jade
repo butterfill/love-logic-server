@@ -77,10 +77,10 @@ template(name='myTuteesProgress')
   //- p Mean (last 7 days): #{meanNumberSubmitted7days} exercises submitted
   //-   span (#{percentCorrect7Days}% correct, #{percentIncorrect7Days}% incorrect, #{percentUngraded7Days}% ungraded)
   
-  each tutees
-    .spacer(style="margin-top:2em") &nbsp;
-    h4 #{profile.name} &lt;#{email}&gt;
-    if Template.subscriptionsReady
+  if Template.subscriptionsReady
+    each tutees
+      .spacer(style="margin-top:2em") &nbsp;
+      h4 #{profile.name} &lt;#{email}&gt;
       
       table.centered
         thead
@@ -105,48 +105,43 @@ template(name='myTuteesProgress')
             td #{percentUngraded7Days}%
       
             
-      //-
-      //- p Exercises submitted (all time): #{number_submitted}
-      //-   span (#{percentCorrect}% correct, #{percentIncorrect}% incorrect, #{percentUngraded}% ungraded)
-      //- p Exercises submitted (last 7 days): #{number_submitted_7days}
-      //-   span (#{percentCorrect7Days}% correct, #{percentIncorrect7Days}% incorrect, #{percentUngraded7Days}% ungraded)
-      
+    
       p Following these exercise sets:
       ul.collection
         each subscriptions
-          li.collection-item 
+          li.collection-item
             //- the `display_subscription` template is defined is defined in main.html.jade
             +display_subscription courseName=courseName variant=variant userQueryParam=userQueryParam
       ul.collapsible.popout
         if percentCorrect7Days
           li
-            .collapsible-header 
+            .collapsible-header
               i.material-icons list
               | #{profile.name}’s correct answers from the last 7 days
             .collapsible-body
               ul.collection
                 each correct7Days
-                  li.collection-item 
+                  li.collection-item
                     a(href="#{gradeURL}") #{exerciseLink}
         if percentIncorrect7Days
           li
-            .collapsible-header 
+            .collapsible-header
               i.material-icons list
               | #{profile.name}’s incorrect answers from the last 7 days
             .collapsible-body
               ul.collection
                 each incorrect7Days
-                  li.collection-item 
+                  li.collection-item
                     a(href="#{gradeURL}") #{exerciseLink}
         if percentUngraded7Days
           li
-            .collapsible-header 
+            .collapsible-header
               i.material-icons list
               | #{profile.name}’s ungraded answers from the last 7 days
             .collapsible-body
               ul.collection
                 each ungraded7Days
-                  li.collection-item 
+                  li.collection-item
                     a(href="#{gradeURL}") #{exerciseLink}
     else
       +loading
