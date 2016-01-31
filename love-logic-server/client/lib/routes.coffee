@@ -65,8 +65,6 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: tutees: can see their progress on exercise sets the tutor is following
 
-# TODO: speed up myTuteesProgress!
-
 # TODO: seminar_tutor should specify id, not email address!
 
 # TODO: stats - how many Warwick people
@@ -76,9 +74,9 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: test the fix to the GradedAnswers Leftof(b,a) is LeftOf(b,a) bug
 
-# TODO: exercisesToGrade doesn’t pick up on ‘Beatrice is’.  Why not?
+# TODO: tutor can ‘disown’ tutee, and mass disown tutees; instructor can disown tutors --- this will enable transition from one year to the next
 
-# TODO: Speed up Tutees’ progress page
+# TODO: exercisesToGrade doesn’t pick up on ‘Beatrice is’.  Why not?
 
 # TODO: make translation exercises check that students have used only the predicates specified in the question, and have used them with the correct arity.
 
