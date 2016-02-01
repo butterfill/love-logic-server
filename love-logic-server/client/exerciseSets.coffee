@@ -205,7 +205,7 @@ Template.exerciseSet.helpers
     
     # Now fill in details of exercises
     exLinks = _.keys exDict
-    allExIncludingResubmits = SubmittedExercises.find({exerciseId:{$in:exLinks}},{reactive:false}).fetch()
+    allExIncludingResubmits = SubmittedExercises.find({exerciseId:{$in:exLinks}, owner:ix.getUserId()},{reactive:false}).fetch()
     exDup = {}  # used to keep track of multiple submissions for one exercise
     allEx = allExIncludingResubmits
     for ex in allEx
@@ -244,7 +244,7 @@ Template.exerciseSet.helpers
           e = ix.convertToExerciseId(exLink)
           exLinksToCheck.push(e)
           
-    allExIncludingResubmits = SubmittedExercises.find({exerciseId:{$in:exLinksToCheck}},{reactive:false}).fetch()
+    allExIncludingResubmits = SubmittedExercises.find({exerciseId:{$in:exLinksToCheck}, owner:ix.getUserId()},{reactive:false}).fetch()
     exDup = {}  # used to keep track of multiple submissions for one exercise
     for ex in allExIncludingResubmits
       if ex not of exDup

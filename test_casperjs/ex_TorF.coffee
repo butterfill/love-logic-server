@@ -40,11 +40,12 @@ casper.test.begin 'open a logic-ex page', (test) ->
     @waitForSelector 'button#submit', () ->
       @click 'button#submit'      
   casper.then () ->
-    @waitForSelector ".submittedAnswer", () ->
-      test.assertEval () ->
-        txt = "is correct"
-        return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
-      , "the correct answer is submitted and marked correctly" 
+    @wait 50, () ->
+      @waitForSelector ".submittedAnswer", () ->
+        test.assertEval () ->
+          txt = "is correct"
+          return $(".submittedAnswer:eq(0):contains(#{txt})").length > 0
+        , "the correct answer is submitted and marked correctly" 
       
   # give incorrect answer and check it’s marked correctly
   # TODO: this should really wait until there’s a second .submittedAnswer (so might fail just because it’s a badly written test!)

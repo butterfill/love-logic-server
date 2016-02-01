@@ -1,5 +1,3 @@
-
-
 Template.submit_btn.onCreated () ->
   self = this
   self.autorun () ->
@@ -25,12 +23,24 @@ Template.GradeLayout.onCreated () ->
     # Which `SubmittedAnswers` to get?
     # If url param `user`, then get answers for that user (who must be a tutee of the current user).
     # Otherwise get answers for all the current users tutees.
-    userId = ix.getUserId()
-    if userId is Meteor.userId()
-      self.subscribe 'submitted_answers', exerciseId
-    else
-      self.subscribe 'submitted_answers', exerciseId, userId
+    userId = FlowRouter.getQueryParam('user')
+    self.subscribe 'submitted_answers', exerciseId, userId
     
+
+getSubmittedAnswersCursor = () ->
+  q = {}
+  q.exerciseId = ix.getExerciseId()
+  
+  userId = FlowRouter.getQueryParam('user')
+  if userId
+    q.owner = userId
+  
+  if isHideCorrectAnswers()
+    q['humanFeedback.isCorrect'] = {$not:true}
+    q['machineFeedback.isCorrect'] = {$not:true}
+  
+  return SubmittedExercises.find(q, {sort:{'created':-1}})
+  
 
 isHideCorrectAnswers = () ->
   stored = Session.get("#{ix.getUserId()}/hideCorrectAnswers")
@@ -53,18 +63,8 @@ Template.GradeLayout.helpers
     return "#{type}_ex_display_answer"
   isAnswers : () ->
     FlowRouter.watchPathChange()
-    return SubmittedExercises.find().count() >0
-  answers : () ->
-    exerciseId = ix.getExerciseId()
-    if isHideCorrectAnswers()
-      q = {
-        exerciseId : exerciseId
-        'humanFeedback.isCorrect':{$not:true}
-        'machineFeedback.isCorrect':{$not:true}
-      }
-      return SubmittedExercises.find(q, {sort:{'created':-1}})
-    else
-      return SubmittedExercises.find({exerciseId}, {sort:{'created':-1}})
+    return getSubmittedAnswersCursor().count() >0
+  answers : getSubmittedAnswersCursor
   dateSubmitted : () ->
     return moment(@created).fromNow()
   isMachineFeedback : () ->

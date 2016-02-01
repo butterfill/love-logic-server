@@ -28,12 +28,13 @@ Meteor.publish "dates_exercises_submitted", (userId) ->
   if @userId isnt userId
     studentId = userId
     throw new Meteor.Error "not authorized" unless checkIsTutee(@userId, studentId)
-  return SubmittedExercises.find({ owner:userId }, {fields:{created:1, exerciseId:1, 'humanFeedback.isCorrect':1, 'machineFeedback.isCorrect':1}})
+  return SubmittedExercises.find({ owner:userId }, {fields:{created:1, owner:1, exerciseId:1, 'humanFeedback.isCorrect':1, 'machineFeedback.isCorrect':1}})
 Meteor.startup ->
   SubmittedExercises._ensureIndex({owner:1})
 
 # This is called by students to see everything they have submitted.
 # Param `userId` allows tutors to call this to see a tutee’s progress.
+# Whatever happens, the results are limited to a specific user (the current user if param `userId` is not specified).
 Meteor.publish "submitted_exercises", (userId) ->
   userId ?= @userId
   if @userId isnt userId

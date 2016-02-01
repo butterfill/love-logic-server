@@ -22,3 +22,8 @@ echo
 echo ---
 echo casperjs test ex_tt.coffee --engine=$1
 casperjs test ex_tt.coffee --engine=$1
+
+echo 
+echo ---
+echo casperjs test visit_key_pages.coffee --engine=$1
+casperjs test visit_key_pages.coffee --engine=$1

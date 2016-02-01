@@ -8,8 +8,8 @@ Template.myTuteesProgress.onCreated () ->
       templateInstance.subscribe 'tutors_for_instructor', tutorId
     
     # For the following, `tutorId` can be undefined
-    templateInstance.subscribe 'tutees', tutorId
-    progressSub = templateInstance.subTuteesProgress = templateInstance.subscribe 'tutees_progress', tutorId
+    tuteesSub = templateInstance.subscribe 'tutees', tutorId
+    progressSub = templateInstance.subscribe 'tutees_progress', tutorId
     templateInstance.subscribe 'tutees_subscriptions', tutorId
     
     FlowRouter.watchPathChange()
@@ -17,11 +17,11 @@ Template.myTuteesProgress.onCreated () ->
     if variant?
       courseName = FlowRouter.getParam '_courseName'
       exSub = templateInstance.subscribe 'exercise_set', courseName, variant
-      if exSub.ready() and progressSub.ready()
+      if exSub.ready() and progressSub.ready() and tuteesSub.ready()
         ex = getCurrentExercises()
         templateInstance.stats.set( getAllStats(DAYSAGO7, ex) )
     else
-      if progressSub.ready()
+      if progressSub.ready() and tuteesSub.ready()
         templateInstance.stats.set( getAllStats(DAYSAGO7) )
       
     
@@ -54,12 +54,22 @@ getCurrentExercises = () ->
   return ex
 
 getAllStats = (sinceDate, exercises) ->
+  start = performance.now()
+  
   q = {}
-  # if sinceDate?
-  #   q.created = {$gte:sinceDate}
+  
+  # restrict to certain exercises
   if exercises?
     q.exerciseId = {$in:exercises}
+  
+  # restrict to tutees of the tutor
+  tutees = _getTutees().fetch()
+  tuteeIds = (x._id for x in tutees)
+  # Actually we won’t do that by querying - we’ll filter the others out below.
+  # q.owner = {$in:tuteeIds}
+  
   allSubmittedExercises = SubmittedExercises.find(q).fetch()
+  console.log "stats query took #{performance.now() - start} ms"
   
   stats = {}
   
@@ -87,6 +97,11 @@ getAllStats = (sinceDate, exercises) ->
         object.ungradedEx.push(exerciseId)
 
   for se in allSubmittedExercises
+
+    # ignore any SubmittedExercise not done by one of the tutees under consideration here
+    if not se.owner of tuteeIds
+      continue
+      
     isCorrect = se.humanFeedback?.isCorrect is true or se.machineFeedback?.isCorrect is true
     isIncorrect = se.humanFeedback?.isCorrect is false or se.machineFeedback?.isCorrect is false
     # isUngraded = (not se.humanFeedback?.isCorrect?) or (not se.machineFeedback?.isCorrect?)
@@ -97,6 +112,8 @@ getAllStats = (sinceDate, exercises) ->
   
   # This is the number of students who have submitted at least one exercise.
   stats.numStudents = Object.keys(stats).length - 1
+  
+  console.log "stats all took #{performance.now() - start} ms"
   
   return stats
 
@@ -189,8 +206,6 @@ Template.myTuteesProgress.helpers
     stats = Template.instance().stats?.get()
     return 0 unless stats?.all?
     return Math.floor( stats.all.allTime.num / stats.numStudents )
-    # q = _getQuery()
-    # return Math.floor(SubmittedExercises.find(q).count() / _getTutees().count())
   meanNumberSubmitted7days : () ->
     stats = Template.instance().stats?.get()
     return 0 unless stats?.all?
@@ -268,7 +283,8 @@ Template.myTuteesProgress.helpers
   
   # These are called when the data context is an exerciseId<String>
   gradeURL : () ->
-    (@.replace(/\/$/, ''))+"/grade?user=#{@owner}"
+    tutee=Template.parentData()
+    (@.replace(/\/$/, ''))+"/grade?user=#{tutee._id}"
   exerciseLink : () -> decodeURIComponent(@)
   
   # This is only here for the side-effects

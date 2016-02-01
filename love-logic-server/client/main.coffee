@@ -31,11 +31,14 @@ Template.main.helpers
   isTutor : ix.userIsTutor
   isInstructor : ix.userIsInstructor
   hasSubscriptions : () ->
-    return Subscriptions.find().count() >0
+    owner = Meteor.userId()
+    return Subscriptions.find({owner}).count() >0
   hasNoSubscriptions : () ->
-    return Subscriptions.find().count() is 0
+    owner = Meteor.userId()
+    return Subscriptions.find({owner}).count() is 0
   subscriptions : () ->
-    return Subscriptions.find()
+    owner = Meteor.userId()
+    return Subscriptions.find({owner})
 
   hasSeminarTutor : () ->
     return Meteor.user()?.profile?.seminar_tutor?

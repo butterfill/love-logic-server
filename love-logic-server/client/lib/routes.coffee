@@ -1,5 +1,6 @@
 # ------
-# Routes
+# Routes 
+
 
 FlowRouter.notFound =
   action : (params, queryParams) ->
@@ -20,6 +21,11 @@ FlowRouter.route '/oldBrowserSorry',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'oldBrowserSorry'
   name : 'oldBrowserSorry'
+
+
+FlowRouter.route '/testThrowException', 
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'testThrowException'
 
 # ------
 # Admin routes for students
@@ -61,6 +67,8 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
+# TODO: exercise editor (can create exercise sets)
+
 # TODO: add tutor: provide a list of tutors to select from (or can enter custom email), the list is restricted to the domain of the user’s email address
 
 # TODO: tutees: can see their progress on exercise sets the tutor is following
@@ -92,9 +100,7 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: only trusted users can create GradedAnswers
 
-# TODO: lecturer role; can monitor TAs’ marking and students’ progress.
-
-# TODO: admin role: can list all users, when registered, how many exercises submitted, date last exercise submitted.
+# TODO: instructor can monitor all students’ progress.
 
 # TODO: exercise - write down the scopes of different operators.
 

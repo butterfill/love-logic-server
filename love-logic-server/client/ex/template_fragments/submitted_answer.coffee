@@ -10,18 +10,13 @@ doSubscriptions = (self, onReady) ->
 
 Template.submit_btn.onCreated doSubscriptions
 Template.submitted_answer.onCreated () ->
-  doSubscriptions(this, ()->
+  doSubscriptions this, ()->
     # Record that the user has seen the feedback (or at least opened the page containing it)
     exerciseId = ix.getExerciseId()
-    q = $and:[
-      {exerciseId}
-      {'humanFeedback.studentSeen':false}
-    ]
-    exWithUnseenFeedback = SubmittedExercises.find(q)
-    if exWithUnseenFeedback.count() > 0 
-      for ex in exWithUnseenFeedback.fetch()
-        Meteor.call "studentSeenFeedback", ex
-  )
+    owner = Meteor.userId()
+    exWithUnseenFeedback = SubmittedExercises.find({exerciseId, owner, 'humanFeedback.studentSeen':false}).fetch()
+    for ex in exWithUnseenFeedback
+      Meteor.call "studentSeenFeedback", ex
 
 # Keep track of the last exercise page the user loaded 
 # so that she can easily resume where she left off later.
@@ -34,7 +29,8 @@ Template.submit_btn.onCreated () ->
 
 isSubmitted = () ->
   exerciseId = ix.getExerciseId()
-  return SubmittedExercises.find({exerciseId}).count() > 0
+  owner = Meteor.userId()
+  return SubmittedExercises.find({exerciseId, owner}).count() > 0
 
 
 Template.submitted_answer.helpers    
@@ -42,7 +38,7 @@ Template.submitted_answer.helpers
   submittedAnswers : () ->
     exerciseId = ix.getExerciseId()
     owner = Meteor.userId()
-    return SubmittedExercises.find({owner, exerciseId}, {sort:{'created':-1}})
+    return SubmittedExercises.find({exerciseId, owner}, {sort:{'created':-1}})
   dateSubmitted : () ->
     return moment(@created).fromNow()
   machineSays : () -> (@machineFeedback.comment? and @machineFeedback.comment isnt '')

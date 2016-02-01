@@ -295,7 +295,7 @@ ix.getPremisesFromParams = (self) ->
         premisesIdx = exercisesIdParts.indexOf('from')
         # The premises are the part after `from`
         _premises = exercisesIdParts[premisesIdx+1]
-  return undefined unless _premises?
+  return [] unless _premises?
   txtList = decodeURIComponent(_premises).split('|')
   try
     folList = (fol.parse(t) for t in txtList)

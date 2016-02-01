@@ -76,7 +76,6 @@ template(name='exerciseSet')
         | all exercises
     
   if Template.subscriptionsReady
-    #progressChart
     table.centered
       thead
         tr
@@ -93,6 +92,7 @@ template(name='exerciseSet')
   else
     +loading
   
+  #progressChart
     
   if isForTutee
     .pass

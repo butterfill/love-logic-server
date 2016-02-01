@@ -11,9 +11,13 @@ configure = (casper) ->
 
   # This ensures tests fail if there’s an error in the code behind a template which Meteor catches
   casper.on 'remote.message', (message) ->
-    # if message.startsWith('Exception in template helper')
     @echo 'console: ' + message.substring(0,300)
-      # throw new Error "meteor exception in template"
+    if message.startsWith('Exception in template helper')
+      @capture 'img/exception.png'
+      @echo '---'
+      @echo 'long msg: ' + message.substring(0,3000)
+      @echo '---'
+      throw new Error "meteor exception in template"
 
   casper.on 'page.error', (msg, trace) ->
     @echo('Error: ' + msg, 'ERROR')
@@ -24,8 +28,8 @@ exports.configure = configure
 exports.LOGIN_EMAIL = 'tester@'
 exports.LOGIN_PW = 'tester'
 
-URL = 'http://logic-ex.butterfill.com/sign-in'
-# URL = 'http://logic-ex-test.butterfill.com/sign-in'
+# URL = 'http://logic-ex.butterfill.com/sign-in'
+URL = 'http://logic-ex-test.butterfill.com/sign-in'
 # URL = 'http://localhost:3000/sign-in'
 exports.URL = URL
 console.log "URL: #{URL}"

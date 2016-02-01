@@ -22,6 +22,9 @@
 
 @HelpRequest = new Mongo.Collection('help_request')
 
+
+
+
 Meteor.methods
   seminarTutorExists : (emailAddress) ->
     Meteor.users.find({'emails.address':emailAddress, 'profile.is_seminar_tutor':true}).count() isnt 0

@@ -6,7 +6,7 @@ config = require("#{pwd}/config")
 
 
 
-doLogin = (casper, test, x) ->
+exports.doLogin = (casper, test, x) ->
   
   loginPage = pageObjects.LoginPageObject(casper, test, x)
   casper.then () ->
@@ -35,8 +35,7 @@ doLogin = (casper, test, x) ->
         return $("body:contains(#{txt})").length > 0
       , "logged in, home page displays my email address"
       , config.LOGIN_EMAIL
-      
-exports.doLogin = doLogin
+
 
 exports.resetTester = (casper, test) ->
   casper.then () ->
@@ -47,3 +46,14 @@ exports.resetTester = (casper, test) ->
       @waitForSelector '.itIsDone', () ->
         test.assertExists '.itIsDone'
 
+
+exports.visitPage = (url, casper, test) ->
+  casper.then () ->
+    @wait 15, () ->
+      # it’s good to wait.
+      @evaluate( ((url) ->FlowRouter.go url), url )
+  casper.then () ->
+    @wait 15, () ->
+      @waitWhileSelector '.pageIsLoading', () ->
+        console.log "loaded #{url}"
+        test.assertDoesntExist '.pageIsLoading'
