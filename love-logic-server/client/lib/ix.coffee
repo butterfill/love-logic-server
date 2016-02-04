@@ -367,7 +367,8 @@ ix.getSentenceFromParam = (self) ->
       parts = self.exerciseId.split('/')
       idx = parts.indexOf('sentence')+1
       sentence = parts[idx]
-  return decodeURIComponent(sentence)
+  return decodeURIComponent(sentence) if sentence?
+  return undefined
 
 ix.getSentencesFromParam = (self) ->
   sentences = undefined
@@ -594,6 +595,8 @@ ix.possibleWorld =
       return false
     Adjacent : (a,b) ->
       return ix.possibleWorld.binaryPredicates.HorizontallyAdjacent(a,b) or ix.possibleWorld.binaryPredicates.VerticallyAdjacent(a,b)
+    NotAdjacent : (a,b) ->
+      return not (ix.possibleWorld.binaryPredicates.Adjacent(a,b))
     WiderThan : (a,b) ->
       return a.width > b.width
     NarrowerThan : (a,b) ->
@@ -604,11 +607,15 @@ ix.possibleWorld =
       return a.height < b.height
     SameShape : (a,b) ->
       return (a.height / a.width) is (b.height / b.width)
+    DifferentShape : (a,b) ->
+      return (a.height / a.width) isnt (b.height / b.width)
     LargerThan : (a,b) ->
       return a.height*a.width > b.height*b.width
     SmallerThan : (a,b) ->
       return a.height*a.width < b.height*b.width
     SameSize : (a,b) ->
+      return (a.height * a.width) is (b.height * b.width)
+    DifferentSize : (a,b) ->
       return (a.height * a.width) is (b.height * b.width)
 
   getPredicate : (symbol, type) ->

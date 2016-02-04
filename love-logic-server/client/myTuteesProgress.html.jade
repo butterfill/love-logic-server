@@ -16,7 +16,7 @@ template(name='myTuteesProgress')
       p For all exercises. Restrict to:
       ul
         each allSubscriptionsUniqueExerciseSets
-          li(style="margin-left:2em;"): a(href="/myTuteesProgress/course/#{courseName}/exerciseSet/#{variant}") The #{variant} exercises for #{courseName}
+          li(style="margin-left:2em;"): a(href="/myTuteesProgress/course/#{courseName}/exerciseSet/#{variant}#{urlQueryPart}") The #{variant} exercises for #{courseName}
   
   if paramsSpecifyExerciseSet
     if paramsSpecifyLecture
@@ -27,23 +27,16 @@ template(name='myTuteesProgress')
         p Restrict to unit:
           each unitNamesOfCurrentLecture
             span 
-              a(href="#{url}") #{name}
+              a(href="#{url}#{urlQueryPart}") #{name}
               | , 
     else
       //- select lecture
       p Restrict to lecture:
         each lectureNamesOfCurrentExerciseSet
           span
-            a(href="#{url}") #{name}
+            a(href="#{url}#{urlQueryPart}") #{name}
             | , 
   
-  
-  h5 All time
-  #progressChart
-  h5 Last 7 days
-  #progressChart7days
-  if Template.subscriptionsReady
-    p #{drawProgressCharts}
   
   if Template.subscriptionsReady
     h4 Means for your #{nofTutees} tutees:
@@ -70,7 +63,15 @@ template(name='myTuteesProgress')
           td #{percentUngraded7Days}%
   else
     +loading
+
+  h5 All time
+  #progressChart
+  h5 Last 7 days
+  #progressChart7days
+  if Template.subscriptionsReady
+    p #{drawProgressCharts}
   
+    
   
   //- p Mean  (all time): #{meanNumberSubmitted} exercises submitted
   //-   span (#{percentCorrect}% correct, #{percentIncorrect}% incorrect, #{percentUngraded}% ungraded)

@@ -86,7 +86,9 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: exercisesToGrade doesn’t pick up on ‘Beatrice is’.  Why not?
 
-# TODO: make translation exercises check that students have used only the predicates specified in the question, and have used them with the correct arity.
+# TODO: after submit, a 'SHOW ME AN ANSER' button appears (/proof and /create)
+
+# TODO: exercise - counterexample and domain specified explicity (for arbitrary predicates)
 
 # TODO: exercises to grade sorted by course and lecture
 
@@ -136,14 +138,27 @@ FlowRouter.route '/ex/trans/domain/:_domain/names/:_names/predicates/:_predicate
 FlowRouter.route '/ex/create/qq/:_sentences',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'create_ex'
+# As /ex/create but describe the possible situation explicitly (extensions for predicates, etc)
+FlowRouter.route '/ex/counter/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'counter_ex'
 # Either say that the sentences are inconsistent or else create a possible situation in which `_sentences` are all true
 FlowRouter.route '/ex/create/orInconsistent/qq/:_sentences',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'create_ex'
+FlowRouter.route '/ex/counter/orInconsistent/qq/:_sentences',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'counter_ex'
 FlowRouter.route '/ex/create/qq/:_sentences/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+FlowRouter.route '/ex/counter/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 FlowRouter.route '/ex/create/orInconsistent/qq/:_sentences/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+FlowRouter.route '/ex/counter/orInconsistent/qq/:_sentences/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
@@ -151,14 +166,26 @@ FlowRouter.route '/ex/create/orInconsistent/qq/:_sentences/grade',
 FlowRouter.route '/ex/create/from/:_premises/to/:_conclusion',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'create_ex'
+FlowRouter.route '/ex/counter/from/:_premises/to/:_conclusion',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'counter_ex'
 # Either say that the argument is logically valid or else create a counterexample to the argument
 FlowRouter.route '/ex/create/orValid/from/:_premises/to/:_conclusion',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'create_ex'
+FlowRouter.route '/ex/counter/orValid/from/:_premises/to/:_conclusion',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'counter_ex'
 FlowRouter.route '/ex/create/from/:_premises/to/:_conclusion/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+FlowRouter.route '/ex/counter/from/:_premises/to/:_conclusion/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 FlowRouter.route '/ex/create/orValid/from/:_premises/to/:_conclusion/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+FlowRouter.route '/ex/counter/orValid/from/:_premises/to/:_conclusion/grade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 

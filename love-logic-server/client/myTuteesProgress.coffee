@@ -172,6 +172,7 @@ _getTutees = () ->
   return Meteor.users.find({'profile.seminar_tutor':tutorEmail})
   
 Template.myTuteesProgress.helpers
+  urlQueryPart : () -> window.location.search
   forSelf : () -> FlowRouter.getQueryParam('tutor') is undefined
   tutorName : () ->
     tutorId = FlowRouter.getQueryParam('tutor')

@@ -74,8 +74,12 @@ Template.create_ex.events
       comment = "Your submitted possible situation is #{('not' if not isCorrect) or ''} correct."
     # Second possibility: user has to give a counterexample to argument
     if ix.getConclusionFromParams()?
-      isCorrect = ix.possibleWorld.checkSentencesAreCounterexample($grid)
-      comment = "Your submitted possible situation is #{('not' if not isCorrect) or ''} a counterexample."
+      try
+        isCorrect = ix.possibleWorld.checkSentencesAreCounterexample($grid)
+        comment = "Your submitted possible situation is #{('not' if not isCorrect) or ''} a counterexample."
+      catch e
+        isCorrect = false
+        comment = "#{e}"
     machineFeedback = { isCorrect, comment }
     ix.submitExercise({
         answer : 

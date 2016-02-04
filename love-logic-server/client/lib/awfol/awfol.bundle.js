@@ -562,6 +562,25 @@ _decorate = function(expression) {
       e.walk(nameFinder);
       return _names;
     };
+    e.getPredicates = function() {
+      var _predicates, eq, predicateFinder;
+      _predicates = [];
+      predicateFinder = function(expression) {
+        if ((expression != null ? expression.type : void 0) !== 'predicate') {
+          return void 0;
+        }
+        _predicates.push({
+          name: expression.name,
+          arity: expression.termlist.length
+        });
+        return void 0;
+      };
+      e.walk(predicateFinder);
+      eq = function(p1) {
+        return p1.name + "*&!" + p1.arity;
+      };
+      return _.uniq(_predicates, eq);
+    };
     e.getSentenceLetters = function() {
       var _letters, letterFinder;
       _letters = [];

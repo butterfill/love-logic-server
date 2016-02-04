@@ -9,16 +9,26 @@ isTranslationToEn = false
 
 # ========
 # Template: trans_ex_display_question
+
 # (This is a fragment that is used both for students and graders)
-getNames = (self) -> 
+# Returns a list of names and referents for display, e.g. ['a : Ayesha']
+getNames = (self, returnRawNames) -> 
   rawNameText = FlowRouter.getParam('_names')
   if not rawNameText?
     if self?.exerciseId?
       parts = self.exerciseId.split('/')
       idx = parts.indexOf('names')+1
       rawNameText = parts[idx]
-  decodeURIComponent(rawNameText).replace(/\=/g,' : ').split('|')
+  nameDescriptions = decodeURIComponent(rawNameText).replace(/\=/g,' : ').split('|')
+  return nameDescriptions unless returnRawNames
+  rawNames = (x.split(' : ')[0] for x in nameDescriptions)
+  return rawNames
 
+# Returns just the names, e.g. ['a', 'b']
+getRawNames = (self) ->
+  return getNames(self, true)
+  
+  
 Template.trans_ex_display_question.helpers
   isTranslationToEn : () ->
     return checkIfTranslationToEn(@)
@@ -47,7 +57,7 @@ checkIfTranslationToEn = (self) ->
   catch error
     return false
 
-getPredicatesFromParams = (self) ->
+getPredicatesFromParams = (self, returnRawPredicates) ->
   raw = FlowRouter.getParam('_predicates')
   if not raw?
     if self?.exerciseId?
@@ -55,8 +65,23 @@ getPredicatesFromParams = (self) ->
       idx = parts.indexOf('predicates')+1
       raw = parts[idx]
   rawParts = decodeURIComponent(raw).split('|')
+  return rawParts if returnRawPredicates
   predicates = (extractPredicteFromParam(p) for p in rawParts)
   return predicates
+
+getRawPredicates = () ->
+  nameArityList = getPredicatesFromParams(undefined, true)
+  _predicates = []
+  for nameArity in nameArityList
+    # predicate might be "Fish1-x-is-a-fish"
+    parts = nameArity.split('-')
+    firstBit = parts.shift()
+    # Assume arity is a single digit
+    name = firstBit[0..firstBit.length-2]
+    arity = parseInt(firstBit[firstBit.length-1])
+    _predicates.push {name, arity}
+  return _predicates
+  
 
 # Predicates are like `Red1` (arity=1, uses the default descriptino)
 # or `Between3-xIsBetweenYAndZ`
@@ -178,7 +203,32 @@ Template.trans_ex.events
       if not machineFeedback.hasFreeVariables
         answerPNFsimplifiedSorted = answerFOLobject.convertToPNFsimplifyAndSort().toString({replaceSymbols:true})
         machineFeedback.comment = "Your answer is a sentence of awFOL."
-        # TODO: check whether the answer uses only predicates and names which are allowed.
+        
+        # check whether the answer uses only  names which are allowed.
+        namesUsed = answerFOLobject.getNames()
+        namesAllowed = getRawNames()
+        usedCorrectNames = true
+        for name in namesUsed
+          continue if name in namesAllowed
+          usedCorrectNames = false
+          break
+        machineFeedback.usedCorrectNames = usedCorrectNames
+        unless machineFeedback.usedCorrectNames 
+          machineFeedback.comment += " But you used names other than those specified in the question."
+          machineFeedback.isCorrect = false
+          
+        # check whether the answer uses only predicates which are allowed.
+        usedCorrectPredicates = true
+        predicatesUsed = answerFOLobject.getPredicates()
+        predicatesAllowed = getRawPredicates()
+        for predicate in predicatesUsed
+          continue if _.where(predicatesAllowed, predicate).length > 0
+          usedCorrectPredicates = false
+          break
+        machineFeedback.usedCorrectPredicates = usedCorrectPredicates
+        unless machineFeedback.usedCorrectPredicates 
+          machineFeedback.comment += " But you used predicates other than those specified in the question."
+          machineFeedback.isCorrect = false
       else 
         machineFeedback.comment = "Your answer is a sentence of awFOL but it cannot be correct because it contains free variables (#{freeVariables}).  Have you forgotten a quantifier or made a mistake with brackets?"
         machineFeedback.isCorrect = false
