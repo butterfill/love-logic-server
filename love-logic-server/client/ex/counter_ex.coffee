@@ -72,17 +72,71 @@ Template.counter_ex.helpers
     return _.keys( ix.getAnswer().world.predicates )
   getPredicateExtension : () -> 
     FlowRouter.watchPathChange()
-    return JSON.stringify(ix.getAnswer().world.predicates[@])
+    return extensionToString(ix.getAnswer().world.predicates[@])
   getDomain : () -> 
     FlowRouter.watchPathChange()
     return ix.getAnswer().world.domain
-  
+
+
+Template.counter_ex_display_answer.helpers
+  exSubtypeIsValid : exSubtypeIsValid
+  exSubtypeIsInconsistent : exSubtypeIsInconsistent 
+  displayCounterexample : () -> 
+    console.log @
+    @answer.content.world?
+  sentences : () ->
+    answerTorF = @answer.content.TorF?[0]
+    if ix.isExerciseSubtype('orValid', @) and answerTorF?
+      return [{theSentence:'The argument is logically valid.', idx:0, value:"#{answerTorF}"}]
+    if ix.isExerciseSubtype('orInconsistent', @) and answerTorF?
+      return [{theSentence:'The sentences are logically inconsistent.', idx:0, value:"#{answerTorF}"}]
+  namesToAssign : () -> 
+    FlowRouter.watchPathChange()
+    return _.keys( @answer.content.world.names )
+  getNameReferent : () -> 
+    FlowRouter.watchPathChange()
+    name = @
+    answer = Template.parentData().answer
+    return answer.content.world.names[name]
+  predicatesToAssign : () ->  
+    FlowRouter.watchPathChange()
+    return _.keys( @answer.content.world.predicates )
+  getPredicateExtension : () -> 
+    FlowRouter.watchPathChange()
+    predicateName = @
+    answer = Template.parentData().answer
+    return extensionToString(answer.content.world.predicates[predicateName])
+  getDomain : () -> 
+    FlowRouter.watchPathChange()
+    return @answer.content.world.domain
+
+
+
+# Tell the user which sentences are T and which F in /counter/qq exercises
+# TODO Partially duplicates ix.possibleWorld.checkSentencesTrue (which is not used here but is used in /create/qq exercises.)
+updateDisplayWhetherSentencesTrue = () ->
+  sentences = ix.getSentencesFromParam()
+  counterexample = ix.getAnswer().world
+  return undefined unless sentences? and counterexample?
+  for sentence, idx in sentences
+    try
+      isTrue = sentence.evaluate(counterexample)
+    catch error 
+      $(".sentenceIsTrue:eq(#{idx})").text('[not evaluable in this world]')
+    #TODO: this is part of another template (create_ex_display_question)!
+    $(".sentenceIsTrue:eq(#{idx})").text(('T' if isTrue) or 'F')
+
+    
 
 parseExtension = (txt) ->
   try
-    return eval(txt.replace('<','[').replace('>',']'))
+    return eval(txt.replace(/</g,'[').replace(/>/g,']').replace(/^{/,'[').replace(/\}$/,"]"))
   catch e
     return undefined
+
+extensionToString = (extension) ->
+  return '{  }' unless extension?
+  return JSON.stringify(extension).replace(/^\[/,'{ ').replace(/\]$/,' }').replace(/\[/g,' <').replace(/\]/g,'> ')
 
 Template.counter_ex.events 
 
@@ -90,17 +144,24 @@ Template.counter_ex.events
     w = ix.getAnswer().world
     w.domain.push( w.domain.length )
     ix.setAnswerKey(w, 'world')
+    updateDisplayWhetherSentencesTrue()
   
   'click .removeFromDomain' : (event, template) ->
     w = ix.getAnswer().world
     if w.domain.length > 1 
       removed = w.domain.pop()
       namedObjects =  _.values(w.names)
-      if removed in namedObjects
+      extensionObjects = []
+      for extension in _.values(w.predicates)
+        for tuple in extension
+          extensionObjects = extensionObjects.concat(tuple)
+      console.log extensionObjects
+      if removed in namedObjects or removed in extensionObjects
         w.domain.push(removed)
-        Materialize.toast "You cannot remove a named object (#{removed}) from the domain.", 4000
+        Materialize.toast "You cannot remove an object (#{removed}) from the domain if it is named or in the extension of a predicate.", 4000
       else
         ix.setAnswerKey(w, 'world')
+        updateDisplayWhetherSentencesTrue()
     else
       Materialize.toast "Any possible situations must contain at least one object.", 4000
   
@@ -111,6 +172,7 @@ Template.counter_ex.events
     if value? and value in w.domain
       w.names[name] = value
       ix.setAnswerKey(w, 'world')
+      updateDisplayWhetherSentencesTrue()
     else
       event.target.value = w.names[name]
       Materialize.toast "Names can only refer to objects in the domain.", 4000
@@ -118,11 +180,11 @@ Template.counter_ex.events
   'blur .predicates' : (event, template) ->
     predicate = event.target.name.split('-')[1]
     extension = parseExtension(event.target.value)
+    w = ix.getAnswer().world
     unless extension?
       Materialize.toast "Your extension was not correctly formatted.", 4000
-      event.target.value = JSON.stringify(w.predicates[predicate])
+      event.target.value = extensionToString(w.predicates[predicate])
       return
-    w = ix.getAnswer().world
     extensionIsOk = _.isArray(extension)
     if extensionIsOk
       for tuple in extension
@@ -131,10 +193,11 @@ Template.counter_ex.events
           extensionIsOk = false unless elem in w.domain
     unless extensionIsOk
       Materialize.toast "An extension can only contain tuples of objects from the domain.", 4000
-      event.target.value = JSON.stringify(w.predicates[predicate])
+      event.target.value = extensionToString(w.predicates[predicate])
       return
     w.predicates[predicate] = extension
     ix.setAnswerKey(w, 'world')
+    updateDisplayWhetherSentencesTrue()
        
   # This button is provided by a the `submitted_answer` template.
   'click button#submit' : (event, template) ->
@@ -190,17 +253,3 @@ Template.counter_ex.events
   
 
 
-# ===================
-# display question template
-
-
-Template.counter_ex_display_answer.helpers
-  exSubtypeIsValid : exSubtypeIsValid
-  exSubtypeIsInconsistent : exSubtypeIsInconsistent 
-  displayCounterexample : () -> @answer.content.world?
-  sentences : () ->
-    answerTorF = @answer.content.TorF?[0]
-    if ix.isExerciseSubtype('orValid', @) and answerTorF?
-      return [{theSentence:'The argument is logically valid.', idx:0, value:"#{answerTorF}"}]
-    if ix.isExerciseSubtype('orInconsistent', @) and answerTorF?
-      return [{theSentence:'The sentences are logically inconsistent.', idx:0, value:"#{answerTorF}"}]

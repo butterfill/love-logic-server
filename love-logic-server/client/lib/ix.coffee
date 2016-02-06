@@ -467,12 +467,12 @@ ix.possibleWorld =
         isTrue = sentence.evaluate(possibleSituation)
       catch error
         giveFeedback?("Warning: #{error.message}")
-        #TODO: this is part of another template!
+        #TODO: this is part of another template (create_ex_display_question)!
         $(".sentenceIsTrue:eq(#{idx})").text('[not evaluable in this world]')
         allTrue = false
         continue
       allTrue = allTrue and isTrue 
-      #TODO: this is part of another template!
+      #TODO: this is part of another template (create_ex_display_question)!
       $(".sentenceIsTrue:eq(#{idx})").text(('T' if isTrue) or 'F')
     return allTrue
   
