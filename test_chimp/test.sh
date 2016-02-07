@@ -1,3 +1,3 @@
 #! /bin/bash
 
-chimp --mocha --watch --ddp=http://localhost:3000
+chimp --mocha --watch --browser=firefox --ddp=http://localhost:3000

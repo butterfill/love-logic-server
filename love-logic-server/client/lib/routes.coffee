@@ -71,14 +71,14 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: add tutor: provide a list of tutors to select from (or can enter custom email), the list is restricted to the domain of the user’s email address
 
-# TODO: tutees: can see their progress on exercise sets the tutor is following
-
-# TODO: seminar_tutor should specify id, not email address!
+# TODO: tutees: tutor can see their progress on exercise sets the tutor is following
 
 # TODO: stats - how many Warwick people
 
 # TODO: link to guides for specific types of exercise from each type of exercise
 # TODO: generic help by exercise type (e.g. how to write proofs).
+
+# TODO: profile.seminar_tutor should specify id, not email address!
 
 # TODO: test the fix to the GradedAnswers Leftof(b,a) is LeftOf(b,a) bug
 
@@ -87,8 +87,6 @@ FlowRouter.route '/mySubmittedExercises',
 # TODO: exercisesToGrade doesn’t pick up on ‘Beatrice is’.  Why not?
 
 # TODO: after submit, a 'SHOW ME AN ANSER' button appears (/proof and /create)
-
-# TODO: exercise - counterexample and domain specified explicity (for arbitrary predicates)
 
 # TODO: exercises to grade sorted by course and lecture
 

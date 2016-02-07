@@ -1,10 +1,10 @@
+base = require('./base')
+
 describe 'zoxiy', ->
   describe 'Page title', ->
     it 'should be set by the Meteor method', ->
-      browser.url 'http://localhost:3000/sign-in'
-      browser.deleteCookie()
-      browser.sessionStorage 'DELETE'
-      browser.localStorage 'DELETE'
+      browser.url "#{base.BASE_URL}/sign-in"
+      console.log "browser.getTitle() = #{browser.getTitle()}"
       expect(browser.getTitle()).to.equal 'love-logic'
       return
     return

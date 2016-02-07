@@ -67,4 +67,15 @@ template(name="create_ex_display_answer")
   if displayCreateWorld
     +possible_world_static
     
+    //- This template is shared with /ex/create exercises
+    +reveal_incorrect_truth_values
     
+
+template(name='reveal_incorrect_truth_values')
+  if incorrectTruthValues
+    .row: .col.s12
+      h4 incorrect truth values (not shown to student)
+      ul.collection
+        li.collection-item
+          each incorrectTruthValues
+             span #{sentence} : #{isTrue}  ;  

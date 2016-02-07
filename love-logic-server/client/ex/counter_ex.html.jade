@@ -1,8 +1,7 @@
 template(name='counter_ex')
   +topic_header
 
-  //- Here we use a template from /create exercises
-  +create_ex_display_question
+  +counter_ex_display_question
 
   h4 ... by creating a possible situation.
 
@@ -20,10 +19,9 @@ template(name='counter_ex')
         h4 domain
         ul.collection
           li.collection-item
-            p 
-              span.domain #{getDomain}
-              i.right.material-icons.addToDomain add_circle_outline
-              i.right.material-icons.removeFromDomain remove_circle_outline
+            span.domain #{getDomain}
+            i.right.material-icons.addToDomain add_circle_outline
+            i.right.material-icons.removeFromDomain remove_circle_outline
         h4 names
         ul.names.collection
           each namesToAssign
@@ -52,6 +50,10 @@ template(name='counter_ex')
   +next_exercise
 
 
+template(name="counter_ex_display_question")
+  //- Here we use a template from /create exercises
+  +create_ex_display_question
+
 template(name="counter_ex_display_answer")
   if exSubtypeIsValid
     ul.collection
@@ -73,8 +75,7 @@ template(name="counter_ex_display_answer")
         h4 domain
         ul.collection
           li.collection-item
-            p 
-              span.domain #{getDomain}
+            span.domain #{getDomain}
         h4 names
         ul.names.collection
           each namesToAssign
@@ -89,4 +90,6 @@ template(name="counter_ex_display_answer")
             li.predicate.collection-item
               span #{this} :
               span #{getPredicateExtension}
-    
+              
+    //- This template is shared with /ex/create exercises
+    +reveal_incorrect_truth_values

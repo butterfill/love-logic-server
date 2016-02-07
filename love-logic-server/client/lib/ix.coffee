@@ -461,6 +461,7 @@ ix.possibleWorld =
       possibleSituation = ix.possibleWorld.getSituationFromSerializedWord( ix.possibleWorld.serialize($grid) )
     catch error
       giveFeedback?("Warning: #{error.message}")
+      $(".sentenceIsTrue").text('')
       return false
     for sentence, idx in sentences
       try

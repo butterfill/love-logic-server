@@ -15,6 +15,11 @@ casperjs test ex_create.coffee --engine=$1
 
 echo 
 echo ---
+echo casperjs --engine=$1 test ex_create.coffee 
+casperjs test ex_create2.coffee --engine=$1 
+
+echo 
+echo ---
 echo casperjs test ex_TorF.coffee --engine=$1
 casperjs test ex_TorF.coffee --engine=$1
 

@@ -140,10 +140,8 @@ defaultNode = () ->
 
 
 saveAndUpdate = ($grid) ->
-  answer = ix.getAnswer() 
-  answer ?= {}
-  answer.world = ix.possibleWorld.serializeAndAbbreviate($grid)
-  ix.setAnswer( answer )
+  world = ix.possibleWorld.serializeAndAbbreviate($grid)
+  ix.setAnswerKey( world, 'world' )
   ix.possibleWorld.checkSentencesTrue($grid, giveFeedback)
         
 

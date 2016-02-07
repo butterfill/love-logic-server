@@ -4,19 +4,11 @@ Template.counter_ex.onCreated () ->
     FlowRouter.watchPathChange()
     exerciseId = ix.getExerciseId()
     self.subscribe 'graded_answers', exerciseId
-    savedAnswer = ix.getAnswer()?.world
+    savedAnswer = ix.getAnswer()?.counterexample
     unless savedAnswer?
-      ix.setAnswerKey( buildMinimalWorld(), 'world' )
-    
+      ix.setAnswerKey( buildMinimalAnswer(), 'counterexample' )
 
-Template.counter_ex.onRendered () ->
-  @autorun () ->
-    FlowRouter.watchPathChange()
-    # $grid = $('.grid-stack')
-    # ix.possibleWorld.checkSentencesTrue($grid)
-
-
-buildMinimalWorld = () ->
+buildMinimalAnswer = () ->
   domain = [0]
   
   allSentences = ix.getSentencesFromParam()
@@ -33,6 +25,28 @@ buildMinimalWorld = () ->
       predicates[predicate.name] = []
   
   return {domain, names, predicates}
+
+
+Template.counter_ex.onRendered () ->
+  @autorun () ->
+    FlowRouter.watchPathChange()
+    updateDisplayWhetherSentencesTrue()
+
+# Tell the user which sentences are T and which F in /counter/qq exercises
+# TODO Partially duplicates ix.possibleWorld.checkSentencesTrue (which is not used here but is used in /create/qq exercises.)
+updateDisplayWhetherSentencesTrue = () ->
+  sentences = ix.getSentencesFromParam()
+  counterexample = ix.getAnswer().counterexample
+  return undefined unless sentences? and counterexample?
+  for sentence, idx in sentences
+    try
+      isTrue = sentence.evaluate(counterexample)
+    catch error 
+      $(".sentenceIsTrue:eq(#{idx})").text('[not evaluable in this situation]')
+    #TODO: this is part of another template (create_ex_display_question)!
+    $(".sentenceIsTrue:eq(#{idx})").text(('T' if isTrue) or 'F')
+
+
 
 
 
@@ -63,27 +77,27 @@ Template.counter_ex.helpers
     return true
   namesToAssign : () -> 
     FlowRouter.watchPathChange()
-    return _.keys( ix.getAnswer().world.names )
+    return _.keys( ix.getAnswer().counterexample.names )
   getNameReferent : () -> 
     FlowRouter.watchPathChange()
-    return ix.getAnswer().world.names[@]
+    return ix.getAnswer().counterexample.names[@]
   predicatesToAssign : () ->  
     FlowRouter.watchPathChange()
-    return _.keys( ix.getAnswer().world.predicates )
+    return _.keys( ix.getAnswer().counterexample.predicates )
   getPredicateExtension : () -> 
     FlowRouter.watchPathChange()
-    return extensionToString(ix.getAnswer().world.predicates[@])
+    return extensionToString(ix.getAnswer().counterexample.predicates[@])
   getDomain : () -> 
     FlowRouter.watchPathChange()
-    return ix.getAnswer().world.domain
+    return ix.getAnswer().counterexample.domain
+
 
 
 Template.counter_ex_display_answer.helpers
   exSubtypeIsValid : exSubtypeIsValid
   exSubtypeIsInconsistent : exSubtypeIsInconsistent 
   displayCounterexample : () -> 
-    console.log @
-    @answer.content.world?
+    @answer.content.counterexample?
   sentences : () ->
     answerTorF = @answer.content.TorF?[0]
     if ix.isExerciseSubtype('orValid', @) and answerTorF?
@@ -92,39 +106,25 @@ Template.counter_ex_display_answer.helpers
       return [{theSentence:'The sentences are logically inconsistent.', idx:0, value:"#{answerTorF}"}]
   namesToAssign : () -> 
     FlowRouter.watchPathChange()
-    return _.keys( @answer.content.world.names )
+    return _.keys( @answer.content.counterexample.names )
   getNameReferent : () -> 
     FlowRouter.watchPathChange()
     name = @
     answer = Template.parentData().answer
-    return answer.content.world.names[name]
+    return answer.content.counterexample.names[name]
   predicatesToAssign : () ->  
     FlowRouter.watchPathChange()
-    return _.keys( @answer.content.world.predicates )
+    return _.keys( @answer.content.counterexample.predicates )
   getPredicateExtension : () -> 
     FlowRouter.watchPathChange()
     predicateName = @
     answer = Template.parentData().answer
-    return extensionToString(answer.content.world.predicates[predicateName])
+    return extensionToString(answer.content.counterexample.predicates[predicateName])
   getDomain : () -> 
     FlowRouter.watchPathChange()
-    return @answer.content.world.domain
+    return @answer.content.counterexample.domain
+    
 
-
-
-# Tell the user which sentences are T and which F in /counter/qq exercises
-# TODO Partially duplicates ix.possibleWorld.checkSentencesTrue (which is not used here but is used in /create/qq exercises.)
-updateDisplayWhetherSentencesTrue = () ->
-  sentences = ix.getSentencesFromParam()
-  counterexample = ix.getAnswer().world
-  return undefined unless sentences? and counterexample?
-  for sentence, idx in sentences
-    try
-      isTrue = sentence.evaluate(counterexample)
-    catch error 
-      $(".sentenceIsTrue:eq(#{idx})").text('[not evaluable in this world]')
-    #TODO: this is part of another template (create_ex_display_question)!
-    $(".sentenceIsTrue:eq(#{idx})").text(('T' if isTrue) or 'F')
 
     
 
@@ -141,13 +141,12 @@ extensionToString = (extension) ->
 Template.counter_ex.events 
 
   'click .addToDomain' : (event, template) ->
-    w = ix.getAnswer().world
+    w = ix.getAnswer().counterexample
     w.domain.push( w.domain.length )
-    ix.setAnswerKey(w, 'world')
-    updateDisplayWhetherSentencesTrue()
+    ix.setAnswerKey(w, 'counterexample')
   
   'click .removeFromDomain' : (event, template) ->
-    w = ix.getAnswer().world
+    w = ix.getAnswer().counterexample
     if w.domain.length > 1 
       removed = w.domain.pop()
       namedObjects =  _.values(w.names)
@@ -155,24 +154,21 @@ Template.counter_ex.events
       for extension in _.values(w.predicates)
         for tuple in extension
           extensionObjects = extensionObjects.concat(tuple)
-      console.log extensionObjects
       if removed in namedObjects or removed in extensionObjects
         w.domain.push(removed)
         Materialize.toast "You cannot remove an object (#{removed}) from the domain if it is named or in the extension of a predicate.", 4000
       else
-        ix.setAnswerKey(w, 'world')
-        updateDisplayWhetherSentencesTrue()
+        ix.setAnswerKey(w, 'counterexample')
     else
       Materialize.toast "Any possible situations must contain at least one object.", 4000
   
   'blur .names' : (event, template) ->
     name = event.target.name.split('-')[1]
     value = parseInt(event.target.value)
-    w = ix.getAnswer().world
+    w = ix.getAnswer().counterexample
     if value? and value in w.domain
       w.names[name] = value
-      ix.setAnswerKey(w, 'world')
-      updateDisplayWhetherSentencesTrue()
+      ix.setAnswerKey(w, 'counterexample')
     else
       event.target.value = w.names[name]
       Materialize.toast "Names can only refer to objects in the domain.", 4000
@@ -180,7 +176,7 @@ Template.counter_ex.events
   'blur .predicates' : (event, template) ->
     predicate = event.target.name.split('-')[1]
     extension = parseExtension(event.target.value)
-    w = ix.getAnswer().world
+    w = ix.getAnswer().counterexample
     unless extension?
       Materialize.toast "Your extension was not correctly formatted.", 4000
       event.target.value = extensionToString(w.predicates[predicate])
@@ -196,8 +192,7 @@ Template.counter_ex.events
       event.target.value = extensionToString(w.predicates[predicate])
       return
     w.predicates[predicate] = extension
-    ix.setAnswerKey(w, 'world')
-    updateDisplayWhetherSentencesTrue()
+    ix.setAnswerKey(w, 'counterexample')
        
   # This button is provided by a the `submitted_answer` template.
   'click button#submit' : (event, template) ->
@@ -218,7 +213,7 @@ Template.counter_ex.events
           Materialize.toast "Your answer has been submitted.", 4000
       return      
       
-    counterexample = ix.getAnswer().world
+    counterexample = ix.getAnswer().counterexample
     
     # There are two possibilities.
     # First possibility: user has to make all the sentences true
@@ -228,7 +223,7 @@ Template.counter_ex.events
         sentences = ix.getSentencesFromParam()
         for sentence in sentences
           isCorrect = isCorrect and sentence.evaluate(counterexample)
-      comment = "Your submitted possible situation is #{('not' if not isCorrect) or ''} correct."
+      comment = "Your submitted possible situation is #{('not' if not isCorrect) or ''} correct.  Can you make all the sentences true?"
     # Second possibility: user has to give a counterexample to argument
     if ix.getConclusionFromParams()?
       isCorrect = counterexample?
@@ -241,11 +236,15 @@ Template.counter_ex.events
           # conclusion must be false in the counterexample
           conclusion = ix.getConclusionFromParams() 
           isCorrect = isCorrect and not conclusion.evaluate(counterexample)
+          unless isCorrect
+            comment = "You did make the premises true. But can you also make the conclusion false?"
+        else
+          comment = "The premises are not all true.  Can you make the premises true?"
     machineFeedback = { isCorrect, comment }
     ix.submitExercise({
         answer : 
           type : 'counter'
-          content : {world:counterexample}
+          content : {counterexample:counterexample}
         machineFeedback : machineFeedback
       }, () ->
         Materialize.toast "Your possible situation has been submitted.", 4000
