@@ -22,22 +22,24 @@ template(name='counter_ex')
             span.domain #{getDomain}
             i.right.material-icons.addToDomain add_circle_outline
             i.right.material-icons.removeFromDomain remove_circle_outline
-        h4 names
-        ul.names.collection
-          each namesToAssign
-            li.name.collection-item
-              .input-field
-                input( name="name-#{this}", value="#{getNameReferent}" type="text")
-                label(for="name-#{this}") #{this} :
+        if namesToAssign
+          h4 names
+          ul.names.collection
+            each namesToAssign
+              li.name.collection-item
+                .input-field
+                  input( name="name-#{this}", value="#{getNameReferent}" type="text")
+                  label(for="name-#{this}") #{this} :
                 
       .col.s8
-        h4 predicates
-        ul.predicates.collection
-          each predicatesToAssign
-            li.predicate.collection-item
-              .input-field
-                input( name="predicate-#{this}", value="#{getPredicateExtension}" type="text")
-                label(for="predicate-#{this}") #{this} :
+        if predicatesToAssign
+          h4 predicates
+          ul.predicates.collection
+            each predicatesToAssign
+              li.predicate.collection-item
+                .input-field
+                  input( name="predicate-#{this}", value="#{getPredicateExtension}" type="text")
+                  label(for="predicate-#{this}") #{this} :
 
   +submitted_answer
 
@@ -76,20 +78,22 @@ template(name="counter_ex_display_answer")
         ul.collection
           li.collection-item
             span.domain #{getDomain}
-        h4 names
-        ul.names.collection
-          each namesToAssign
-            li.name.collection-item
-              span #{this} :
-              span #{getNameReferent} 
+        if namesToAssign
+          h4 names
+          ul.names.collection
+            each namesToAssign
+              li.name.collection-item
+                span #{this} :
+                span #{getNameReferent} 
                 
       .col.s8
-        h4 predicates
-        ul.predicates.collection
-          each predicatesToAssign
-            li.predicate.collection-item
-              span #{this} :
-              span #{getPredicateExtension}
+        if predicatesToAssign
+          h4 predicates
+          ul.predicates.collection
+            each predicatesToAssign
+              li.predicate.collection-item
+                span #{this} :
+                span #{getPredicateExtension}
               
     //- This template is shared with /ex/create exercises
     +reveal_incorrect_truth_values

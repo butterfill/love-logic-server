@@ -36,7 +36,7 @@ Template.counter_ex.onRendered () ->
 # TODO Partially duplicates ix.possibleWorld.checkSentencesTrue (which is not used here but is used in /create/qq exercises.)
 updateDisplayWhetherSentencesTrue = () ->
   sentences = ix.getSentencesFromParam()
-  counterexample = ix.getAnswer().counterexample
+  counterexample = ix.getAnswer()?.counterexample
   return undefined unless sentences? and counterexample?
   for sentence, idx in sentences
     try
@@ -130,7 +130,15 @@ Template.counter_ex_display_answer.helpers
 
 parseExtension = (txt) ->
   try
-    return eval(txt.replace(/</g,'[').replace(/>/g,']').replace(/^{/,'[').replace(/\}$/,"]"))
+    # angle to square brackets
+    txt = txt.replace(/</g,'[').replace(/>/g,']')
+    # outer curly brackets (for sets) to square brackets
+    txt = txt.replace(/^{/,'[').replace(/\}$/,"]")
+    # insert any missing commas
+    txt = txt.replace(/\]\s*\[/g, '],[')
+    # delete any duplicate commas
+    txt = txt.replace(/,\s*,/g, ',')
+    return eval(txt)
   catch e
     return undefined
 
@@ -185,8 +193,9 @@ Template.counter_ex.events
     if extensionIsOk
       for tuple in extension
         extensionIsOk = false unless _.isArray(tuple)
-        for elem in tuple
-          extensionIsOk = false unless elem in w.domain
+        if extensionIsOk
+          for elem in tuple
+            extensionIsOk = false unless elem in w.domain
     unless extensionIsOk
       Materialize.toast "An extension can only contain tuples of objects from the domain.", 4000
       event.target.value = extensionToString(w.predicates[predicate])

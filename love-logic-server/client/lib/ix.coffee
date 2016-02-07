@@ -617,7 +617,7 @@ ix.possibleWorld =
     SameSize : (a,b) ->
       return (a.height * a.width) is (b.height * b.width)
     DifferentSize : (a,b) ->
-      return (a.height * a.width) is (b.height * b.width)
+      return (a.height * a.width) isnt (b.height * b.width)
 
   getPredicate : (symbol, type) ->
     symbolIdx = (x.symbol for x in type).indexOf(symbol.trim())
