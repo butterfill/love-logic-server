@@ -19,7 +19,7 @@ casper.test.begin 'open a logic-ex page', (test) ->
   x = require('casper').selectXPath
   
   testActions.doLogin(casper, test, x)
-        
+
   testActions.resetTester(casper, test, x)
 
   # --- tests for /ex/TorF 
@@ -113,6 +113,8 @@ casper.test.begin 'open a logic-ex page', (test) ->
   casper.then () ->
     # @waitForSelector ".submittedAnswer", () ->
     # nasty xpath selector for the second .submittedAnswer
+    @capture 'img/errorTorF.png'
+    @wait 5000
     @waitForSelector x('//*[contains(concat(" ", normalize-space(@class), " "), " submittedAnswer ")][3]'), () ->
       test.assertEval () ->
         txt = "is correct"
@@ -121,7 +123,7 @@ casper.test.begin 'open a logic-ex page', (test) ->
     
   
   casper.then () ->
-    @capture 'TorF.png'
+    @capture 'img/TorF.png'
     
   
   

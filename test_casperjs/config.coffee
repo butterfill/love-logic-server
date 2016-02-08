@@ -28,8 +28,8 @@ exports.configure = configure
 exports.LOGIN_EMAIL = 'tester@'
 exports.LOGIN_PW = 'tester'
 
-URL = 'http://logic-ex.butterfill.com/sign-in'
+# URL = 'http://logic-ex.butterfill.com/sign-in'
 # URL = 'http://logic-ex-test.butterfill.com/sign-in'
-# URL = 'http://localhost:3000/sign-in'
+URL = 'http://localhost:3000/sign-in'
 exports.URL = URL
 console.log "URL: #{URL}"

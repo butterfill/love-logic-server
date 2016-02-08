@@ -600,20 +600,26 @@ ix.possibleWorld =
       return not (ix.possibleWorld.binaryPredicates.Adjacent(a,b))
     WiderThan : (a,b) ->
       return a.width > b.width
+    Wider : (a,b) -> return ix.possibleWorld.binaryPredicates.WiderThan(a,b)
     NarrowerThan : (a,b) ->
       return a.width < b.width
+    Narrower : (a,b) -> return ix.possibleWorld.binaryPredicates.NarrowerThan(a,b)
     TallerThan : (a,b) ->
       return a.height > b.height
+    Taller : (a,b) -> return ix.possibleWorld.binaryPredicates.TallerThan(a,b)
     ShorterThan : (a,b) ->
       return a.height < b.height
+    Shorter : (a,b) -> return ix.possibleWorld.binaryPredicates.ShorterThan(a,b)
     SameShape : (a,b) ->
       return (a.height / a.width) is (b.height / b.width)
     DifferentShape : (a,b) ->
       return (a.height / a.width) isnt (b.height / b.width)
     LargerThan : (a,b) ->
       return a.height*a.width > b.height*b.width
+    Larger : (a,b) -> return ix.possibleWorld.binaryPredicates.LargerThan(a,b)
     SmallerThan : (a,b) ->
       return a.height*a.width < b.height*b.width
+    Smaller : (a,b) -> return ix.possibleWorld.binaryPredicates.SmallerThan(a,b)
     SameSize : (a,b) ->
       return (a.height * a.width) is (b.height * b.width)
     DifferentSize : (a,b) ->

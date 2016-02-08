@@ -4,4 +4,6 @@ template(name='resetTester')
   if doit
     p.itIsDone Tester is reset
   else
-    p Please wait
+    p In progress or error
+  
+  p #{getErrorOrTrue}

@@ -291,6 +291,8 @@ Meteor.methods
     i = Meteor.users.findOne({'profile.name':'tester'})?._id
     if i?
       SubmittedExercises.remove({owner:i})
-    return true
+      return true
+    else
+      throw new Meteor.Error "Could not find tester’s id!"
     
     
