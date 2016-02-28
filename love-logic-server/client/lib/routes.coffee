@@ -67,7 +67,17 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
+# TODO: /ex/counter and /ex/create with no premises must display proof properly
+
+# TODO: /ex/trans with /predicates/-/ must display properly
+
+# TODO: ‘Your submitted possible situation is correct. Can you make all the sentences true?’ http://logic-ex.butterfill.com/ex/counter/qq/exists%20x%20Happy(x)
+
+# TODO: /ex/counter checks arity of predicate tuples
+
 # TODO: exercise editor (can create exercise sets)
+
+# TODO: use http://pieroxy.net/blog/pages/lz-string/index.html to compress exercisesIds to avoid problem with long URLS (mongodb index fails!)
 
 # TODO: add tutor: provide a list of tutors to select from (or can enter custom email), the list is restricted to the domain of the user’s email address
 

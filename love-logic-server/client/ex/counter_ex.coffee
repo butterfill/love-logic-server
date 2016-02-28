@@ -77,19 +77,21 @@ Template.counter_ex.helpers
     return true
   namesToAssign : () -> 
     FlowRouter.watchPathChange()
+    return [] unless ix.getAnswer()?.counterexample?.names?
     return _.keys( ix.getAnswer().counterexample.names )
   getNameReferent : () -> 
     FlowRouter.watchPathChange()
     return ix.getAnswer().counterexample.names[@]
   predicatesToAssign : () ->  
     FlowRouter.watchPathChange()
+    return [] unless ix.getAnswer()?.counterexample?.predicates?
     return _.keys( ix.getAnswer().counterexample.predicates )
   getPredicateExtension : () -> 
     FlowRouter.watchPathChange()
     return extensionToString(ix.getAnswer().counterexample.predicates[@])
   getDomain : () -> 
     FlowRouter.watchPathChange()
-    return ix.getAnswer().counterexample.domain
+    return ix.getAnswer()?.counterexample?.domain
 
 
 
