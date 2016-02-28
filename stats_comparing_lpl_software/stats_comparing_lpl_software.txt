@@ -1,0 +1,7 @@
+PH126 : students registered (ever submitted) : nof exercises submitted : ex per student
+2007/8  168  773 !?
+2008/9  250
+2009/10 259  409 !?
+2011/2  158  6721  43
+2012/3  178  5273  30
+2013/4  98   3675  38

@@ -1,6 +1,7 @@
 exports.xFindText = (text) -> "//*[contains( normalize-space(.), '#{text}' )]"
 
 BASE_URL = 'http://logic-ex.butterfill.com'
+# BASE_URL = 'http://logic-ex-test.butterfill.com'
 # BASE_URL = 'http://localhost:3000'
 exports.BASE_URL = BASE_URL
 
