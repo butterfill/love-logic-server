@@ -221,6 +221,21 @@ Template.exerciseSet.helpers
       exDoc.exerciseIsCorrect = ex.humanFeedback?.isCorrect or ex.machineFeedback?.isCorrect
       exDoc.exerciseIsIncorrect = ex.humanFeedback?.isCorrect is false or ex.machineFeedback?.isCorrect is false
       exDoc.exerciseIsUngraded = ex.humanFeedback?.isCorrect? is false and ex.machineFeedback?.isCorrect? is false
+    
+    # Create summary stats for each lecture (how many exercises todo)
+    for l in theLectures
+      l.progress = 
+        correct : 0
+        incorrect : 0
+        ungraded : 0
+        todo : 0
+      for unit in l.units
+        for ex in unit.exercises
+          l.progress.correct +=1 if ex.exerciseIsCorrect
+          l.progress.incorrect +=1 if ex.exerciseIsIncorrect
+          l.progress.todo +=1 unless ex.isSubmitted
+          l.progress.ungraded +=1 if ex.exerciseIsUngraded
+          
     return theLectures
     
   # NB: has side-effect: draws the chart

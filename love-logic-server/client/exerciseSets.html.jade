@@ -67,13 +67,28 @@ template(name='exerciseSet')
     span #{exerciseSetName}
   p #{exerciseSetDescription}
   
-  h5 Progress with 
+  h4 Progress with 
       if paramsSpecifyUnit
         | the unit ‘#{unitName}’ of
       if paramsSpecifyLecture
         | #{lectureName} 
+        if exerciseSetReady
+          if isTutor
+            each lectures
+              a(href="#{listExercisesURL}") [list questions]
       else
         | all exercises
+    
+  if exerciseSetReady
+    if paramsSpecifyLecture
+      each lectures
+        p
+          span [
+          a(href="#{slides}", target="_blank") slides
+          span ] [
+          a(href="#{handout}", target="_blank") handout
+          span ] 
+    
     
   if Template.subscriptionsReady
     table.centered
@@ -103,27 +118,11 @@ template(name='exerciseSet')
       else
         a#follow.btn.waves-effect.grey follow ‘#{exerciseSetName}’
 
-  if paramsSpecifyLecture  
-    div
-  else
-    p Select a lecture or section to view exercises.
-  
   if exerciseSetReady
-    each lectures
-      h4(id="#{htmlAnchor}") 
-        a(href="#{exerciseSetLectureURL}") #{name}
-        if isTutor
-          if paramsSpecifyLecture  
-            a(href="#{listExercisesURL}") [list questions]
-          
-      div(style="padding-left:2em;border-left:1px dotted black")
-        p
-          span [
-          a(href="#{slides}", target="_blank") slides
-          span ] [
-          a(href="#{handout}", target="_blank") handout
-          span ] 
+    if paramsSpecifyLecture  
+      each lectures
         each units
+          p.vspace &nbsp;
           h5(id="#{htmlAnchor}") 
             a(href="#{exerciseSetUnitURL}") #{name}
           if reading
@@ -132,24 +131,45 @@ template(name='exerciseSet')
             span [
             a(href="#{slides}", target="_blank") slides
             span ] 
-          if paramsSpecifyLecture  
-            ul.collection
+          //- div(style="padding-left:2em;border-left:1px dotted black")
+          ul.collection
             each exercises
-              li
-                if isForTutee
-                  a(href="#{gradeURL}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}&user=#{tuteeId}") #{name}
-                else
-                  a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
+              li.collection-item
                 if exerciseIsCorrect
                   span.green-text ✔ 
                 if exerciseIsIncorrect
                   span.red-text ✘
                 if exerciseIsUngraded
                   span.orange.white-text(style="font-weight:bold;border-radius:16px;padding-left:3px;padding-right:2px;") ?
+                //- if isSubmitted
+                //-   span.pass
+                //- else
+                //-   span.black-text ✪
+                if isForTutee
+                  a(href="#{gradeURL}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}&user=#{tuteeId}") #{name}
+                else
+                  a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
                 if isSubmitted
                   span.grey-text [submitted #{dateSubmitted}]
                 else
                   span.red-text [todo]
+                  
+    else
+      p Select a lecture or section to view exercises:
+      ul.collection
+        each lectures
+          li.collection-item(id="#{htmlAnchor}")
+            a(href="#{exerciseSetLectureURL}") #{name} 
+            span --- #{progress.todo} todo
+            if progress.correct
+              span , 
+              span.green-text ✔#{progress.correct}
+            if progress.incorrect
+              span , 
+              span.red-text ✘#{progress.incorrect}
+            if progress.ungraded
+              span , 
+              span.orange.white-text(style="font-weight:bold;border-radius:16px;padding-left:3px;padding-right:2px;") ?#{progress.ungraded}
 
   else
     +loading
