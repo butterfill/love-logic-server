@@ -58,10 +58,16 @@ template(name="TorF_ex_display_answer")
 template(name="display_argument")
   table(style='width:auto; margin-left:2em;')
     tbody
-      each premises
+      if hasPremises
+        each premises
+          tr(style="border-left: 1px solid black;")
+            td(width="1em")
+            td: div(style="margin-left:-1em;") #{this}
+      else
         tr(style="border-left: 1px solid black;")
           td(width="1em")
-          td: div(style="margin-left:-1em;") #{this}
+          td: div(style="margin-left:-1em;") &nbsp;
+      
       tr(style="border-left: 1px solid black;")
         td(width="1em", style="border-top:1px solid black;padding-right:1em;")
         td: div(style="margin-left:-1em;") #{conclusion}

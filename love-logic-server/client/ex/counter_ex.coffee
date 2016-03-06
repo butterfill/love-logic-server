@@ -234,7 +234,9 @@ Template.counter_ex.events
         sentences = ix.getSentencesFromParam()
         for sentence in sentences
           isCorrect = isCorrect and sentence.evaluate(counterexample)
-      comment = "Your submitted possible situation is #{('not' if not isCorrect) or ''} correct.  Can you make all the sentences true?"
+      comment = "Your submitted possible situation is #{('not' if not isCorrect) or ''} correct."
+      unless isCorrect
+        comment += "  Can you make all the sentences true?"
     # Second possibility: user has to give a counterexample to argument
     if ix.getConclusionFromParams()?
       isCorrect = counterexample?

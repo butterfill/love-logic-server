@@ -32,6 +32,12 @@ getRawNames = (self) ->
 Template.trans_ex_display_question.helpers
   isTranslationToEn : () ->
     return checkIfTranslationToEn(@)
+  isPredicates : () ->
+    predicates = getPredicatesFromParams(@, true)
+    return false unless predicates?.length > 0
+    if predicates.length is 1
+      return false if predicates[0].trim() is "" or predicates[0].trim() is "-"
+    return true
   predicates : () -> getPredicatesFromParams(@)
   sentence : () -> 
     if checkIfTranslationToEn(@)

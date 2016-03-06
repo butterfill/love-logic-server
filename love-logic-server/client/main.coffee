@@ -1,4 +1,8 @@
-
+options = {
+  keepHistory: 1000 * 60 * 5,
+  localSearch: true
+}
+TutorSearch = new SearchSource('tutors', ['emails.address', 'profile.name', options])
 
 # -------------
 # Template helpers
@@ -18,7 +22,6 @@ Template.main.onCreated () ->
 
 Template.main.onRendered () ->
   ix.checkBrowserCompatible()
-  
   @autorun () ->
     FlowRouter.go('/sign-in') unless Meteor.userId()?
   
@@ -66,15 +69,39 @@ Template.main.helpers
   
   nofHelpRequestsForTutor : () ->
     return Template.instance().nofHelpRequestsForTutor?.get?()
-    
+  
+  getTutors : () ->
+    res = TutorSearch.getData({
+      transform : (matchText, regExp) ->
+        return matchText.replace(regExp, "<b>$&</b>")
+      sort : {isoScore:-1}
+    })
+    return res
+  getTutorsIsLoading : () -> TutorSearch.getStatus().loading
+  
 Template.main.events
   'click #resume-last-exercise' : (event, template) ->
     url = Session.get("#{ix.getUserId()}/lastExercise")
     FlowRouter.go(url)
     
-
+  'click .changeSeminarTutor' : (event, template) ->
+    $('#seminar-tutor-modal').openModal()
+    tutor = Meteor.user()?.profile?.seminar_tutor
+    if tutor?
+      $('input.seminarTutor').val(tutor).focusin()
+      TutorSearch.search(tutor)
+    else
+      TutorSearch.search('')
+  'keyup input.seminarTutor' : (event, template) ->
+    text = $(event.target).val().trim()
+    TutorSearch.search(text)
+  'click a.setThisTutor' : (event, template) ->
+    # This is a click in the autocomplete list
+    email = @emails[0].address
+    $('input.seminarTutor').val(email).focusin()
+    TutorSearch.search(email)
   'click #confirm-set-seminar-tutor-email' : (event, template) ->
-    newAddress = $('textarea.seminarTutor').val()
+    newAddress = $('input.seminarTutor').val()
     Meteor.call "updateSeminarTutor", newAddress, (error) ->
       if error
         Materialize.toast error.message, 4000
@@ -82,7 +109,7 @@ Template.main.events
         Materialize.toast "Your seminar tutor has been updated", 4000
 
   'click #confirm-set-instructor-email' : (event, template) ->
-    newAddress = $('textarea.instructor').val()
+    newAddress = $('input.instructor').val()
     Meteor.call "updateInstructor", newAddress, (error) ->
       if error
         Materialize.toast error.message, 4000
@@ -98,8 +125,6 @@ Template.main.events
         Materialize.toast "Your email address has been updated", 4000
   
   
-  'click .changeSeminarTutor' : (event, template) ->
-    $('#seminar-tutor-modal').openModal()
   'click .changeInstructor' : (event, template) ->
     $('#instructor-modal').openModal()
   'click .changeEmail' : (event, template) ->

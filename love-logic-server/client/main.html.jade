@@ -91,7 +91,7 @@ template(name='main')
                   form
                     p 
                     .input-field
-                      textarea.instructor.materialize-textarea(id='set-instructor-email') #{instructorEmail}
+                      input.instructor#set-instructor-email(type="text", value="#{instructorEmail}") 
                       label(for='set-instructor-email') Enter the email address your instructor has asked you to use.
                     p
                       em Note that your instructor may not be registered under all her email addresses; if in doubt, please ask your instructor to confirm her email address.
@@ -121,9 +121,17 @@ template(name='main')
                 form
                   p 
                   .input-field
-                    textarea.seminarTutor.materialize-textarea(id='set-seminar-tutor-email') #{seminarTutorEmail}
+                    input.seminarTutor#set-seminar-tutor-email(type="text", value="#{seminarTutorEmail}", style="margin-bottom:0;") 
                     label(for='set-seminar-tutor-email') Enter the email address your seminar tutor has asked you to use.
-                  p
+                    .autocomplete-content.grey.darken-2(style='margin-top:0;')
+                      ul(style="-webkit-margin-before:0;margin-before:0")
+                        each getTutors
+                          li(style="padding:.25em 1em .25em 1em;"): a.setThisTutor(style="text-transform:none;")
+                            each emails
+                              span.email #{address}
+                            span - 
+                            span #{profile.name}
+                    p
                     em Note that your seminar tutor may not be registered under all her email addresses; if in doubt, please ask your seminar tutor to confirm her email address.
               .modal-footer
                 a(href="").modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel

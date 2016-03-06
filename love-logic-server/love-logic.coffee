@@ -272,6 +272,7 @@ Meteor.methods
     return HelpRequest.find({ requesterId:{$in:tuteeIds}, answer:{$exists:false}}).count()
 
 
+
 # -----
 # Stats
 Meteor.methods
@@ -279,10 +280,25 @@ Meteor.methods
     if Meteor.isClient
       return undefined
     return Meteor.users.find().count()
+  getNofUsersWithSeminarTutor : (emailDomain) ->
+    if Meteor.isClient
+      return undefined
+    q = {$ne:null}
+    if emailDomain?
+      q = new RegExp(emailDomain)
+    return Meteor.users.find({"profile.seminar_tutor":q}).count()
   getNofSubmittedExercises : () ->
     if Meteor.isClient
       return undefined
     return SubmittedExercises.find().count()
+  getNofSubmittedExercisesNoResubmits : () ->
+    if Meteor.isClient
+      return undefined
+    pipeline = []
+    pipeline.push $group : {_id:{e:"$exerciseId", o:"$owner"}, count:{$sum:1}}
+    pipeline.push $group : {_id:1,count:{$sum:1}}
+    res= SubmittedExercises.aggregate(pipeline)
+    return res[0]?.count
   
 Meteor.methods
   resetTester : () ->

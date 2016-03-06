@@ -67,23 +67,19 @@ FlowRouter.route '/mySubmittedExercises',
 # ------
 # Exercise routes
 
-# TODO: /ex/counter and /ex/create with no premises must display proof properly
-
-# TODO: /ex/trans with /predicates/-/ must display properly
-
-# TODO: ‘Your submitted possible situation is correct. Can you make all the sentences true?’ http://logic-ex.butterfill.com/ex/counter/qq/exists%20x%20Happy(x)
+# TODO: add tutor: provide a list of tutors to select from (or can enter custom email), the list is restricted to the domain of the user’s email address
 
 # TODO: /ex/counter checks arity of predicate tuples
 
+# TODO: exercises to grade sorted by course and lecture
+
 # TODO: exercise editor (can create exercise sets)
+
+# TODO: stats - how many Warwick people
 
 # TODO: use http://pieroxy.net/blog/pages/lz-string/index.html to compress exercisesIds to avoid problem with long URLS (mongodb index fails!)
 
-# TODO: add tutor: provide a list of tutors to select from (or can enter custom email), the list is restricted to the domain of the user’s email address
-
 # TODO: tutees: tutor can see their progress on exercise sets the tutor is following
-
-# TODO: stats - how many Warwick people
 
 # TODO: link to guides for specific types of exercise from each type of exercise
 # TODO: generic help by exercise type (e.g. how to write proofs).
@@ -97,8 +93,6 @@ FlowRouter.route '/mySubmittedExercises',
 # TODO: exercisesToGrade doesn’t pick up on ‘Beatrice is’.  Why not?
 
 # TODO: after submit, a 'SHOW ME AN ANSER' button appears (/proof and /create)
-
-# TODO: exercises to grade sorted by course and lecture
 
 # TODO: all emails are lower case 
 

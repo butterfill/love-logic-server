@@ -26,7 +26,12 @@ Template.TorF_ex_display_question_header.helpers
     return sentences?.length is 1
 
 Template.display_argument.helpers  
+  hasPremises : () ->
+    FlowRouter.watchPathChange()
+    premises = ix.getPremisesFromParams(@)
+    return (premises?.length?) and premises.length > 0
   premises : () -> 
+    FlowRouter.watchPathChange()
     premises = ix.getPremisesFromParams(@)
     # Premises may be awFOL objects or strings.
     # But because strings have `.toString`, this works either way.

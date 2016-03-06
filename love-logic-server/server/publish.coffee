@@ -94,7 +94,8 @@ Meteor.publish "next_help_request_with_unseen_answer", ->
   HelpRequest.find({ requesterId:@userId, answer:{$exists:true}, studentSeen:{$exists:false} }, {limit:1})
 Meteor.startup ->
   HelpRequest._ensureIndex({requesterId:1,answer:1,studentSeen:1})
-  
+
+
 
 
 # ===
@@ -198,4 +199,29 @@ Meteor.publish "tutees_progress", (tutorId) ->
 
   tuteeIds = wy.getTuteeIds(tutorEmail)
   return SubmittedExercises.find( {owner:{$in:tuteeIds}}, {fields:{'owner':1, 'exerciseId':1, 'humanFeedback.isCorrect':1, 'machineFeedback.isCorrect':1, 'created':1}} )
+
+
+# ===
+# not really a publication: a SearchSource from meteorhacks
+
+# from https://meteorhacks.com/implementing-an-instant-search-solution-with-meteor/
+buildRegExp = (searchText) ->
+  parts = searchText.trim().split(/[ \-\:]+/)
+  return new RegExp("(" + parts.join('|') + ")", "ig")
+
+# from https://meteorhacks.com/implementing-an-instant-search-solution-with-meteor/
+SearchSource.defineSource 'tutors', (searchText, options) ->
+  options = {sort: {isoScore: -1}, limit: 20};
+  if searchText
+    regExp = buildRegExp(searchText)
+    selector = {
+      'profile.is_seminar_tutor':true
+      $or: [
+        {'emails.address': regExp},
+        {'profile.name': regExp}
+      ]
+    }
+    return Meteor.users.find(selector, options).fetch();
+  else
+    return Meteor.users.find({'profile.is_seminar_tutor':true}, options).fetch();
 

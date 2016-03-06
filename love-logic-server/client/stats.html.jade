@@ -2,5 +2,10 @@
 template(name='stats')
   
   p Users: #{nofUsers}
+  p Users with seminar tutor: #{nofUsersWithSeminarTutor}
+  p Users with Warwick seminar tutor: #{nofUsersWithWarwickSeminarTutor}
   
   p Submitted Exercises: #{nofSubmittedExercises}
+  
+  p Submitted Exercises (excl. resubmissions): #{getNofSubmittedExercisesNoResubmits}
+  
