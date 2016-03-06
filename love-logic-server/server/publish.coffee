@@ -224,4 +224,6 @@ SearchSource.defineSource 'tutors', (searchText, options) ->
     return Meteor.users.find(selector, options).fetch();
   else
     return Meteor.users.find({'profile.is_seminar_tutor':true}, options).fetch();
+Meteor.startup ->
+  Meteor.users._ensureIndex({'profile.is_seminar_tutor':1})
 

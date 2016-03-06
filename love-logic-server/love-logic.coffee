@@ -36,10 +36,13 @@ Meteor.methods
     if Meteor.isClient
       # Can’t simulate
       return undefined
-    test = Meteor.users.find({'emails.address':emailAddress,  'profile.is_seminar_tutor':true}).count()
-    if test is 0
+    # Use RegExp for case-insensitive match
+    matchEmail = new RegExp("^#{emailAddress}$", "i")
+    cursor = Meteor.users.find({'emails.address':matchEmail,  'profile.is_seminar_tutor':true})
+    if cursor.count() is 0
       throw new Meteor.Error "No tutor is registered with that email address."
-    Meteor.users.update(userId, {$set: {"profile.seminar_tutor":emailAddress}})
+    tutorEmailAddress = cursor.fetch()[0].emails[0].address
+    Meteor.users.update(userId, {$set: {"profile.seminar_tutor":tutorEmailAddress}})
 
   updateInstructor : (emailAddress) ->
     userId = Meteor.user()?._id
@@ -61,7 +64,9 @@ Meteor.methods
       # Can’t simulate
       return undefined
     # Do not allow user to change email to an email already used.
-    test = Meteor.users.find({'emails.address':emailAddress}).count()
+    # Use RegExp for case-insensitive match
+    matchEmail = new RegExp("^#{emailAddress}$", "i")
+    test = Meteor.users.find({'emails.address':matchEmail}).count()
     if test isnt 0
       throw new Meteor.Error "That email address is already is use."
     emails = [{ address : emailAddress, verified : false }]

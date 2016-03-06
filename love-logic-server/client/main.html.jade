@@ -4,8 +4,6 @@ template(name='display_subscription')
 
 template(name='main')
   
-  
-  
   if hasSubscriptions
     h3 Exercises
     if isLastExercise
@@ -119,14 +117,14 @@ template(name='main')
               .modal-content
                 h4  Tutor
                 form
-                  p 
+                  p Specify the email address your seminar tutor has asked you to use.
                   .input-field
-                    input.seminarTutor#set-seminar-tutor-email(type="text", value="#{seminarTutorEmail}", style="margin-bottom:0;") 
-                    label(for='set-seminar-tutor-email') Enter the email address your seminar tutor has asked you to use.
-                    .autocomplete-content.grey.darken-2(style='margin-top:0;')
+                    input.seminarTutor.tutorTypeahead#seminarTutorTypeahead(type="text", value="#{seminarTutorEmail}", autocomplete="off", style="margin-bottom:0;") 
+                    //- label(for='seminarTutorTypeahead') Enter the email address your seminar tutor has asked you to use.
+                    .autocomplete-content.grey.darken(style='margin-top:0;')
                       ul(style="-webkit-margin-before:0;margin-before:0")
                         each getTutors
-                          li(style="padding:.25em 1em .25em 1em;"): a.setThisTutor(style="text-transform:none;")
+                          li.autocomplete-option(style="padding:.25em 1em .25em 1em;"): a.setThisTutor(style="text-transform:none;")
                             each emails
                               span.email #{address}
                             span - 
@@ -154,8 +152,8 @@ template(name='main')
                 form
                   p 
                   .input-field
-                    textarea.newEmailAddress.materialize-textarea(id='set-seminar-tutor-email') #{emailAddress}
-                    label(for='set-seminar-tutor-email') Your email address.
+                    textarea.newEmailAddress.materialize-textarea#set-email #{emailAddress}
+                    label(for='set-email') Your email address.
                   p
                     em Please use your university or college email address if you are studying logic as part of a degree course (your university won’t see your work if you don’t).
               .modal-footer
