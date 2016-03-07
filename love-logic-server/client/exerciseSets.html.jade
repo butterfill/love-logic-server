@@ -100,10 +100,10 @@ template(name='exerciseSet')
           th ungraded
       tbody
         tr
-          td #{stats.submitted} of #{stats.nofExercises}
-          td #{stats.correct}
-          td #{stats.incorrect}
-          td #{stats.ungraded}
+          td #{lectures.stats.submitted} of #{lectures.stats.nofExercises}
+          td #{lectures.stats.correct}
+          td #{lectures.stats.incorrect}
+          td #{lectures.stats.ungraded}
   else
     +loading
   
@@ -118,58 +118,59 @@ template(name='exerciseSet')
       else
         a#follow.btn.waves-effect.grey follow ‘#{exerciseSetName}’
 
-  if exerciseSetReady
-    if paramsSpecifyLecture  
-      each lectures
-        each units
-          p.vspace &nbsp;
-          h5(id="#{htmlAnchor}") 
-            a(href="#{exerciseSetUnitURL}") #{name}
-          if reading
-            p Reading: #{reading}
-          p 
-            span [
-            a(href="#{slides}", target="_blank") slides
-            span ] 
-          //- div(style="padding-left:2em;border-left:1px dotted black")
-          ul.collection
-            each exercises
-              li.collection-item
-                if exerciseIsCorrect
-                  span.green-text ✔ 
-                if exerciseIsIncorrect
-                  span.red-text ✘
-                if exerciseIsUngraded
-                  span.orange.white-text(style="font-weight:bold;border-radius:16px;padding-left:3px;padding-right:2px;") ?
-                //- if isSubmitted
-                //-   span.pass
-                //- else
-                //-   span.black-text ✪
-                if isForTutee
-                  a(href="#{gradeURL}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}&user=#{tuteeId}") #{name}
-                else
-                  a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
-                if isSubmitted
-                  span.grey-text [submitted #{dateSubmitted}]
-                else
-                  span.red-text [todo]
-                  
-    else
-      p Select a lecture or section to view exercises:
-      ul.collection
+  if Template.subscriptionsReady
+    if exerciseSetReady
+      if paramsSpecifyLecture  
         each lectures
-          li.collection-item(id="#{htmlAnchor}")
-            a(href="#{exerciseSetLectureURL}") #{name} 
-            span --- #{progress.todo} todo
-            if progress.correct
-              span , 
-              span.green-text ✔#{progress.correct}
-            if progress.incorrect
-              span , 
-              span.red-text ✘#{progress.incorrect}
-            if progress.ungraded
-              span , 
-              span.orange.white-text(style="font-weight:bold;border-radius:16px;padding-left:3px;padding-right:2px;") ?#{progress.ungraded}
+          each units
+            p.vspace &nbsp;
+            h5(id="#{htmlAnchor}") 
+              a(href="#{exerciseSetUnitURL}") #{name}
+            if reading
+              p Reading: #{reading}
+            p 
+              span [
+              a(href="#{slides}", target="_blank") slides
+              span ] 
+            //- div(style="padding-left:2em;border-left:1px dotted black")
+            ul.collection
+              each exercises
+                li.collection-item
+                  if exerciseIsCorrect
+                    span.green-text ✔ 
+                  if exerciseIsIncorrect
+                    span.red-text ✘
+                  if exerciseIsUngraded
+                    span.orange.white-text(style="font-weight:bold;border-radius:16px;padding-left:3px;padding-right:2px;") ?
+                  //- if isSubmitted
+                  //-   span.pass
+                  //- else
+                  //-   span.black-text ✪
+                  if isForTutee
+                    a(href="#{gradeURL}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}&user=#{tuteeId}") #{name}
+                  else
+                    a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
+                  if isSubmitted
+                    span.grey-text [submitted #{dateSubmitted}]
+                  else
+                    span.red-text [todo]
+                  
+      else
+        p Select a lecture or section to view exercises:
+        ul.collection
+          each lectures
+            li.collection-item(id="#{htmlAnchor}")
+              a(href="#{exerciseSetLectureURL}") #{name} 
+              span --- #{progress.todo} todo (of #{progress.total} in total)
+              if progress.correct
+                span , 
+                span.green-text ✔#{progress.correct}
+              if progress.incorrect
+                span , 
+                span.red-text ✘#{progress.incorrect}
+              if progress.ungraded
+                span , 
+                span.orange.white-text(style="font-weight:bold;border-radius:16px;padding-left:3px;padding-right:2px;") ?#{progress.ungraded}
 
   else
     +loading

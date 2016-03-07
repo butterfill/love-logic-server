@@ -155,12 +155,34 @@ Template.exerciseSet.helpers
     return Meteor.users.findOne(ix.getUserId())?.emails?[0]?.address
   submittedDateAndCorrectnessInfoReady : () -> Template.instance().datesExercisesSubmitted.ready()
   exerciseSetReady : () -> Template.instance().exerciseSet.ready() and Template.instance().datesExercisesSubmitted.ready()
+  
+  # NB: has side-effect: draws the chart
   lectures : () ->
     FlowRouter.watchPathChange()
+    
+    # Keys are exId; values are the correctness of the latest submission
+    exDict = {}
+    allExIncludingResubmits = SubmittedExercises.find({owner:ix.getUserId()},{reactive:false}).fetch()
+    exDup = {}  # used to keep track of multiple submissions for one exercise
+    for ex in allExIncludingResubmits
+      if ex.exerciseId of exDup
+        oldEx = exDup[ex.exerciseId]
+        if ex.created < oldEx.created
+          # Keep the newer exercise
+          continue
+      exDup[ex.exerciseId] = ex
+      exDoc = {}
+      exDoc.isSubmitted = true
+      exDoc.dateSubmitted = moment(ex.created).fromNow()
+      exDoc.exerciseIsCorrect = ex.humanFeedback?.isCorrect or ex.machineFeedback?.isCorrect
+      exDoc.exerciseIsIncorrect = ex.humanFeedback?.isCorrect is false or ex.machineFeedback?.isCorrect is false
+      exDoc.exerciseIsUngraded = ex.humanFeedback?.isCorrect? is false and ex.machineFeedback?.isCorrect? is false
+      exDict[ex.exerciseId] = exDoc
+    
     theLectures = ExerciseSets.findOne({},{reactive:false})?.lectures
     return [] if not theLectures
-    
-    # Filter the document if a particular lecture or unit is specified
+
+    # Filter the `theLectures` document if a particular lecture or unit is specified
     if FlowRouter.getParam('_lecture')?
       lectureToShow = FlowRouter.getParam('_lecture')
       theLectures = (l for l in theLectures when l.name is lectureToShow)
@@ -169,8 +191,7 @@ Template.exerciseSet.helpers
       for lecture in theLectures
         lecture.units = (u for u in lecture.units when u.name is unitToShow)
     
-    # Build an object that makes blaze templating easier
-    exDict = {}
+    # Zip through theLectures and add correctness, date submitted etc to each exercise; also add some properties useful for templating.
     for l in theLectures
       l.htmlAnchor = encodeURIComponent(l.name)
       l.exerciseSetLectureURL = ''
@@ -181,6 +202,13 @@ Template.exerciseSet.helpers
         l.exerciseSetLectureURL = "#{ix.url().replace(/\/unit\/.+/, '')}#{document.location.search}"
       # URL to take you to a list of questions for each lecture
       l.listExercisesURL = "#{ix.url().replace(/\/$/,'')}/listExercises#{document.location.search}"
+      progress = 
+        correct : 0
+        incorrect : 0
+        ungraded : 0
+        todo : 0
+        total : 0
+      l.progress = progress
       for unit in l.units
         unit.htmlAnchor = encodeURIComponent(unit.name)
         unit.exerciseSetUnitURL = ''
@@ -189,100 +217,43 @@ Template.exerciseSet.helpers
             unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'')}/lecture/#{l.name}/unit/#{unit.name}#{document.location.search}"
           else
             unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'')}/unit/#{unit.name}#{document.location.search}"
+        progress.total += unit.rawExercises.length    
         exercises = []
         for e in unit.rawExercises
-          exDoc = 
-            name:e.replace('/ex/','')
-            link:ix.convertToExerciseId(e)
-            isSubmitted:false
+          exDoc = exDict[ix.convertToExerciseId(e)]
+          if not exDoc?
+            exDoc = 
+              isSubmitted:false
+          exDoc.name = e.replace('/ex/','')
+          exDoc.link = ix.convertToExerciseId(e)
+          progress.correct +=1 if exDoc.exerciseIsCorrect
+          progress.incorrect +=1 if exDoc.exerciseIsIncorrect
+          progress.ungraded +=1 if exDoc.exerciseIsUngraded
+          progress.todo +=1 if exDoc.isSubmitted is false
           exercises.push exDoc
-          exDict[exDoc.link] = exDoc
         unit.exercises = exercises
         if unit.rawReading?.length >0
           unit.reading = "Sections §#{unit.rawReading.join(', §')} of Language, Proof and Logic (Barwise & Etchemendy; the course textbook)."
         else 
           unit.reading =""
-    
-    # Now fill in details of exercises
-    exLinks = _.keys exDict
-    allExIncludingResubmits = SubmittedExercises.find({exerciseId:{$in:exLinks}, owner:ix.getUserId()},{reactive:false}).fetch()
-    exDup = {}  # used to keep track of multiple submissions for one exercise
-    allEx = allExIncludingResubmits
-    for ex in allEx
-      if ex.exerciseId of exDup
-        oldEx = exDup[ex.exerciseId]
-        if ex.created < oldEx.created
-          # Keep the newer exercise
-          continue
-      exDup[ex.exerciseId] = ex
-      exDoc = exDict[ex.exerciseId]
-      exDoc.isSubmitted = true
-      exDoc.dateSubmitted = moment(ex.created).fromNow()
-      exDoc.exerciseIsCorrect = ex.humanFeedback?.isCorrect or ex.machineFeedback?.isCorrect
-      exDoc.exerciseIsIncorrect = ex.humanFeedback?.isCorrect is false or ex.machineFeedback?.isCorrect is false
-      exDoc.exerciseIsUngraded = ex.humanFeedback?.isCorrect? is false and ex.machineFeedback?.isCorrect? is false
-    
-    # Create summary stats for each lecture (how many exercises todo)
-    for l in theLectures
-      l.progress = 
-        correct : 0
-        incorrect : 0
-        ungraded : 0
-        todo : 0
-      for unit in l.units
-        for ex in unit.exercises
-          l.progress.correct +=1 if ex.exerciseIsCorrect
-          l.progress.incorrect +=1 if ex.exerciseIsIncorrect
-          l.progress.todo +=1 unless ex.isSubmitted
-          l.progress.ungraded +=1 if ex.exerciseIsUngraded
           
-    return theLectures
-    
-  # NB: has side-effect: draws the chart
-  stats : () ->
-    theLectures = ExerciseSets.findOne({},{reactive:false})?.lectures
-    return {} if not theLectures
-    
-    # Filter the document if a particular lecture or unit is specified
-    if FlowRouter.getParam('_lecture')?
-      lectureToShow = FlowRouter.getParam('_lecture')
-      theLectures = (l for l in theLectures when l.name is lectureToShow)
-    if FlowRouter.getParam('_unit')? 
-      unitToShow = FlowRouter.getParam('_unit')
-      for lecture in theLectures
-        lecture.units = (u for u in lecture.units when u.name is unitToShow)
-    
-    exLinksToCheck = []
-    for l in theLectures
-      for unit in l.units
-        for exLink in unit.rawExercises
-          e = ix.convertToExerciseId(exLink)
-          exLinksToCheck.push(e)
-          
-    allExIncludingResubmits = SubmittedExercises.find({exerciseId:{$in:exLinksToCheck}, owner:ix.getUserId()},{reactive:false}).fetch()
-    exDup = {}  # used to keep track of multiple submissions for one exercise
-    for ex in allExIncludingResubmits
-      if ex not of exDup
-        exDup[ex.exerciseId] = ex 
-      else
-        if exDup[ex.exerciseId].created > ex.created
-          # Take the newest exercise
-          exDup[ex.exerciseId] = ex 
-    allEx = _.values exDup
-    correctEx = (x.exerciseId for x in allEx when x.machineFeedback?.isCorrect or x.humanFeedback?.isCorrect) 
-    incorrectEx = (x.exerciseId for x in allEx when x.machineFeedback?.isCorrect is false or x.humanFeedback?.isCorrect is false) 
-    ungradedEx = (x.exerciseId for x in allEx when x.machineFeedback?.isCorrect? is false and x.humanFeedback?.isCorrect? is false) 
-    submittedEx = (x.exerciseId for x in allEx)
-    
     stats = 
-      nofExercises: exLinksToCheck.length
-      submitted: submittedEx.length
-      correct: correctEx.length
-      incorrect: incorrectEx.length
-      ungraded: ungradedEx.length
+      correct : 0
+      incorrect : 0
+      ungraded : 0
+      nofExercises : 0
+    theLectures.stats = stats
+    for l in theLectures
+      stats.correct += l.progress.correct
+      stats.incorrect += l.progress.incorrect
+      stats.ungraded += l.progress.ungraded
+      stats.nofExercises += l.progress.total
+    stats.submitted = stats.correct + stats.incorrect + stats.ungraded
     Meteor.defer () ->
       drawProgressDonut('progressChart', stats)
-    return stats
+    
+    return theLectures
+
     
   'gradeURL' : () -> (@link.replace(/\/$/, ''))+"/grade"
   isAlreadyFollowing : () ->
