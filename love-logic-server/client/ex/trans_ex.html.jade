@@ -56,8 +56,8 @@ template(name="trans_ex_display_question")
 
 template(name="trans_ex_display_answer")
   p.monospace.grey.lighten-2 
-    if answer.answerFOL
-      | #{answer.answerFOL}
+    if answerFOL
+      | #{answerFOL}
     else
       | #{answer.content.sentence}
     
