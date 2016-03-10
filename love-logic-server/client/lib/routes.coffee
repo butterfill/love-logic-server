@@ -79,7 +79,7 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: all emails are lower case 
 
-# TODO: tidy up feedback on incorrect proofs
+# TODO: improve proof checking (maybe have redundant cycles at present)
 
 # TODO: instructor can monitor all students’ progress.
 

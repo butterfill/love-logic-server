@@ -25,6 +25,9 @@ template(name="q_ex_display_question")
 
 
 template(name="q_ex_display_answer")
-  p.monospace.grey.lighten-2 #{answer.content.sentence}
+  if answer.content.sentence
+    p.monospace.grey.lighten-2 #{answer.content.sentence}
+  else
+    p.monospace.grey.lighten-2 [empty answer submitted]
     
 

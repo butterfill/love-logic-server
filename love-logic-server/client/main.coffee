@@ -134,6 +134,7 @@ Template.main.events
     $('#seminarTutorTypeahead').focus()
   'keyup .tutorTypeahead' : _.throttle( (event, template) ->
       # help the typeahead : ensure that TutorSearch is uptodate if possible
+      # TODO: won’t this get the wrong values (because the typeahead creates and extra input?)
       $target = $(event.target)
       text = $target.val()
       TutorSearch.search(text)

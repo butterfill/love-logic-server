@@ -758,7 +758,16 @@ ix.truthTable =
       actual = values[idx].splice(0,lttrs.length)
       return false unless _.isEqual(expected, actual)
     return true
-    
+  getReferenceRowValues : () ->
+    lttrs = ix.truthTable.getSentenceLetters()
+    nofRows = Math.pow(2,lttrs.length)
+    values = []
+    for num in [nofRows-1..0]
+      binaryStr = ix.truthTable.pad0(num.toString(2), lttrs.length)
+      row = (x is "1" for x in binaryStr)
+      values.push(row)
+    return values
+  
   pad0 : (n, len) ->
     return n if n.length >= len
     # Thankyou http://stackoverflow.com/questions/10073699/pad-a-number-with-leading-zeros-in-javascript
