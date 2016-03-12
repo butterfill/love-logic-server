@@ -161,11 +161,14 @@ Template.editProof.onRendered () ->
   options = _.defaults o, {
     theme : 'blackboard'
     smartIndent : true
-    tabSize : 4
     lineNumbers : true
     autofocus : true
     matchBrackets : true
     gutters : ["error-light"]
+    tabSize : 4
+    extraKeys :
+      Tab: (cm) ->
+        cm.replaceSelection('    ');
   }
   textarea = @find('textarea')
   editor = CodeMirror.fromTextArea(textarea, options)
