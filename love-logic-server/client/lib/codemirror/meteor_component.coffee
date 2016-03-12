@@ -104,19 +104,44 @@ getCurrentLineNumberInEditor = (editor) ->
   lineNumber = line+1
   return lineNumber
 
-checkLines = (currentLineNumber, prevLineNumber, editor) ->
+getPrevLineIndentation = (editor) ->
+  {line, ch} = editor.getCursor()
+  prevLine = editor.getLine(line-1)
+  indentation = prevLine?.match(/^[\s|]*/)?[0]
+  return indentation or ''
+
+autoIndent = (editor) ->
+  cursor = editor.getCursor()
+  indentation = getPrevLineIndentation(editor)
+  editor.replaceRange(indentation, cursor)
+
+checkLine = (lineNumber) ->
   theProof = getProof()
-  # Are there errors in parsing the proof?
   if _.isString(theProof)
-    giveFeedback theProof
-    return
-  aLine = theProof.getLine(currentLineNumber)
-  lineIsCorrect = aLine.verify()
-  giveFeedback "Line #{currentLineNumber}: #{("no errors found" if lineIsCorrect) or "not correct"}.  #{aLine.status.getMessage()}"
-  prevLine = theProof.getLine(prevLineNumber)
-  prevLineIsCorrect = prevLine.verify()
-  addMarker(prevLineNumber, 'chartreuse', editor) if prevLineIsCorrect
-  addMarker(prevLineNumber, '#FF3300', editor) if not prevLineIsCorrect
+    # There are errors in parsing the proof
+    return {
+      isCorrect : false
+      msg : theProof
+    }
+  aLine = theProof.getLine(lineNumber)
+  isCorrect = aLine.verify()
+  return {
+    isCorrect : isCorrect
+    msg : ('' if isCorrect) or aLine.status.getMessage()
+  }
+
+checkLineAndUpdateMarker = (lineNumber, editor) ->
+  {isCorrect, ignore} = checkLine(lineNumber)
+  if isCorrect
+    addMarker(lineNumber, 'chartreuse', editor) 
+  else
+    addMarker(lineNumber, '#FF3300', editor)
+    
+checkLineAndUpdateFeedback = (lineNumber, editor) ->
+  {isCorrect, msg} = checkLine(lineNumber)
+  giveFeedback "Line #{lineNumber}: #{("no errors found" if isCorrect) or "not correct"}.  #{msg}"
+  
+
 
 # Make a dot to show whether a line of the proof is correct.
 addMarker = (lineNumber, color = "#822", editor) ->
@@ -136,7 +161,7 @@ Template.editProof.onRendered () ->
   options = _.defaults o, {
     theme : 'blackboard'
     smartIndent : true
-    tabSize : 2
+    tabSize : 4
     lineNumbers : true
     autofocus : true
     matchBrackets : true
@@ -155,12 +180,22 @@ Template.editProof.onRendered () ->
     ix.setAnswerKey(val, 'proof')
   
   editor.on "keyHandled", (instance, name, event) ->
-    if name in ['Up']
+    if name is 'Up'
       lineNumber = getCurrentLineNumberInEditor(editor) 
-      checkLines(lineNumber, lineNumber+1, editor)
-    if name in ['Down','Enter']
+      checkLineAndUpdateMarker(lineNumber+1, editor)
+      checkLineAndUpdateFeedback(lineNumber, editor)
+    if name is 'Enter'
+      autoIndent(editor)
+      # update the stored answer
+      val = editor.getValue()
+      ix.setAnswerKey(val, 'proof')
       lineNumber = getCurrentLineNumberInEditor(editor) 
-      checkLines(lineNumber, lineNumber-1, editor)
+      checkLineAndUpdateMarker(lineNumber-1, editor)
+      checkLineAndUpdateFeedback(lineNumber-1, editor)
+    if name is 'Down'
+      lineNumber = getCurrentLineNumberInEditor(editor) 
+      checkLineAndUpdateMarker(lineNumber-1, editor)
+      checkLineAndUpdateFeedback(lineNumber, editor)
   
   $("#resetProof").leanModal()
   
