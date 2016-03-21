@@ -41,12 +41,21 @@ FlowRouter.route '/course/:_courseName',
 FlowRouter.route '/course/:_courseName/exerciseSet/:_variant',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'exerciseSet'
+FlowRouter.route '/course/:_courseName/exerciseSet/:_variant/edit',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'exerciseSetEdit'
 FlowRouter.route '/course/:_courseName/exerciseSet/:_variant/lecture/:_lecture',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'exerciseSet'
+FlowRouter.route '/course/:_courseName/exerciseSet/:_variant/edit/lecture/:_lecture/',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'exerciseSetEdit'
 FlowRouter.route '/course/:_courseName/exerciseSet/:_variant/lecture/:_lecture/unit/:_unit',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'exerciseSet'
+FlowRouter.route '/course/:_courseName/exerciseSet/:_variant/edit/lecture/:_lecture/unit/:_unit',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'exerciseSetEdit'
 FlowRouter.route '/course/:_courseName/exerciseSet/:_variant/lecture/:_lecture/listExercises',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'listExercises'

@@ -113,12 +113,17 @@ Template.grading_form.helpers
 
 
 saveComment = (submission, rawComment) ->
+  comment = rawComment.trim()
+  if comment is ''
+    return
+  #Ensure comment ends in a period
+  unless comment.match /\.(\s)*^/
+    comment = "#{comment}."
+  # Add the commentor’s name
   name = ''
   if Meteor.user().profile?.name?
     name = "#{Meteor.user().profile.name} writes: "
-  comment = "#{name}#{rawComment}"
-  if comment.trim() is ''
-    return
+  comment = "#{name}#{comment}"
   if not submission.humanFeedback?
     humanFeedback = { comment }
   else

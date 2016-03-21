@@ -47,34 +47,34 @@ Template.truth_table.helpers
 
 
 addTypeahead = () ->
-  $('.truthtable input').typeahead('destroy')
-  $('.truthtable input').typeahead({
-    hint : false
-    minLength : 0
-    highlight : false
-  },{
-    name : 'tf'
-    async : false
-    display : (value) -> value.tf
-    source : (query, syncResults, asyncResults) ->
-      if query in ['f','F','0']
-        syncResults([{tf:"F", name:"false"}])
-      else
-        if query in ['t','T','1']
-          syncResults([{tf:"T", name:"true"}])
-        else
-          syncResults([{tf:"T", name:"true"},{tf:"F", name:"false"}])
-        
-    templates : 
-      empty : [
-          '<div class="empty-message">',
-            'unable to find any truth values matching what you entered',
-          '</div>'
-        ].join('\n')
-      suggestion : (value) ->
-        return "<div>#{value.tf} - #{value.name}<div>"
-      
-  })
+  return
+  # $('.truthtable input').typeahead('destroy')
+  # $('.truthtable input').typeahead({
+  #   hint : false
+  #   minLength : 0
+  #   highlight : false
+  # },{
+  #   name : 'tf'
+  #   async : false
+  #   display : (value) -> value.tf
+  #   source : (query, syncResults, asyncResults) ->
+  #     if query in ['f','F','0']
+  #       syncResults([{tf:"F", name:"false"}])
+  #     else
+  #       if query in ['t','T','1']
+  #         syncResults([{tf:"T", name:"true"}])
+  #       else
+  #         syncResults([{tf:"T", name:"true"},{tf:"F", name:"false"}])
+  #
+  #   templates :
+  #     empty : [
+  #         '<div class="empty-message">',
+  #           'unable to find any truth values matching what you entered',
+  #         '</div>'
+  #       ].join('\n')
+  #     suggestion : (value) ->
+  #       return "<div>#{value.tf} - #{value.name}<div>"
+  # })
 
 # Param `values` is an array of rows as created by `getValuesFromTable`.
 makeTableFromValues = (values) ->
@@ -145,8 +145,6 @@ Template.truth_table.events
     else
       if $input.val() in ['f','F','0']
         $input.val('F')
-      else
-        $input.val('')
     newValues = ix.truthTable.getValuesFromTable()
     ix.setAnswerKey(newValues, 'tt')
   # These events never fired, or at least this handler was never called

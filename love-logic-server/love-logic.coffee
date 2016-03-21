@@ -227,7 +227,12 @@ Meteor.methods
       throw new Meteor.Error "You cannot update this exercise set because you do not own it."
     r = ExerciseSets.update(oldExerciseSet._id, $set:{description:exerciseSet.description, lectures:exerciseSet.lectures})
     return r
-      
+  
+  updateExerciseSetField : (exerciseSet, toSet) ->
+    userId = Meteor.user()._id
+    if not userId or (exerciseSet.owner? and exerciseSet.owner isnt userId)
+      throw new Meteor.Error "not-authorized"
+    ExerciseSets.update(exerciseSet._id, $set:toSet)
     
 
 # -----

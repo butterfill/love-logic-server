@@ -788,8 +788,15 @@ ix.truthTable =
       resultRow = []
       $inputs = $('input', $(tr))
       $inputs.each (idx, input) ->
-        resultRow.push true if ($(input).val() is "T")
-        resultRow.push false if ($(input).val() is "F")
-        resultRow.push null if not ($(input).val() in ["T","F"])
+        val = $(input).val()
+        # if not val? or val not in ['t','T','1','f','F','0']
+        #   val = $(input).typeahead('val')
+        if (val is "T") or (val is "t") or (val is "1")
+          resultRow.push true 
+        else
+          if (val is "F") or (val is "f") or (val is "0")
+            resultRow.push false 
+          else
+            resultRow.push null
       result.push resultRow
     return result
