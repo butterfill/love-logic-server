@@ -86,24 +86,22 @@ template(name='grading_form')
             a.editComment.waves-effect 
               i.material-icons mode_edit
           else
-            a.addComment.modal-trigger.waves-effect(data-target="modal_add_comment_for_#{theId}") 
+            a.addComment.waves-effect
               i.material-icons add_circle_outline
-            div(id="modal_add_comment_for_#{theId}").modal
-              .modal-content
-                h4 Add comment
-                p #{humanFeedback.comment}
-                .input-field
-                  label(for="add_comment_for_#{#{theId}}") Comments to #{ownerName}:
-                  textarea.materialize-textarea(id="add_comment_for_#{theId}") 
-                p
-                  em You cannot delete the existing comment because the student has seen it.
-              .modal-footer
-                a.add-human-comment.modal-action.modal-close.waves-effect.waves-grey.btn-flat(data-textarea="add_comment_for_#{theId}") done
-                a.modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel
       else
         //- humanFeedback not yet given
         .input-field
           label(for="comment_for_#{theId}") Comments to #{ownerName}:
           textarea.materialize-textarea.human-comment(id="comment_for_#{theId}") #{feedbackTextareaContent}
       
+
+
+template(name="addCommentModal")
+  p #{humanFeedback.comment}
+  .input-field
+    label(for="addComment") Additional comments:
+    textarea#addComment.materialize-textarea(name='newComment') 
+  p
+    em You cannot delete the existing comment because the student has seen it.
+
 

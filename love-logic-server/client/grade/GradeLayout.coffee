@@ -117,13 +117,14 @@ saveComment = (submission, rawComment) ->
   if comment is ''
     return
   #Ensure comment ends in a period
-  unless comment.match /\.(\s)*^/
+  unless comment.match /\.$/
     comment = "#{comment}."
-  # Add the commentor’s name
-  name = ''
-  if Meteor.user().profile?.name?
-    name = "#{Meteor.user().profile.name} writes: "
-  comment = "#{name}#{comment}"
+  # Add the commentor’s name (unless it is already included)
+  unless comment.match(/\ writes:\ /)
+    name = ''
+    if Meteor.user().profile?.name?
+      name = "#{Meteor.user().profile.name} writes: "
+    comment = "#{name}#{comment}"
   if not submission.humanFeedback?
     humanFeedback = { comment }
   else
@@ -177,13 +178,6 @@ Template.grading_form.events
     submission = this
     saveComment(submission, event.target.value)
 
-  "click .modal-footer .add-human-comment" : (event, template) ->
-    submission = this
-    textareaId = $(event.target).attr('data-textarea')
-    # console.log textareaId
-    rawComment = $("#"+"#{textareaId}").val()
-    saveComment(submission, rawComment)
-    $(template.find('.addComment.modal-trigger')).leanModal()    
 
   "click .markCorrectness" : (event, template) ->
     isCorrect = $(event.target).hasClass('correct')
@@ -207,11 +201,18 @@ Template.grading_form.events
     delete humanFeedback.isCorrect
     Meteor.call "addHumanFeedback", submission, humanFeedback, (error) ->
 
-  "click .addComment.modal-trigger" : (event, template) ->
-    # We need `parent` because it's the icon (child) that gets clicked
-    target = $(event.target).parent().attr('data-target')
-    $('#'+target).openModal()
-    
+  "click .addComment" : (event, template) ->
+    submission = @
+    MaterializeModal.form({
+      title : "Add comment"
+      bodyTemplate : "addCommentModal"
+      submitLabel : "done"
+      closeLabel : "cancel"
+      humanFeedback : @humanFeedback
+      callback : (error, response) ->
+        if response.submit
+          saveComment(submission, response.form.newComment)
+    })
     
   "click .editComment" : (event, target) ->
     submission = this

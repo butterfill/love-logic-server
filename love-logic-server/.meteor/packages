@@ -21,7 +21,6 @@ mobile-experience
 mongo
 blaze-html-templates
 session
-jquery
 tracker
 logging
 reload
@@ -31,10 +30,11 @@ spacebars
 check
 http
 useraccounts:materialize
-msavin:mongol
 appcache
 meteorhacks:cluster
 east5th:package-scan
 kadira:debug
 cscottnet:es5-shim
 meteorhacks:search-source
+meteorstuff:materialize-modal
+materialize:materialize

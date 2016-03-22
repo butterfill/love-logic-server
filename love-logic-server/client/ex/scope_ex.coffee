@@ -97,8 +97,6 @@ Template.scope_ex_display_sentences.helpers
 
 # Called from the `/grade` url to display multiple students’ answers on the same page
 Template.scope_ex_display_answer.onRendered () ->
-  # console.log "rendered"
-  # console.log @
   answer = @data.answer.content.scope
   setAnswer(answer, @)
 

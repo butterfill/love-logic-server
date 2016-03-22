@@ -9,8 +9,15 @@ template(name='courses')
   else
     +loading
 
+
+template(name='courseNameHeader')
+  p 
+    a(href='/course/#{courseName}') #{courseName} 
+    span --- #{courseDescription}
+
+
 template(name='exerciseSetsForCourse')
-  p #{courseName} --- #{courseDescription}
+  +courseNameHeader(courseName=courseName courseDescription=courseDescription)
   h2 Select a variant
   if Template.subscriptionsReady 
     ul.collection
@@ -91,8 +98,7 @@ template(name='slidesAndHandoutsLinksEditable')
 
 template(name='exerciseSet')
   if exerciseSetReady
-    p #{courseName} --- #{courseDescription}
-  
+    +courseNameHeader(courseName=courseName courseDescription=courseDescription)
   
     h2 
       if isForTutee
@@ -104,6 +110,8 @@ template(name='exerciseSet')
         span #{exerciseSetName}
     unless paramsSpecifyLecture
       p #{exerciseSetDescription}
+      if userIsExerciseSetOwner
+        p: a.btn.waves-effect.grey(href="/course/#{courseName}/exerciseSet/#{exerciseSetName}/edit") edit
   
   h4 Progress with 
     if paramsSpecifyUnit
@@ -222,19 +230,24 @@ template(name='exerciseSet')
 
 template(name='exerciseSetEdit')
   if Template.subscriptionsReady
-    p #{courseName} --- #{courseDescription}
-  
+    +courseNameHeader(courseName=courseName courseDescription=courseDescription)
     h2 
       if paramsSpecifyLecture
         a(href="/course/#{courseName}/exerciseSet/#{exerciseSetName}/edit") #{exerciseSetName}
       else
-        span #{exerciseSetName}
+        span.exerciseSetName(contentEditable="true") #{exerciseSetName}
+        i.material-icons mode_edit
     if paramsSpecifyLecture
       span
     else
-      p #{exerciseSetDescription}
-        a.editExerciseSetDescription.waves-effect 
-          i.material-icons mode_edit
+      p 
+        span.exerciseSetDescription(contentEditable="true") 
+          if exerciseSetDescription
+            | #{exerciseSetDescription}
+          else
+            | [describe the exercise set here]
+        
+        i.material-icons mode_edit
     
     if exerciseSetReady
       h4 
@@ -264,8 +277,13 @@ template(name='exerciseSetEdit')
             p
               +slidesAndHandoutsLinksEditable
     
-
+      //- list units
       if paramsSpecifyLecture  
+        unless paramsSpecifyUnit
+          each lectures   
+            p: a.addUnit.waves-effect
+              i.material-icons add_circle_outline
+              span add a unit to the end of the list of units
         each lectures
           each units
             p.vspace &nbsp;
@@ -327,11 +345,14 @@ template(name='exerciseSetEdit')
                   
                   
       else
+        p: a.addLecture.waves-effect
+          i.material-icons add_circle_outline
+          span add a lecture to the end of the list of lectures
         p Select a lecture to edit units and exercises:
         ul.collection
           each lectures
             li.collection-item(id="#{htmlAnchor}")
-              a.deleteLecture.waves-effect 
+              a.deleteLecture.waves-effect(data-lectureIdx="#{idx}")
                 i.material-icons delete
               unless isFirst
                 a.moveLectureUp.waves-effect
@@ -348,3 +369,9 @@ template(name='exerciseSetEdit')
 
   else
     +loading
+
+template(name="urlModal")
+  p #{message}.
+  .input-field
+    input.url(type="text", value="#{url}", name="url")
+  

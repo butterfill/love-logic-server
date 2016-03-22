@@ -200,8 +200,6 @@ Template.editProof.onRendered () ->
       checkLineAndUpdateMarker(lineNumber-1, editor)
       checkLineAndUpdateFeedback(lineNumber, editor)
   
-  $("#resetProof").leanModal()
-  
   # Allow the value of the editor to be updated by setting the session variable
   @autorun ->
     # We need to `watchPathChange` so that the editor gets updated.
@@ -255,7 +253,12 @@ Template.editProof.events
     if _.isString result
       giveMoreFeedback result
     
-  'click #resetProof-confirm' : (event, template) ->
-    giveFeedback ""
-    ix.setAnswerKey(ix.getProofFromParams(), 'proof')
+  'click #resetProof' : (event, template) ->
+    MaterializeModal.confirm
+      title : "Reset your work on this proof"
+      message : "Do you want to start again?"
+      callback : (error, response) ->
+        if response.submit
+          giveFeedback ""
+          ix.setAnswerKey(ix.getProofFromParams(), 'proof')
     

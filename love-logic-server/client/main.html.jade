@@ -78,25 +78,10 @@ template(name='main')
               p You have not specified the instructor of your tutees (who usually gives lectures and has overall responsibility for the course you teach on).
             .card-action: .right
               if hasInstructor
-                a.changeInstructor.waves-effect.blue-text(data-target="instructor-modal") Change instructor
+                a.changeInstructor.waves-effect.blue-text Change instructor
               else
-                a.changeInstructor.waves-effect.blue-text(data-target="instructor-modal") Add instructor
+                a.changeInstructor.waves-effect.blue-text Add instructor
           
-          
-              #instructor-modal.modal
-                .modal-content
-                  h4  Instructor
-                  form
-                    p 
-                    .input-field
-                      input.instructor#set-instructor-email(type="text", value="#{instructorEmail}") 
-                      label(for='set-instructor-email') Enter the email address your instructor has asked you to use.
-                    p
-                      em Note that your instructor may not be registered under all her email addresses; if in doubt, please ask your instructor to confirm her email address.
-                .modal-footer
-                  a(href="").modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel
-                  a(href="")#confirm-set-instructor-email.modal-action.modal-close.waves-effect.waves-grey.btn-flat update
-
     //- Tutor card
     .col.s12.m6.l4
       .card
@@ -108,32 +93,9 @@ template(name='main')
             p You have not assigned yourself to a tutor; no one will review your work.
           .card-action: .right
             if hasSeminarTutor
-              a.changeSeminarTutor.waves-effect.blue-text(data-target="seminar-tutor-modal") Change tutor
+              a.changeSeminarTutor.waves-effect.blue-text Change tutor
             else
-              a.changeSeminarTutor.waves-effect.blue-text(data-target="seminar-tutor-modal") Add tutor
-          
-          
-            #seminar-tutor-modal.modal
-              .modal-content
-                h4  Tutor
-                form
-                  p Specify the email address your seminar tutor has asked you to use.
-                  .input-field
-                    input.seminarTutor.tutorTypeahead#seminarTutorTypeahead(type="text", value="#{seminarTutorEmail}", autocomplete="off", style="margin-bottom:0;") 
-                    //- label(for='seminarTutorTypeahead') Enter the email address your seminar tutor has asked you to use.
-                    .autocomplete-content.grey.darken(style='margin-top:0;')
-                      ul(style="-webkit-margin-before:0;margin-before:0")
-                        each getTutors
-                          li.autocomplete-option(style="padding:.25em 1em .25em 1em;"): a.setThisTutor(style="text-transform:none;")
-                            each emails
-                              span.email #{address}
-                            span - 
-                            span #{profile.name}
-                    p
-                    em Note that your seminar tutor may not be registered under all her email addresses; if in doubt, please ask your seminar tutor to confirm her email address.
-              .modal-footer
-                a(href="").modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel
-                a(href="")#confirm-set-seminar-tutor-email.modal-action.modal-close.waves-effect.waves-grey.btn-flat update
+              a.changeSeminarTutor.waves-effect.blue-text Add tutor
       
           
     .col.s12.m6.l4
@@ -145,21 +107,6 @@ template(name='main')
           .card-action: .right
             a.changeEmail.waves-effect.blue-text Change email 
 
-            
-            #change-email-modal.modal
-              .modal-content
-                h4 Change Email
-                form
-                  p 
-                  .input-field
-                    textarea.newEmailAddress.materialize-textarea#set-email #{emailAddress}
-                    label(for='set-email') Your email address.
-                  p
-                    em Please use your university or college email address if you are studying logic as part of a degree course (your university won’t see your work if you don’t).
-              .modal-footer
-                a(href="").modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel
-                a(href="")#confirm-update-email.modal-action.modal-close.waves-effect.waves-grey.btn-flat update
-                        
                                                 
     .col.s12.m6.l4
       .card
@@ -177,4 +124,24 @@ template(name='main')
           .card-action: .right
             a(href='http://logic-1.butterfill.com/logic-ex-guide.html', target="_blank").waves-effect.blue-text open guides
 
-  
+template(name="changeTutorModal")
+  p Specify the email address your seminar tutor has asked you to use.
+  .input-field
+    input.seminarTutor.tutorTypeahead#seminarTutorTypeahead(type="text", value="#{seminarTutorEmail}", name="seminarTutorEmail", autocomplete="off", style="margin-bottom:0;")
+    p: em Note that your seminar tutor may not be registered under all her email addresses; if in doubt, please ask your seminar tutor to confirm her email address.
+
+template(name='changeInstructorModal')
+  p 
+  .input-field
+    input.instructor#set-instructor-email(type="text", value="#{instructorEmail}", name='instructorEmail') 
+    label(for='set-instructor-email') Enter the email address your instructor has asked you to use.
+  p
+    em Note that your instructor may not be registered under all her email addresses; if in doubt, please ask your instructor to confirm her email address.
+
+template(name='changeEmailModal')
+  p 
+  .input-field
+    textarea.materialize-textarea#set-email(name='emailAddress') #{emailAddress}
+    label(for='set-email') Your email address.
+  p
+    em Please use your university or college email address if you are studying logic as part of a degree course (your university won’t see your work if you don’t).

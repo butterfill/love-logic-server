@@ -10,24 +10,21 @@ Template.next_exercise.onCreated () ->
 
 Template.next_exercise.helpers
   isNextExercise : () ->
+    FlowRouter.watchPathChange()
     ctx = ix.getExerciseContext()
     return ctx?.nextExercise?
-  # These are only used in the .modal telling the user they reached the end.
-  courseName : () ->
-    ctx = ix.getExerciseContext()
-    return '' unless ctx
-    return ctx.exerciseSet.courseName
-  variant : () ->
-    ctx = ix.getExerciseContext()
-    return '' unless ctx
-    return ctx.exerciseSet.variant
 
 Template.next_exercise.events
   'click .next-exercise' : (event, template) ->
     ctx = ix.getExerciseContext()
     if not ctx?.nextExercise?
-      $('#no_next_modal').openModal()
-      return undefined
+      # You have reached the end
+      ctx = ix.getExerciseContext()
+      courseName = ctx?.exerciseSet?.courseName or ''
+      variant = ctx?.exerciseSet?.variant or ''
+      MaterializeModal.alert
+        title: "The End",
+        message: "You have reached the end of the #{variant} exercises for #{courseName}."
     qs = ix.queryString()
     if qs
       queryString = "?#{qs}"

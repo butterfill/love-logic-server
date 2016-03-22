@@ -19,14 +19,8 @@ template(name="editProof")
       
   .row: .col.s12
     button#checkProof.btn.waves-effect.grey check
-    button#resetProof.btn.modal-trigger.waves-effect.grey(data-target="reset_modal") reset
-    #reset_modal.modal
-      .modal-content
-        h4 Reset your work on this proof?
-        p You really want to start again?
-      .modal-footer
-        a(href="")#resetProof-confirm.modal-action.modal-close.waves-effect.waves-grey.btn-flat yes, reset
-        a(href="").resetProof-abort.modal-action.modal-close.waves-effect.waves-grey.btn-flat no!
+    button#resetProof.btn.waves-effect.grey reset
 
   p#feedback .
     i.material-icons error_outline
+

@@ -40,7 +40,12 @@ Template.listExercises.onCreated () ->
     variant = FlowRouter.getParam('_variant')
     self.subscribe('course', courseName)
     self.exerciseSet = self.subscribe 'exercise_set', courseName, variant
-    
+
+
+getExerciseSet = (o) ->
+  courseName = FlowRouter.getParam('_courseName')
+  variant = FlowRouter.getParam('_variant')
+  return ExerciseSets.findOne({courseName, variant},o)
 
 Template.exerciseSet.onCreated () ->
   self = this
@@ -85,7 +90,7 @@ Template.listExercises.helpers
   # minus the bits about a student’s progress
   lectures : () ->
     FlowRouter.watchPathChange()
-    theLectures = ExerciseSets.findOne({},{reactive:false})?.lectures
+    theLectures = getExerciseSet({reactive:false})?.lectures
     return [] if not theLectures
     
     # Filter the document if a particular lecture or unit is specified
@@ -149,7 +154,7 @@ commonHelpers =
   exerciseSetName : () ->
     return getExerciseSetName()
   exerciseSetDescription : () ->
-    return ExerciseSets.findOne({},{reactive:false})?.description
+    return getExerciseSet({reactive:false})?.description
     
   tuteeId : () -> 
     tuteeId = ix.getUserId()
@@ -168,6 +173,10 @@ Template.exerciseSetEdit.helpers commonHelpers
 Template.exerciseSet.helpers
   isForTutee : () -> Meteor.users.find().count() > 1
   exerciseSetReady : () -> Template.instance().exerciseSet.ready() and Template.instance().datesExercisesSubmitted.ready()
+  
+  userIsExerciseSetOwner : () ->
+    exerciseSet = getExerciseSet()
+    return exerciseSet.owner is ix.getUserId()
   
   # NB: has side-effect: draws the chart
   lectures : () ->
@@ -312,10 +321,11 @@ Template.exerciseSet.events
 updateExerciseSetField = (exerciseSet, toSet, thing) ->
   Meteor.call 'updateExerciseSetField', exerciseSet, toSet, (error, result) ->
     if error
-      Materialize.toast "Sorry, there was an error updating #{thing}", 4000
+      Materialize.toast "Sorry, there was an error #{thing}", 4000
     else
-      Materialize.toast "Updated #{thing}", 4000
+      Materialize.toast "Success #{thing}", 4000
 
+# TODO : delete these unless used!
 dataContextIsExercise = (ctx) ->
   return ctx.unitIdx?
 dataContextIsUnit = (ctx) ->
@@ -329,8 +339,29 @@ dataContextIsLecture = (ctx) ->
 Template.exerciseSetEdit.events
 
   # editing contentEditable fields
+  # NB: currently this messes up because Subscriptions 
+  # specify variant by name!
+  'blur .exerciseSetName' : (event, template) ->
+    # TODO : check it has no followers, otherwise deny update.
+    exerciseSet = getExerciseSet()
+    newName = event.target.innerText?.trim()
+    unless newName?.length > 0
+      event.target.innerText = exerciseSet.variant
+      return
+    toSet = {"variant":newName}
+    updateExerciseSetField exerciseSet, toSet, 'updating the name of the exercise set'
+    # changing name changes url:
+    FlowRouter.go ix.url().replace(/\/[^\/]*\/edit$/,"/#{newName}/edit")
+  'blur .exerciseSetDescription' : (event, template) ->
+    exerciseSet = getExerciseSet()
+    newName = event.target.innerText?.trim()
+    unless newName?.length > 0
+      event.target.innerText = exerciseSet.description
+      return
+    toSet = {"description":newName}
+    updateExerciseSetField exerciseSet, toSet, 'updating the description of the exercise set'
   'blur .unitName' : (event, template) ->
-    exerciseSet = ExerciseSets.findOne()
+    exerciseSet = getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @idx
     newName = event.target.innerText?.trim()
@@ -338,24 +369,24 @@ Template.exerciseSetEdit.events
       event.target.innerText = exerciseSet.lectures[lectureIdx].units[unitIdx].name
       return
     toSet = {"lectures.#{lectureIdx}.units.#{unitIdx}.name":newName}
-    updateExerciseSetField exerciseSet, toSet, 'the name of the unit'
+    updateExerciseSetField exerciseSet, toSet, 'updating the name of the unit'
     # changing name changes url:
     FlowRouter.go ix.url().replace(/\/[^\/]*$/,"/#{newName}")
   'blur .lectureName' : (event, template) ->
-    exerciseSet = ExerciseSets.findOne()
+    exerciseSet = getExerciseSet()
     lectureIdx = @idx
     newName = event.target.innerText?.trim()
     unless newName?.length > 0
       event.target.innerText = exerciseSet.lectures[lectureIdx].name
       return
     toSet = {"lectures.#{lectureIdx}.name":newName}
-    updateExerciseSetField exerciseSet, toSet, 'the name of the lecture'
+    updateExerciseSetField exerciseSet, toSet, 'updating the name of the lecture'
     # changing name changes url:
     FlowRouter.go ix.url().replace(/\/[^\/]*$/,"/#{newName}")
   
   # moving things up and down
   'click .moveExerciseDown' : (event, template) ->
-    exerciseSet = ExerciseSets.findOne()
+    exerciseSet = getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @unitIdx
     exIdx = @idx
@@ -367,9 +398,9 @@ Template.exerciseSetEdit.events
     toSet = 
       "lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises.#{exIdx}" : nextEx
       "lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises.#{exIdx+1}" : ex
-    updateExerciseSetField exerciseSet, toSet, 'the order of the exercise'
+    updateExerciseSetField exerciseSet, toSet, 'updating the order of the exercise'
   'click .moveExerciseUp' : (event, template) ->
-    exerciseSet = ExerciseSets.findOne()
+    exerciseSet = getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @unitIdx
     exIdx = @idx
@@ -381,9 +412,9 @@ Template.exerciseSetEdit.events
     toSet = 
       "lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises.#{exIdx}" : prevEx
       "lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises.#{exIdx-1}" : ex
-    updateExerciseSetField exerciseSet, toSet, 'the order of the exercise'
+    updateExerciseSetField exerciseSet, toSet, 'updating the order of the exercise'
   'click .moveLectureDown' : (event, template) ->
-    exerciseSet = ExerciseSets.findOne()
+    exerciseSet = getExerciseSet()
     lectureIdx = @idx
     lectures = exerciseSet.lectures
     if lectureIdx >= lectures.length-1
@@ -393,9 +424,9 @@ Template.exerciseSetEdit.events
     toSet = 
       "lectures.#{lectureIdx}" : nextLecture
       "lectures.#{lectureIdx+1}" : lecture
-    updateExerciseSetField exerciseSet, toSet, 'the order of the lecture'
+    updateExerciseSetField exerciseSet, toSet, 'updating the order of the lecture'
   'click .moveLectureUp' : (event, template) ->
-    exerciseSet = ExerciseSets.findOne()
+    exerciseSet = getExerciseSet()
     lectureIdx = @idx
     lectures = exerciseSet.lectures
     if lectureIdx < 1
@@ -405,9 +436,9 @@ Template.exerciseSetEdit.events
     toSet = 
       "lectures.#{lectureIdx}" : prevLecture
       "lectures.#{lectureIdx-1}" : lecture
-    updateExerciseSetField exerciseSet, toSet, 'the order of the lecture'
+    updateExerciseSetField exerciseSet, toSet, 'updating the order of the lecture'
   'click .moveUnitDown' : (event, template) ->
-    exerciseSet = ExerciseSets.findOne()
+    exerciseSet = getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @idx
     units = exerciseSet.lectures[lectureIdx].units
@@ -418,9 +449,9 @@ Template.exerciseSetEdit.events
     toSet = 
       "lectures.#{lectureIdx}.units.#{unitIdx}" : nextUnit
       "lectures.#{lectureIdx}.units.#{unitIdx+1}" : unit
-    updateExerciseSetField exerciseSet, toSet, 'the order of the unit'
+    updateExerciseSetField exerciseSet, toSet, 'updating the order of the unit'
   'click .moveUnitUp' : (event, template) ->
-    exerciseSet = ExerciseSets.findOne()
+    exerciseSet = getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @idx
     units = exerciseSet.lectures[lectureIdx].units
@@ -431,14 +462,152 @@ Template.exerciseSetEdit.events
     toSet = 
       "lectures.#{lectureIdx}.units.#{unitIdx}" : prevUnit
       "lectures.#{lectureIdx}.units.#{unitIdx-1}" : unit
-    updateExerciseSetField exerciseSet, toSet, 'the order of the unit'
+    updateExerciseSetField exerciseSet, toSet, 'updating the order of the unit'
+
+  'click .addLecture' : (event, template) ->
+    exerciseSet = getExerciseSet()
+    lectures = exerciseSet.lectures
+    name = undefined
+    
+    # Try to follow an existing pattern in creating the name of the lecture
+    if lectures? and lectures.length > 0
+      lastLectureName = lectures[lectures.length-1].name
+      m = lastLectureName.match /(.*?)(\d+)$/
+      if m
+        prefix = m[1]
+        num = parseInt(m[2])
+        name = "#{prefix}#{num+1}"
+    unless name?
+      existingLectureNames = (l.name for l in lectures)
+      num = 0
+      name = "New Lecture"
+      while name in existingLectureNames
+        num += 1
+        name = "New Lecture #{num}"
+    newLecture = {
+      type : 'lecture'
+      name : name
+      units : []
+    }
+    toSet = {"lectures.#{lectures.length}":newLecture}
+    updateExerciseSetField exerciseSet, toSet, 'creating a new lecture at the end of the list'
+  'click .addUnit' : (event, template) ->
+    exerciseSet = getExerciseSet()
+    lectureIdx = @idx
+    lecture = exerciseSet.lectures[lectureIdx]
+    units = lecture.units or []
+    name = "New Unit"
+    existingUnitNames = (u.name for u in units)
+    num = 0
+    while name in existingUnitNames
+      num += 1
+      name = "New Unit #{num}"
+    newUnit = {
+      type : 'unit'
+      name : name
+      rawReading : []
+      rawExercises : []
+    }
+    toSet = {"lectures.#{lectureIdx}.units.#{units.length}":newUnit}
+    updateExerciseSetField exerciseSet, toSet, 'creating a new unit at the end of the list'
+    
+  'click .deleteLecture' : (event, template) ->
+    exerciseSet = getExerciseSet()
+    lectures = exerciseSet.lectures
+    lectureIdx = @idx
+    units = lectures[lectureIdx].units
+    if units?.length > 0
+      Materialize.toast "Sorry, cannot delete lecture because it has units (delete the units first)", 4000
+      return
+    lectures.splice(lectureIdx,1)
+    toSet = {"lectures":lectures}
+    updateExerciseSetField exerciseSet, toSet, 'deleting the lecture'
+  'click .deleteUnit' : (event, template) ->
+    exerciseSet = getExerciseSet()
+    lectureIdx = @lectureIdx
+    units = exerciseSet.lectures[lectureIdx].units
+    unitIdx = @idx
+    unit = units[unitIdx]
+    deleteUnit = () ->
+      units.splice(unitIdx,1)
+      toSet = {"lectures.#{lectureIdx}.units":units}
+      updateExerciseSetField exerciseSet, toSet, 'deleting the unit'
+    unless unit.rawExercises?.length > 0
+      # no exercises; can delete immediately
+      deleteUnit()
+      return
+    MaterializeModal.confirm
+      title: "Delete Unit"
+      message: "Do you want to delete the unit <em>#{unit.name}</em>?"
+      callback: (error, result) ->
+        if result?.submit
+          deleteUnit()
+
+  'click .editSlides' : (event, template) ->
+    exerciseSet = getExerciseSet()
+    lectureIdx = @lectureIdx or @idx
+    lecture = exerciseSet.lectures[lectureIdx]
+    if @lectureIdx?
+      # This is for a unit
+      unitIdx = @idx
+      unit = lecture.units[unitIdx]
+      slides = unit.slides
+      message = "Specify the url of the slides for <em>unit.name</em>."
+      toSetField = "lectures.#{lectureIdx}.units.#{unitIdx}.slides"
+    else
+      slides = lecture.slides
+      message = "Specify the url of the slides for <em>lecture.name</em>."
+      toSetField = "lectures.#{lectureIdx}.slides"
+    MaterializeModal.form
+      title : "Slides"
+      bodyTemplate : "urlModal"
+      submitLabel : "update"
+      closeLabel : "cancel"
+      message : message
+      url : slides
+      callback : (error, response) ->
+        if response.submit
+          url = response.form.url
+          toSet = {"#{toSetField}" : url}
+          updateExerciseSetField exerciseSet, toSet, 'updating the url of the slides'
+          
+  'click .editHandout' : (event, template) ->
+    exerciseSet = getExerciseSet()
+    lectureIdx = @lectureIdx or @idx
+    lecture = exerciseSet.lectures[lectureIdx]
+    if @lectureIdx?
+      # This is for a unit
+      unitIdx = @idx
+      unit = lecture.units[unitIdx]
+      handout = unit.handout
+      message = "Specify the url of the handout for <em>unit.name</em>."
+      toSetField = "lectures.#{lectureIdx}.units.#{unitIdx}.handout"
+    else
+      handout = lecture.handout
+      message = "Specify the url of the slides for <em>lecture.name</em>."
+      toSetField = "lectures.#{lectureIdx}.handout"
+    MaterializeModal.form
+      title : "Slides"
+      bodyTemplate : "urlModal"
+      submitLabel : "update"
+      closeLabel : "cancel"
+      message : message
+      url : handout
+      callback : (error, response) ->
+        if response.submit
+          url = response.form.url
+          toSet = {"#{toSetField}" : url}
+          updateExerciseSetField exerciseSet, toSet, 'updating the url of the handout'
+          
+    
+    
 
 # Build an object useful for
 # displaying and edit ExerciseSets
 # (essentially: elaborate them by adding properties).
 getLectures = (o) ->
   o ?= {reactive:false}
-  theLectures = ExerciseSets.findOne({},{reactive:o.reactive})?.lectures
+  theLectures = getExerciseSet(o)?.lectures
   return [] unless theLectures?.length > 0
 
   for l, idx in theLectures

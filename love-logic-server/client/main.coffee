@@ -23,6 +23,10 @@ Template.main.onCreated () ->
 Template.main.onRendered () ->
   ix.checkBrowserCompatible()
   
+  @autorun () ->
+    FlowRouter.go('/sign-in') unless Meteor.userId()?
+
+Template.changeTutorModal.onRendered () ->
   # Configure the typeahead
   # Currently a bit wonky : uses a SearchSource (which is reactive)
   # together with the typeahead.js async method --- doesn’t fit well.
@@ -54,7 +58,6 @@ Template.main.onRendered () ->
         Tracker.autorun (c) ->
           return unless TutorSearch.getStatus().loaded
           c.stop()
-          console.log "autorun updated"
           sendMoreResults()
       # short delay before setting autorun so that TutorSearch has
       # time to tell us it is loading
@@ -70,8 +73,7 @@ Template.main.onRendered () ->
         return "<div>#{user.emails[0].address} - #{user.profile.name}<div>"
       
   })
-  @autorun () ->
-    FlowRouter.go('/sign-in') unless Meteor.userId()?
+  
   
 
 getNextExercisesWithUnseenFeedback = () ->
@@ -124,48 +126,65 @@ Template.main.events
     FlowRouter.go(url)
     
   'click .changeSeminarTutor' : (event, template) ->
-    $('#seminar-tutor-modal').openModal()
     tutor = Meteor.user()?.profile?.seminar_tutor
     if tutor?
-      $('#seminarTutorTypeahead').val(tutor).focusin()
       TutorSearch.search(tutor)
     else
       TutorSearch.search('')
-    $('#seminarTutorTypeahead').focus()
+    MaterializeModal.form
+      title : "Tutor"
+      bodyTemplate : "changeTutorModal"
+      submitLabel : "update"
+      closeLabel : "cancel"
+      seminarTutorEmail : Meteor.user()?.profile?.seminar_tutor or ''
+      callback : (error, response) ->
+        if response.submit
+          newAddress = response.form.seminarTutorEmail
+          Meteor.call "updateSeminarTutor", newAddress, (error) ->
+            if error
+              Materialize.toast error.message, 4000
+            else
+              Materialize.toast "Your seminar tutor has been updated", 4000
+              
+  'click .changeInstructor' : (event, template) ->
+    MaterializeModal.form
+      title : "Instructor"
+      bodyTemplate : "changeInstructorModal"
+      submitLabel : "update"
+      closeLabel : "cancel"
+      instructorEmail : Meteor.user()?.profile?.instructor
+      callback : (error, response) ->
+        if response.submit
+          newAddress = response.form.instructorEmail
+          Meteor.call "updateInstructor", newAddress, (error) ->
+            if error
+              Materialize.toast error.message, 4000
+            else
+              Materialize.toast "Your instructor has been updated", 4000
+    
+  'click .changeEmail' : (event, template) ->
+    MaterializeModal.form
+      title : "Change Email"
+      bodyTemplate : "changeEmailModal"
+      submitLabel : "update"
+      closeLabel : "cancel"
+      emailAddress : ix.getUserEmail()
+      callback : (error, response) ->
+        if response.submit
+          newAddress = response.form.emailAddress
+          Meteor.call "updateEmailAddress", newAddress, (error) ->
+            if error
+              Materialize.toast error.message, 4000
+            else
+              Materialize.toast "Your email address has been updated", 4000
+
+Template.changeTutorModal.events
   'keyup .tutorTypeahead' : _.throttle( (event, template) ->
       # help the typeahead : ensure that TutorSearch is uptodate if possible
-      # TODO: won’t this get the wrong values (because the typeahead creates and extra input?)
+      # (Not sure why this is necessary; but without it, some entries are
+      # missing.)
       $target = $(event.target)
       text = $target.val()
       TutorSearch.search(text)
     , 200 )
-  'click #confirm-set-seminar-tutor-email' : (event, template) ->
-    newAddress = $('#seminarTutorTypeahead').val().trim()
-    Meteor.call "updateSeminarTutor", newAddress, (error) ->
-      if error
-        Materialize.toast error.message, 4000
-      else
-        Materialize.toast "Your seminar tutor has been updated", 4000
-
-  'click #confirm-set-instructor-email' : (event, template) ->
-    newAddress = $('input.instructor').val().trim()
-    Meteor.call "updateInstructor", newAddress, (error) ->
-      if error
-        Materialize.toast error.message, 4000
-      else
-        Materialize.toast "Your instructor has been updated", 4000
   
-  'click #confirm-update-email' : (event, template) ->
-    newAddress = $('textarea.newEmailAddress').val().trim()
-    Meteor.call "updateEmailAddress", newAddress, (error) ->
-      if error
-        Materialize.toast error.message, 4000
-      else
-        Materialize.toast "Your email address has been updated", 4000
-  
-  
-  'click .changeInstructor' : (event, template) ->
-    $('#instructor-modal').openModal()
-  'click .changeEmail' : (event, template) ->
-    $('#change-email-modal').openModal()
-

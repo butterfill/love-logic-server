@@ -32,31 +32,21 @@ template(name="ask_for_help")
           span There is no answer yet.
   
 
-  button#request-help.btn.waves-effect.grey(data-target="request-help_modal") ask for help
+  button#request-help.btn.waves-effect.grey ask for help
    i.material-icons.right live_help
 
-  #request-help_modal.modal
-    .modal-content
-      h4 Ask for help
-      form
-        if slidesForThisUnit
-          p 
-            input(type='checkbox', id='reviewed-lecture-slides')
-            label(for='reviewed-lecture-slides') I have reviewed the 
-              a(href="#{slidesForThisUnit}", target="_blank") lecture slides on 
-                em #{unitTitle}
-        if readingForThisUnit
-          p 
-            input(type='checkbox', id='read-textbook')
-            label(for='read-textbook') I have read #{readingForThisUnit}
-        .input-field
-          textarea.materialize-textarea(id='request-for-help-description')
-          label(for='request-for-help-description') What are you stuck on?
-        p: em Requests for help may go unanswered outside of the weeks in which lectures are given for your course.
-        if notYetSubmitted
-          p: em Requesting help will cause your current answer to be submitted (even if it’s blank).
-    .modal-footer
-      a(href="").modal-action.modal-close.waves-effect.waves-grey.btn-flat cancel
-      a(href="")#confirm-request-help.modal-action.modal-close.waves-effect.waves-grey.btn-flat send
-
-
+template(name="requestHelpModal")
+  if slidesForThisUnit
+    p 
+      input#reviewedLectureSlides(type='checkbox', name='reviewedLectureSlides')
+      label(for='reviewedLectureSlides') I have reviewed the 
+        a(href="#{slidesForThisUnit}", target="_blank") lecture slides on 
+          em #{unitTitle}
+  if readingForThisUnit
+    p 
+      input#readTextbook(type='checkbox', name='readTextbook')
+      label(for='readTextbook') I have read #{readingForThisUnit}
+  .input-field
+    textarea#description.materialize-textarea(name='description')
+    label(for='description') What are you stuck on?
+  p: em Requests for help may go unanswered outside of the weeks in which lectures are given for your course.
