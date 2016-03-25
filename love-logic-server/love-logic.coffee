@@ -84,7 +84,68 @@ Meteor.methods
       throw new Meteor.Error "not-authorized"
     Meteor.users.update(userId, {$set: {'profile.is_instructor':true}})
     
+  createNewCourse : (name, description) ->
+    unless name is encodeURIComponent(name)
+      throw new Meteor.Error "illegal characters in name"
+    email = Meteor.user()?.emails?[0]?.address
+    if not email?
+      throw new Meteor.Error "not-authorized"
+    emailDomain = email.split('@')[1] or 'unknown.edu'
+    prefix = encodeURIComponent(emailDomain)
+    # prefix = emailDomain.split('.').reverse().join('.')
+    unless name.startsWith(prefix)
+      name = "#{prefix}-#{name}"
+    alreadyExistsCount = Courses.find({name:name}).count()
+    if alreadyExistsCount > 0
+      throw new Meteor.Error "already exists"
+    course = Courses.insert({name, description})
+    return {name:name, course:course}
+
+  deleteCourse : (name) ->
+    userId = Meteor.user()?._id
+    if not userId
+      throw new Meteor.Error "not-authorized"
+    courseCursor = Courses.find({name})
+    if courseCursor.count() isnt 1
+      throw new Meteor.Error "cannot find it (count: #{courseCursor.count()})"
+    course = courseCursor.fetch()[0]
+    nofExerciseSets = ExerciseSets.find({courseName:name}).count()
+    if nofExerciseSets isnt 0
+      throw new Meteor.Error "has exercise sets"
+    Courses.remove(course._id)
     
+  createNewExerciseSet : (courseName, variant, description) ->
+    unless courseName is encodeURIComponent(courseName)
+      throw new Meteor.Error "illegal characters in name"
+    userId = Meteor.user()?._id
+    if not userId
+      throw new Meteor.Error "not-authorized"
+    alreadyExistsCount = ExerciseSets.find({variant, courseName}).count()
+    if alreadyExistsCount > 0
+      throw new Meteor.Error "already exists"
+    newExSet = 
+      courseName : courseName
+      variant : variant
+      description : description
+      owner : userId
+      lectures : []
+      created : new Date()
+    exerciseSet = ExerciseSets.insert(newExSet)
+    return {courseName, exerciseSet}
+  
+  deleteExerciseSet : (courseName, variant) ->
+    userId = Meteor.user()?._id
+    if not userId
+      throw new Meteor.Error "not-authorized"
+    exSetCursor = ExerciseSets.find({variant, courseName})
+    if exSetCursor.count() isnt 1
+      throw new Meteor.Error "cannot find it (count: #{exSetCursor.count()})"
+    exSet = exSetCursor.fetch()[0]
+    if exSet.owner isnt userId
+      throw new Meteor.Error "not-authorized: not yours"
+    if exSet.lectures?.length isnt 0
+      throw new Meteor.Error "has lectures"
+    ExerciseSets.remove(exSet._id)
   
   submitExercise : (exercise) ->
     userId = Meteor.user()?._id

@@ -6,28 +6,59 @@ template(name='courses')
         li.collection-item
           a(href="/course/#{name}") #{name}
           span --- #{description}
+    if isInstructorOrTutor
+      p: a.createNewCourse.btn.waves-effect.grey create a new course
+        
   else
     +loading
 
+template(name='createNewCourseModal')
+  p Courses are visible to everyone: the course name will be prefixed by your email domain (e.g. ‘uk.ac.warwick:’).
+  .input-field
+    input#courseName(type="text", name="name")
+    label(for='courseName') The short name of the course (no spaces).
+  .input-field
+    textarea#courseDescription.materialize-textarea(type="text", name="description")
+    label(for='courseDescription') A description of this course.  
+
 
 template(name='courseNameHeader')
-  p 
-    a(href='/course/#{courseName}') #{courseName} 
-    span --- #{courseDescription}
+  if Template.subscriptionsReady 
+    p 
+      a(href='/course/#{courseName}') #{courseName} 
+      span --- #{courseDescription}
 
 
 template(name='exerciseSetsForCourse')
-  +courseNameHeader(courseName=courseName courseDescription=courseDescription)
-  h2 Select a variant
+  if Template.subscriptionsReady 
+    p 
+      a(href='/courses') ALL COURSES
+      span  > #{courseName} 
+      span --- #{courseDescription}
+    if canDeleteCourse
+      p: a.deleteCourse.btn.waves-effect.red-text.grey delete this course
+  
+  if exerciseSets
+    h2 Select an exercise set
   if Template.subscriptionsReady 
     ul.collection
       each exerciseSets
         li.collection-item
           a(href="/course/#{courseName}/exerciseSet/#{variant}") #{variant}
           span --- #{description}
+    if isInstructorOrTutor
+      p: a.createNewExerciseSet.btn.waves-effect.grey create a new exercise set
   else
     +loading
   
+template(name='createNewExerciseSetModal')
+  .input-field
+    input#variantName(type="text", name="variant")
+    label(for='variantName') The short name of the exercise set (no spaces).
+  .input-field
+    textarea#variantDescription.materialize-textarea(type="text", name="description")
+    label(for='variantDescription') Who is this course for?  A brief description
+
 
 //- displays only the questions for a lecture or unit
 template(name='listExercises')
@@ -36,23 +67,15 @@ template(name='listExercises')
     h2 #{exerciseSetName}
   
     each lectures
-      h4(id="#{htmlAnchor}") 
-        a(href="#{exerciseSetLectureURL}") #{name}
-      div(style="padding-left:2em;border-left:1px dotted black")
-        p
-          +slidesAndHandoutsLinks    
-        each units
-          h5(id="#{htmlAnchor}") 
-            a(href="#{exerciseSetUnitURL}") #{name}
-          if reading
-            p Reading: #{reading}
-          p 
-            span [
-            a(href="#{slides}", target="_blank") slides
-            span ] 
-          ul.collection
+      h4(id="#{htmlAnchor}") #{name}
+      each units
+        h5(id="#{htmlAnchor}") #{idx}. #{name}
+        if reading
+          p Reading: #{reading}
+        ul.collection
           each exercises
-            li
+            li.collection-item
+              span #{unitIdx}.#{idx} 
               a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
               +Template.dynamic(template=displayQuestion)
   else
@@ -179,6 +202,8 @@ template(name='exerciseSet')
           each units
             p.vspace &nbsp;
             h5(id="#{htmlAnchor}") 
+              //- unless paramsSpecifyUnit
+              //-   span #{idx}.
               a(href="#{exerciseSetUnitURL}") #{name}
             if reading
               p Reading: #{reading}
@@ -198,6 +223,7 @@ template(name='exerciseSet')
                   //-   span.pass
                   //- else
                   //-   span.black-text ✪
+                  span #{unitIdx}.#{idx} 
                   if isForTutee
                     a(href="#{gradeURL}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}&user=#{tuteeId}") #{name}
                   else
@@ -237,18 +263,25 @@ template(name='exerciseSetEdit')
       else
         span.exerciseSetName(contentEditable="true") #{exerciseSetName}
         i.material-icons mode_edit
-    if paramsSpecifyLecture
-      span
-    else
+    unless paramsSpecifyLecture
       p 
         span.exerciseSetDescription(contentEditable="true") 
           if exerciseSetDescription
             | #{exerciseSetDescription}
           else
-            | [describe the exercise set here]
-        
+            | [describe this exercise set here]
         i.material-icons mode_edit
-    
+      p
+        span.textbook(contentEditable="true") 
+          if textbook
+            | #{textbook}
+          else
+            | [specify the textbook here]
+        i.material-icons mode_edit
+      if canDeleteExerciseSet
+        p: a.deleteExerciseSet.btn.waves-effect.red-text.grey delete this exercise set
+      
+        
     if exerciseSetReady
       h4 
         if paramsSpecifyUnit
@@ -261,7 +294,7 @@ template(name='exerciseSetEdit')
             each lectures
               span  (
               each units
-                span §#{idx} of 
+                span Unit §#{idx} of 
               a(href="#{exerciseSetLectureURL}") #{lectureName}
               span )
           else
@@ -283,7 +316,9 @@ template(name='exerciseSetEdit')
           each lectures   
             p: a.addUnit.waves-effect
               i.material-icons add_circle_outline
-              span add a unit to the end of the list of units
+              span add a unit 
+              if units
+                span to the end of the list of units
         each lectures
           each units
             p.vspace &nbsp;
@@ -321,6 +356,13 @@ template(name='exerciseSetEdit')
             p 
               if paramsSpecifyUnit
                 +slidesAndHandoutsLinksEditable
+                p: a.addExerciseUsingExerciseBuilder.waves-effect
+                  i.material-icons add_circle_outline
+                  span add an exercise 
+                  if exercises
+                    span to the end of the list of exercises
+                
+                
               else
                 +slidesAndHandoutsLinks
             ul.collection
@@ -337,17 +379,19 @@ template(name='exerciseSetEdit')
                         i.material-icons arrow_downward
                     else
                       i.material-icons.grey-text arrow_downward
-                    span #{idx}.
+                  span #{unitIdx}.#{idx} 
                   a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
                   if paramsSpecifyUnit
-                    a.editExercise.waves-effect 
+                    a.editExerciseUsingExerciseBuilder.waves-effect 
                       i.material-icons mode_edit
                   
                   
       else
         p: a.addLecture.waves-effect
           i.material-icons add_circle_outline
-          span add a lecture to the end of the list of lectures
+          span add a lecture 
+          if lectures
+            span to the end of the list of lectures
         p Select a lecture to edit units and exercises:
         ul.collection
           each lectures
@@ -374,4 +418,8 @@ template(name="urlModal")
   p #{message}.
   .input-field
     input.url(type="text", value="#{url}", name="url")
-  
+    
+template(name="exerciseModal")
+  p Specify an exercise
+  .input-field
+    input(type="text", value="#{exercise}", name="exercise")

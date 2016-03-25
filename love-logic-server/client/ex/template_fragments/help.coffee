@@ -1,3 +1,9 @@
+getExerciseSet = (options) ->
+  FlowRouter.watchPathChange()
+  options ?= {}
+  courseName = FlowRouter.getQueryParam 'courseName'
+  variant = FlowRouter.getQueryParam 'variant'
+  return ExerciseSets.findOne({courseName, variant}, options)
 
 doSubscriptions = (templateInstance) ->
   templateInstance ?= this
@@ -33,6 +39,7 @@ Template.ask_for_help.onCreated () ->
 # ====
 # template helpers
 
+      
 slidesForThisUnit = () ->
   # Because `Session` is a reactive var, this call ensures the templates are updated when
   # the current unit changes.
@@ -40,9 +47,18 @@ slidesForThisUnit = () ->
   return '' unless ctx
   return ctx.unit.slides
 readingForThisUnit = () ->
+  exerciseSet = getExerciseSet()
   ctx = Template.instance().exerciseContext.get()
-  return '' unless ctx
-  return "Sections §#{ctx.unit.rawReading.join(', §')} of Language, Proof and Logic"
+  unit = ctx?.unit
+  return '' unless exerciseSet? and unit?
+  return ix.getReading(exerciseSet, unit)
+slidesOrReadingForThisUnit = () ->
+  slides = slidesForThisUnit()
+  return true if slides? and slides isnt ''
+  reading = readingForThisUnit()
+  return true if reading? and reading isnt ''
+  return false
+  
 unitTitle = () ->
   ctx = Template.instance().exerciseContext.get()
   return '' unless ctx
@@ -56,6 +72,7 @@ notYetSubmitted = () ->
 Template.help_with_this_exercise.helpers
   slidesForThisUnit : slidesForThisUnit
   readingForThisUnit : readingForThisUnit
+  slidesOrReadingForThisUnit : slidesOrReadingForThisUnit
   unitTitle : unitTitle
 
 Template.ask_for_help.helpers

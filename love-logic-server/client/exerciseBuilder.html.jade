@@ -1,0 +1,13 @@
+template(name='exerciseBuilder')
+  p Which type of exercise would you like to set?  (Type a word or two.)
+  .input-field.scrollable-dropdown-menu
+    input.exType.typeahead(type="text", name="exType", autocomplete="off", style="margin-bottom:0;")
+  .enable-bootstrap
+    #exBuilder(style="min-height:250px")
+template(name='exerciseBuilderFooter')
+  .modal-footer
+    a(href='#!').saveEx.btn-flat.waves-effect save
+    a(href='#!')#closeButton.btn-flat.waves-effect cancel
+    a(href='#!').resetEx.btn-flat.waves-effect reset
+    a(href='#!').deleteEx.red-text.btn-flat.waves-effect delete
+    

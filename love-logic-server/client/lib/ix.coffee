@@ -19,6 +19,8 @@ ix.getUserEmail = () ->
     return Meteor.user().emails[0].address
   return undefined
   
+ix.isInstructorOrTutor = () ->
+  return (Meteor.user()?.profile?.instructor) or (Meteor.user()?.profile?.seminar_tutor)
 
 # Return the current url minus any querystring.
 ix.url = () ->
@@ -251,6 +253,27 @@ ix.getExerciseContext = () ->
                 nextLecture
                 exerciseSet : exSet
               }
+
+ix.getReading = (exerciseSet, unit) ->
+  textbook = exerciseSet.textbook or "Language, Proof and Logic by Barker-Plummer, Barwise & Etchemendy"
+  rawReading = unit.rawReading
+  return undefined unless rawReading? and rawReading.length > 0
+  reading = ''
+  extendReading = (moreReading) ->
+    if reading is ''
+      reading = moreReading
+    else
+      reading = "#{reading}; #{moreReading}"
+  digitsEtc = /[\d\.\s]+/
+  sectionNumbers = ( r for r in rawReading when r?.match?(digitsEtc) )
+  otherReading = ( r for r in rawReading when not r?.match?(digitsEtc) )
+  if sectionNumbers?.length > 0
+    extendReading "Sections §#{sectionNumbers.join(', §')} of #{textbook}"
+  if otherReading?.length > 0
+    for r in otherReading
+      extendReading r
+  return reading
+
 
 # The student’s work in progress (in an editor) is stored under this key.
 ix.getSessionKeyForUserExercise = () ->

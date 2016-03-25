@@ -101,6 +101,7 @@ Template.main.helpers
     return Meteor.user()?.profile?.seminar_tutor
   instructor : () ->
     return Meteor.user()?.profile?.instructor
+  isInstructorOrTutor : ix.isInstructorOrTutor
   instructorEmail : () ->
     return Meteor.user()?.profile?.instructor
   

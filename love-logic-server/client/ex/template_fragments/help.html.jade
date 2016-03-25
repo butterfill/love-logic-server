@@ -9,15 +9,22 @@ template(name='topic_header')
 
 
 template(name="help_with_this_exercise")
-  if slidesForThisUnit
+  if slidesOrReadingForThisUnit
     h4 Help with this exercise
     p 
-      span Review the 
-      a(href="#{slidesForThisUnit}", target="_blank") lecture slides on 
-        em #{unitTitle}
+      if slidesForThisUnit
+        span Review the 
+        a(href="#{slidesForThisUnit}", target="_blank") lecture slides on 
+          em #{unitTitle}
+        if readingForThisUnit
+          span  and read 
+        else
+          span .
+      else
+        if readingForThisUnit
+          span Read 
       if readingForThisUnit
-        span  and read #{readingForThisUnit}
-      span .
+        span  #{readingForThisUnit}.
 
 
 template(name="ask_for_help")

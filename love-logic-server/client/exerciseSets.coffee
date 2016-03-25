@@ -1,9 +1,17 @@
 DAYSAGO7 = moment().subtract(7, "days").toDate()
 
+beReactive = () ->
+  return true if (window.location.pathname.indexOf('/edit') isnt -1)
+  return false if (window.location.pathname.indexOf('/exerciseSet') isnt -1)
+  return true if ix.isInstructorOrTutor()
 getExerciseSetName = () ->
   return decodeURIComponent(FlowRouter.getParam('_variant') or '')
-getCourseName = () ->
-  return Courses.findOne({},{reactive:false})?.name
+nameIsOkToUseAsURIComponent = (name) ->
+  return false if name.indexOf(':') isnt -1
+  return false if name.indexOf('/') isnt -1
+  return true
+
+
 
 Template.courses.onCreated () ->
   self = this
@@ -13,7 +21,33 @@ Template.courses.onCreated () ->
 
 Template.courses.helpers
   courses : () -> 
-    return Courses.find({}, {reactive:false})
+    return Courses.find({}, {reactive:beReactive()})
+  isInstructorOrTutor : ix.isInstructorOrTutor
+
+Template.courses.events
+  'click .createNewCourse' : (event, target) ->
+    MaterializeModal.form
+      title : "Create New Course"
+      bodyTemplate : "createNewCourseModal"
+      submitLabel : "create"
+      closeLabel : "cancel"
+      callback : (error, response) ->
+        if response.submit 
+          name = response?.form?.name?.trim?()
+          description = response?.form?.description?.trim?()
+          unless name? and description? and name isnt '' and description isnt ''
+            Materialize.toast "Error: specify name and description", 4000
+            return
+          unless nameIsOkToUseAsURIComponent(name)
+            Materialize.toast "Error: illegal characters in name", 4000
+            return
+          Meteor.call 'createNewCourse', name, description, (error, result)->
+            if not error
+              name = result.name
+              Materialize.toast "Created #{name}", 4000
+              FlowRouter.go("/course/#{name}")
+            else
+              Materialize.toast "Sorry, there was an error creating #{name}. (#{error.message})", 4000
 
 
 Template.exerciseSetsForCourse.onCreated () ->
@@ -23,14 +57,63 @@ Template.exerciseSetsForCourse.onCreated () ->
     self.subscribe('course', courseName)
     self.subscribe('exercise_sets', courseName)
 
-
+getCourse = () ->
+  courseName = FlowRouter.getParam('_courseName')
+  return Courses.findOne({name:courseName},{reactive:beReactive()})
+  
 Template.exerciseSetsForCourse.helpers
-  courseName : () ->
-    return Courses.findOne({},{reactive:false})?.name
+  courseName : () -> FlowRouter.getParam('_courseName')
   courseDescription : () ->
-    return Courses.findOne({},{reactive:false})?.description
+    return getCourse()?.description
   exerciseSets : () -> 
-    return ExerciseSets.find({}, {reactive:false})
+    courseName = FlowRouter.getParam('_courseName')
+    return ExerciseSets.find({courseName:courseName}, {reactive:beReactive()})
+  isInstructorOrTutor : ix.isInstructorOrTutor
+  canDeleteCourse : () ->
+    courseName = FlowRouter.getParam('_courseName')
+    countExSets = ExerciseSets.find({courseName:courseName}, {reactive:beReactive()}).count()
+    return countExSets is 0
+  
+
+
+
+Template.exerciseSetsForCourse.events
+  'click .deleteCourse' : (event, target) ->
+    courseName = FlowRouter.getParam('_courseName')
+    Meteor.call 'deleteCourse', courseName, (error,result) ->
+      if not error
+        Materialize.toast "Deleted #{courseName}", 4000
+        FlowRouter.go('/courses')
+      else
+        Materialize.toast "Sorry, there was an error deleting #{courseName}. (#{error.message})", 4000
+      
+  'click .createNewExerciseSet' : (event, target) ->
+    MaterializeModal.form
+      title : "Create New Exercise Set"
+      bodyTemplate : "createNewExerciseSetModal"
+      submitLabel : "create"
+      closeLabel : "cancel"
+      callback : (error, response) ->
+        if response.submit
+          variant = response?.form?.variant?.trim?()
+          description = response?.form?.description?.trim?()
+          unless variant? and description? and variant isnt '' and description isnt ''
+            Materialize.toast "Error: specify name and description", 4000
+            return
+          unless nameIsOkToUseAsURIComponent(variant)
+            Materialize.toast "Error: illegal characters in name", 4000
+            return
+          courseName = FlowRouter.getParam('_courseName')
+          return unless courseName?
+          Meteor.call 'createNewExerciseSet', courseName, variant, description, (error,result)->
+            if not error
+              console.log result
+              Materialize.toast "Created #{variant}", 4000
+              console.log "/course/#{courseName}"
+              FlowRouter.go("/course/#{courseName}/exerciseSet/#{variant}/edit")
+            else
+              Materialize.toast "Sorry, there was an error creating #{variant}. (#{error.message})", 4000
+          
 
 
 Template.listExercises.onCreated () ->
@@ -42,10 +125,12 @@ Template.listExercises.onCreated () ->
     self.exerciseSet = self.subscribe 'exercise_set', courseName, variant
 
 
-getExerciseSet = (o) ->
+getExerciseSet = (options) ->
+  options ?= {}
+  FlowRouter.watchPathChange()
   courseName = FlowRouter.getParam('_courseName')
   variant = FlowRouter.getParam('_variant')
-  return ExerciseSets.findOne({courseName, variant},o)
+  return ExerciseSets.findOne({courseName, variant}, options)
 
 Template.exerciseSet.onCreated () ->
   self = this
@@ -73,73 +158,12 @@ Template.exerciseSetEdit.onCreated () ->
     courseName = FlowRouter.getParam('_courseName')
     variant = FlowRouter.getParam('_variant')
     self.subscribe('course', courseName)
-    self.exerciseSet = self.subscribe 'exercise_set', courseName, variant
+    self.exerciseSet = self.subscribe('exercise_set', courseName, variant)
     
 
-# merely displays the questions (no progress or anything)
-Template.listExercises.helpers
-  courseName : () ->
-    return getCourseName() 
-  courseDescription : () ->
-    return Courses.findOne({},{reactive:false})?.description
-  displayQuestion : () ->
-    return "#{@type}_ex_display_question"
-
-  
-  # TODO: this is mostly copied from its counterpart in Template.exerciseSet.helpers
-  # minus the bits about a student’s progress
-  lectures : () ->
-    FlowRouter.watchPathChange()
-    theLectures = getExerciseSet({reactive:false})?.lectures
-    return [] if not theLectures
-    
-    # Filter the document if a particular lecture or unit is specified
-    if FlowRouter.getParam('_lecture')?
-      lectureToShow = FlowRouter.getParam('_lecture')
-      theLectures = (l for l in theLectures when l.name is lectureToShow)
-    if FlowRouter.getParam('_unit')? 
-      unitToShow = FlowRouter.getParam('_unit')
-      for lecture in theLectures
-        lecture.units = (u for u in lecture.units when u.name is unitToShow)
-    
-    # Build an object that makes blaze templating easier
-    exDict = {}
-    for l in theLectures
-      l.htmlAnchor = encodeURIComponent(l.name)
-      l.exerciseSetLectureURL = ''
-      if ix.url().indexOf('/unit/') is -1 and ix.url().indexOf('/lecture/') is -1
-          l.exerciseSetLectureURL = "#{ix.url().replace(/\/$/,'').replace(/\/listExercises/,'')}/lecture/#{l.name}/listExercises#{document.location.search}"
-      if ix.url().indexOf('/unit/') isnt -1
-        # move up from unit to lecture
-        l.exerciseSetLectureURL = "#{ix.url().replace(/\/unit\/.+/, '').replace(/\/listExercises/,'')}/listExercises#{document.location.search}"
-      for unit in l.units
-        unit.htmlAnchor = encodeURIComponent(unit.name)
-        unit.exerciseSetUnitURL = ''
-        if ix.url().indexOf('/unit/') is -1
-          if ix.url().indexOf('/lecture/') is -1
-            unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'').replace(/\/listExercises/,'')}/lecture/#{l.name}/unit/#{unit.name}/listExercises#{document.location.search}"
-          else
-            unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'').replace(/\/listExercises/,'')}/unit/#{unit.name}/listExercises#{document.location.search}"
-        exercises = []
-        for e in unit.rawExercises
-          exDoc = 
-            exerciseId:e
-            type:e.split('/')[2]
-            name:e.replace('/ex/','')
-            link:ix.convertToExerciseId(e)
-          exercises.push exDoc
-          exDict[exDoc.link] = exDoc
-        unit.exercises = exercises
-        if unit.rawReading?.length >0
-          unit.reading = "Sections §#{unit.rawReading.join(', §')} of Language, Proof and Logic (Barwise & Etchemendy; the course textbook)."
-        else 
-          unit.reading =""
-    
-    return theLectures
  
 commonHelpers = 
   paramsSpecifyExerciseSet : () -> FlowRouter.getParam('_variant' )?
-  exerciseSetName : () -> "the #{FlowRouter.getParam('_variant' )} exercises for #{FlowRouter.getParam('_courseName' )}"
   paramsSpecifyLecture : () -> FlowRouter.getParam('_lecture' )?
   lectureName :  () -> FlowRouter.getParam('_lecture' )
   paramsSpecifyUnit : () -> FlowRouter.getParam('_unit' )?
@@ -147,14 +171,13 @@ commonHelpers =
   isTutor : ix.userIsTutor
   
   # These are copied from `myTuteesProgress.coffee`
-  courseName : () ->
-    return getCourseName() 
+  courseName : () -> FlowRouter.getParam('_courseName')
   courseDescription : () ->
-    return Courses.findOne({},{reactive:false})?.description
+    return Courses.findOne({},{reactive:beReactive()})?.description
   exerciseSetName : () ->
     return getExerciseSetName()
   exerciseSetDescription : () ->
-    return getExerciseSet({reactive:false})?.description
+    return getExerciseSet({reactive:beReactive()})?.description
     
   tuteeId : () -> 
     tuteeId = ix.getUserId()
@@ -167,26 +190,36 @@ commonHelpers =
     return Meteor.users.findOne(ix.getUserId())?.emails?[0]?.address
   submittedDateAndCorrectnessInfoReady : () -> Template.instance().datesExercisesSubmitted.ready()
   
+Template.listExercises.helpers commonHelpers
 Template.exerciseSet.helpers commonHelpers
 Template.exerciseSetEdit.helpers commonHelpers
-  
+
+
+# merely displays the questions (no progress or anything)
+Template.listExercises.helpers
+  displayQuestion : () ->
+    return "#{@type}_ex_display_question"
+
+  lectures : () ->
+    return getLectures()
+
+
 Template.exerciseSet.helpers
   isForTutee : () -> Meteor.users.find().count() > 1
   exerciseSetReady : () -> Template.instance().exerciseSet.ready() and Template.instance().datesExercisesSubmitted.ready()
   
   userIsExerciseSetOwner : () ->
     exerciseSet = getExerciseSet()
-    return exerciseSet.owner is ix.getUserId()
+    return exerciseSet?.owner is ix.getUserId()
   
   # NB: has side-effect: draws the chart
   lectures : () ->
     FlowRouter.watchPathChange()
-    
     theLectures = getLectures()
     
     # Keys are exId; values are the correctness of the latest submission
     exDict = {}
-    allExIncludingResubmits = SubmittedExercises.find({owner:ix.getUserId()},{reactive:false}).fetch()
+    allExIncludingResubmits = SubmittedExercises.find({owner:ix.getUserId()},{reactive:beReactive()}).fetch()
     exDup = {}  # used to keep track of multiple submissions for one exercise
     for ex in allExIncludingResubmits
       if ex.exerciseId of exDup
@@ -278,20 +311,24 @@ Template.exerciseSet.helpers
   isAlreadyFollowing : () ->
     # Here we get the acutal user (this is for wheter to display the `follow button`)
     userId = Meteor.userId()
-    courseName = getCourseName()
+    courseName = FlowRouter.getParam('_courseName')
     variant = getExerciseSetName()
     return false unless userId? and courseName? and variant?
-    test = Subscriptions.findOne({$and:[{owner:userId},{courseName},{variant}]},{reactive:false})
+    test = Subscriptions.findOne({$and:[{owner:userId},{courseName},{variant}]},{reactive:beReactive()})
     return test?
 
 
 
 Template.exerciseSetEdit.helpers
   exerciseSetReady : () -> Template.instance().exerciseSet.ready() 
-  
+  textbook : () -> getExerciseSet()?.textbook
   lectures : () -> 
-    theLectures = getLectures({reactive:true})
+    theLectures = getLectures({reactive:beReactive()})
     return theLectures 
+  canDeleteExerciseSet : () ->
+    exerciseSet = getExerciseSet()
+    return exerciseSet?.lectures?.length is 0
+  
 
 
 # -------------
@@ -300,7 +337,7 @@ Template.exerciseSetEdit.helpers
 
 Template.exerciseSet.events
   'click #follow' : (event, template) ->
-    courseName = getCourseName()
+    courseName = FlowRouter.getParam('_courseName')
     variant = getExerciseSetName()
     Meteor.call 'subscribeToExerciseSet', courseName, variant, (error,result) ->
       if not error
@@ -309,13 +346,14 @@ Template.exerciseSet.events
         Materialize.toast "Sorry, there was an error signing you up for #{variant}. (#{error.message})", 4000
   
   'click #unfollow' : (event, template) ->
-    courseName = getCourseName()
+    courseName = FlowRouter.getParam('_courseName')
     variant = getExerciseSetName()
     Meteor.call 'unsubscribeToExerciseSet', courseName, variant, (error,result)->
       if not error
         Materialize.toast "You are no longer following #{variant}", 4000
       else
         Materialize.toast "Sorry, there was an error signing you out of #{variant}. (#{error.message})", 4000
+        
 
 
 updateExerciseSetField = (exerciseSet, toSet, thing) ->
@@ -325,19 +363,21 @@ updateExerciseSetField = (exerciseSet, toSet, thing) ->
     else
       Materialize.toast "Success #{thing}", 4000
 
-# TODO : delete these unless used!
-dataContextIsExercise = (ctx) ->
-  return ctx.unitIdx?
-dataContextIsUnit = (ctx) ->
-  return false if dataContextIsExercise(ctx)
-  return ctx.lectureIdx?
-dataContextIsLecture = (ctx) ->
-  return false if dataContextIsExercise(ctx)
-  return false if dataContextIsUnit(ctx)
-  return true
+
   
 Template.exerciseSetEdit.events
 
+  'click .deleteExerciseSet' : (event, target) ->
+    courseName = FlowRouter.getParam('_courseName')
+    variant = getExerciseSetName()
+    Meteor.call 'deleteExerciseSet', courseName, variant, (error,result) ->
+      if not error
+        Materialize.toast "Deleted #{variant}", 4000
+        console.log "/course/#{courseName}"
+        FlowRouter.go("/course/#{courseName}")
+      else
+        Materialize.toast "Sorry, there was an error deleting #{variant}. (#{error.message})", 4000
+      
   # editing contentEditable fields
   # NB: currently this messes up because Subscriptions 
   # specify variant by name!
@@ -345,7 +385,7 @@ Template.exerciseSetEdit.events
     # TODO : check it has no followers, otherwise deny update.
     exerciseSet = getExerciseSet()
     newName = event.target.innerText?.trim()
-    unless newName?.length > 0
+    unless newName?.length > 0 and nameIsOkToUseAsURIComponent(newName)
       event.target.innerText = exerciseSet.variant
       return
     toSet = {"variant":newName}
@@ -360,12 +400,20 @@ Template.exerciseSetEdit.events
       return
     toSet = {"description":newName}
     updateExerciseSetField exerciseSet, toSet, 'updating the description of the exercise set'
+  'blur .textbook' : (event, template) ->
+    exerciseSet = getExerciseSet()
+    newName = event.target.innerText?.trim()
+    if newName?.length is 0
+      toSet = {"textbook":null}
+    else
+      toSet = {"textbook":newName}
+    updateExerciseSetField exerciseSet, toSet, 'updating the textbook for this exercise set'
   'blur .unitName' : (event, template) ->
     exerciseSet = getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @idx
     newName = event.target.innerText?.trim()
-    unless newName?.length > 0
+    unless newName?.length > 0 and nameIsOkToUseAsURIComponent(newName)
       event.target.innerText = exerciseSet.lectures[lectureIdx].units[unitIdx].name
       return
     toSet = {"lectures.#{lectureIdx}.units.#{unitIdx}.name":newName}
@@ -376,7 +424,7 @@ Template.exerciseSetEdit.events
     exerciseSet = getExerciseSet()
     lectureIdx = @idx
     newName = event.target.innerText?.trim()
-    unless newName?.length > 0
+    unless newName?.length > 0 and nameIsOkToUseAsURIComponent(newName)
       event.target.innerText = exerciseSet.lectures[lectureIdx].name
       return
     toSet = {"lectures.#{lectureIdx}.name":newName}
@@ -466,6 +514,7 @@ Template.exerciseSetEdit.events
 
   'click .addLecture' : (event, template) ->
     exerciseSet = getExerciseSet()
+    return undefined unless exerciseSet?
     lectures = exerciseSet.lectures
     name = undefined
     
@@ -538,7 +587,8 @@ Template.exerciseSetEdit.events
       return
     MaterializeModal.confirm
       title: "Delete Unit"
-      message: "Do you want to delete the unit <em>#{unit.name}</em>?"
+      message: "Do you want to delete the unit <em>#{unit.name}</em>? This cannot be undone."
+      submitLabel : "delete"
       callback: (error, result) ->
         if result?.submit
           deleteUnit()
@@ -587,7 +637,7 @@ Template.exerciseSetEdit.events
       message = "Specify the url of the slides for <em>lecture.name</em>."
       toSetField = "lectures.#{lectureIdx}.handout"
     MaterializeModal.form
-      title : "Slides"
+      title : "Handout"
       bodyTemplate : "urlModal"
       submitLabel : "update"
       closeLabel : "cancel"
@@ -599,15 +649,129 @@ Template.exerciseSetEdit.events
           toSet = {"#{toSetField}" : url}
           updateExerciseSetField exerciseSet, toSet, 'updating the url of the handout'
           
+  'click .addExerciseUsingExerciseBuilder' : (event, template) ->
+    exerciseSet = getExerciseSet()
+    lectureIdx = @lectureIdx 
+    lecture = exerciseSet.lectures[lectureIdx]
+    unitIdx = @idx
+    unit = lecture.units[unitIdx]
+    # We are going to send this to the `exerciseBuilder` template
+    # It will carry the data we need back here
+    result = {}
+    MaterializeModal.form
+      title : "Add Exercise"
+      bodyTemplate : "exerciseBuilder"
+      footerTemplate : "exerciseBuilderFooter"
+      # fullscreen : true
+      fixedFooter: true
+      result : result
+      callback : (error, response) ->
+        if result.exerciseURI
+          exercise = parseExercise(result.exerciseURI)
+          rawExercises = unit.rawExercises or []
+          rawExercises.push exercise
+          toSet = {"lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises" : rawExercises}
+          updateExerciseSetField exerciseSet, toSet, 'adding the exercise'
+
+  # 'click .addExercise' : (event, template) ->
+  #   exerciseSet = getExerciseSet()
+  #   lectureIdx = @lectureIdx
+  #   lecture = exerciseSet.lectures[lectureIdx]
+  #   unitIdx = @idx
+  #   unit = lecture.units[unitIdx]
+  #   MaterializeModal.form
+  #     title : "Add Exercise"
+  #     bodyTemplate : "exerciseModal"
+  #     submitLabel : "create"
+  #     closeLabel : "cancel"
+  #     exercise : ''
+  #     callback : (error, response) ->
+  #       if response.submit
+  #         exercise = response.form.exercise
+  #         exercise = parseExercise(exercise)
+  #         rawExercises = unit.rawExercises or []
+  #         rawExercises.push exercise
+  #         toSet = {"lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises" : rawExercises}
+  #         updateExerciseSetField exerciseSet, toSet, 'adding the exercise'
+  #
+  # 'click .editExercise' : (event, template) ->
+  #   exerciseSet = getExerciseSet()
+  #   lectureIdx = @lectureIdx
+  #   lecture = exerciseSet.lectures[lectureIdx]
+  #   unitIdx = @unitIdx
+  #   unit = lecture.units[unitIdx]
+  #   exerciseIdx = @idx
+  #   exercise = unit.rawExercises[exerciseIdx]
+  #   exerciseText = exercise.replace(/^\/ex\//,'')
+  #   MaterializeModal.form
+  #     title : "Edit Exercise"
+  #     bodyTemplate : "exerciseModal"
+  #     submitLabel : "update"
+  #     closeLabel : "cancel"
+  #     exercise : exerciseText
+  #     callback : (error, response) ->
+  #       if response.submit
+  #         newExerciseText = response.form.exercise?.trim?() or ''
+  #         if newExerciseText isnt ''
+  #           newExerciseText = parseExercise(newExerciseText)
+  #           toSet = {"lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises.#{exerciseIdx}" : newExerciseText}
+  #           actionMsg = 'updating the exercise'
+  #         else
+  #           # user entered blank string : delete exercise
+  #           rawExercises = unit.rawExercises
+  #           rawExercises.splice(exerciseIdx,1)
+  #           toSet = {"lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises" : rawExercises}
+  #           actionMsg = 'deleting the exercise'
+  #         updateExerciseSetField exerciseSet, toSet, actionMsg
+
+  'click .editExerciseUsingExerciseBuilder' : (event, template) ->
+    exerciseSet = getExerciseSet()
+    lectureIdx = @lectureIdx 
+    lecture = exerciseSet.lectures[lectureIdx]
+    unitIdx = @unitIdx
+    unit = lecture.units[unitIdx]
+    exerciseIdx = @idx
+    exercise = unit.rawExercises[exerciseIdx]
+    exerciseText = exercise.replace(/^\/ex\//,'')
+    result = {}
+    MaterializeModal.form
+      title : "Edit Exercise"
+      bodyTemplate : "exerciseBuilder"
+      footerTemplate : "exerciseBuilderFooter"
+      # fullscreen : true
+      fixedFooter: true
+      exerciseText : exerciseText
+      result : result
+      callback : (error, response) ->
+        if result.exerciseURI
+          newExerciseText = parseExercise(result.exerciseURI)
+          toSet = {"lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises.#{exerciseIdx}" : newExerciseText}
+          updateExerciseSetField exerciseSet, toSet, 'updating the exercise'
+        else if result.deleteExercise is true
+          rawExercises = unit.rawExercises
+          rawExercises.splice(exerciseIdx, 1)
+          toSet = {"lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises" : rawExercises}
+          updateExerciseSetField exerciseSet, toSet, 'deleting the exercise'
+
     
-    
+parseExercise = (ex) ->
+  ex = ex.trim()
+  # add `/ex/` at the start
+  unless ex.match /^\/ex\//
+    if ex.startsWith('/')
+      ex = "/ex#{ex}" 
+    else
+      ex = "/ex/#{ex}"
+  return ex
+
 
 # Build an object useful for
 # displaying and edit ExerciseSets
 # (essentially: elaborate them by adding properties).
-getLectures = (o) ->
-  o ?= {reactive:false}
-  theLectures = getExerciseSet(o)?.lectures
+getLectures = (options) ->
+  options ?= {reactive:beReactive()}
+  exerciseSet = getExerciseSet(options)
+  theLectures = exerciseSet?.lectures
   return [] unless theLectures?.length > 0
 
   for l, idx in theLectures
@@ -655,18 +819,22 @@ getLectures = (o) ->
           idx : eidx
           unitIdx : unit.idx
           lectureIdx : l.idx
-          name : e.replace('/ex/','')
+          exerciseId : e
           link : ix.convertToExerciseId(e)
+          name : e.replace(/^\/ex\//,'')
+          type : e.split('/')[2]
           isFirst : eidx is 0
           isLast : eidx is unit.rawExercises.length-1
         exercises.push exDoc
       unit.exercises = exercises
-      if unit.rawReading?.length >0
-        unit.reading = "Sections §#{unit.rawReading.join(', §')} of Language, Proof and Logic (Barwise & Etchemendy; the course textbook)."
-      else 
-        unit.reading =""
+      unit.reading = ix.getReading(exerciseSet, unit)
+      # if unit.rawReading?.length >0
+      #   unit.reading = "Sections §#{unit.rawReading.join(', §')} of Language, Proof and Logic (Barwise & Etchemendy; the course textbook)."
+      # else
+      #   unit.reading =""
   return theLectures
-      
+
+
 drawProgressDonut = (chartElemId, stats) ->
   drawChart = () ->
     dataArray = [ 
@@ -683,7 +851,9 @@ drawProgressDonut = (chartElemId, stats) ->
       pieHole: 0.4
       colors: ['green','red','orange','grey']
     # Instantiate and draw our chart, passing in some options.
-    chart = new google.visualization.PieChart(document.getElementById(chartElemId))
-    chart.draw(data, options)
+    el = document.getElementById(chartElemId)
+    if el?
+      chart = new google.visualization.PieChart(el)
+      chart.draw(data, options)
   google.load('visualization', '1.0', {'packages':['corechart'], callback: drawChart})    
 
