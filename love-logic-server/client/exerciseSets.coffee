@@ -9,6 +9,7 @@ getExerciseSetName = () ->
 nameIsOkToUseAsURIComponent = (name) ->
   return false if name.indexOf(':') isnt -1
   return false if name.indexOf('/') isnt -1
+  return false if name.indexOf('?') isnt -1
   return true
 
 
@@ -73,9 +74,9 @@ Template.exerciseSetsForCourse.helpers
     courseName = FlowRouter.getParam('_courseName')
     countExSets = ExerciseSets.find({courseName:courseName}, {reactive:beReactive()}).count()
     return countExSets is 0
+  clipboardHasExerciseSet : () ->
+    return (ix.clipboard.get('exerciseSet') isnt undefined)
   
-
-
 
 Template.exerciseSetsForCourse.events
   'click .deleteCourse' : (event, target) ->
@@ -107,13 +108,35 @@ Template.exerciseSetsForCourse.events
           return unless courseName?
           Meteor.call 'createNewExerciseSet', courseName, variant, description, (error,result)->
             if not error
-              console.log result
               Materialize.toast "Created #{variant}", 4000
-              console.log "/course/#{courseName}"
               FlowRouter.go("/course/#{courseName}/exerciseSet/#{variant}/edit")
             else
               Materialize.toast "Sorry, there was an error creating #{variant}. (#{error.message})", 4000
           
+  'click .pasteExerciseSet' : (event, target) ->
+    newExSet = ix.clipboard.get('exerciseSet')
+    unless newExSet?
+      Materialize.toast "Sorry, there is no exercise set on the clipboard", 4000
+      return
+    courseName = FlowRouter.getParam('_courseName')
+    newExSet = _.clone(newExSet)
+    delete newExSet._id
+    newExSet.owner = Meteor.userId()
+    newExSet.courseName = courseName
+    exSets = ExerciseSets.find({courseName:courseName}).fetch()
+    existingNames = (e.variant for e in exSets)
+    name = newExSet.variant
+    num = 0
+    while name in existingNames
+      num += 1
+      name = "#{newExSet.variant}-#{num}"
+    newExSet.variant = name
+    Meteor.call 'pasteExerciseSet', newExSet, (error,result)->
+      if not error
+        Materialize.toast "Pasted #{newExSet.variant}", 4000
+        FlowRouter.go("/course/#{courseName}/exerciseSet/#{newExSet.variant}/edit")
+      else
+        Materialize.toast "Sorry, there was an error creating #{newExSet.variant}. (#{error.message})", 4000
 
 
 Template.listExercises.onCreated () ->
@@ -159,8 +182,11 @@ Template.exerciseSetEdit.onCreated () ->
     variant = FlowRouter.getParam('_variant')
     self.subscribe('course', courseName)
     self.exerciseSet = self.subscribe('exercise_set', courseName, variant)
-    
 
+
+
+# ====
+# Helpers and event handlers common to exerciseSet and exerciseSetEdit
  
 commonHelpers = 
   paramsSpecifyExerciseSet : () -> FlowRouter.getParam('_variant' )?
@@ -169,6 +195,7 @@ commonHelpers =
   paramsSpecifyUnit : () -> FlowRouter.getParam('_unit' )?
   unitName : () -> FlowRouter.getParam('_unit' )
   isTutor : ix.userIsTutor
+  isInstructorOrTutor : ix.isInstructorOrTutor
   
   # These are copied from `myTuteesProgress.coffee`
   courseName : () -> FlowRouter.getParam('_courseName')
@@ -190,10 +217,54 @@ commonHelpers =
     return Meteor.users.findOne(ix.getUserId())?.emails?[0]?.address
   submittedDateAndCorrectnessInfoReady : () -> Template.instance().datesExercisesSubmitted.ready()
   
+  exerciseSetExists : () -> getExerciseSet()?
+  
+  isEditing : () -> window.location.pathname.indexOf('/edit') isnt -1
+  clipboardHasLecture : () ->
+    return (ix.clipboard.get('lecture') isnt undefined)
+  clipboardHasUnit : () ->
+    return (ix.clipboard.get('unit') isnt undefined)
+  canDeleteExerciseSet : () ->
+    exerciseSet = getExerciseSet()
+    return exerciseSet?.lectures?.length is 0
+  
 Template.listExercises.helpers commonHelpers
 Template.exerciseSet.helpers commonHelpers
+Template.exerciseSetInner.helpers commonHelpers
 Template.exerciseSetEdit.helpers commonHelpers
+Template.exerciseSetEditInner.helpers commonHelpers
+Template.deleteCopyPasteButtons.helpers commonHelpers
 
+
+
+commonEventHandlers = 
+  'click .copyExerciseSet' : (event, target) ->
+    exerciseSet = getExerciseSet()
+    ix.clipboard.set(exerciseSet, 'exerciseSet')
+    Materialize.toast "Exercise set ‘#{exerciseSet.variant}’ copied to clipboard", 4000
+  'click .copyLecture' : (event, target) ->
+    exerciseSet = getExerciseSet()
+    lectureIdx = @idx
+    lecture = exerciseSet.lectures[lectureIdx]
+    ix.clipboard.set(lecture, 'lecture')
+    Materialize.toast "‘#{lecture.name}’ copied to clipboard", 4000
+  'click .copyUnit' : (event, target) ->
+    exerciseSet = getExerciseSet()
+    lectureIdx = @lectureIdx
+    unitIdx = @idx
+    console.log exerciseSet
+    console.log "#{lectureIdx} #{unitIdx}"
+    unit = exerciseSet.lectures[lectureIdx].units[unitIdx]
+    ix.clipboard.set(unit, 'unit')
+    Materialize.toast "‘#{unit.name}’ copied to clipboard", 4000
+
+Template.exerciseSet.events commonEventHandlers
+Template.exerciseSetEdit.events commonEventHandlers
+
+
+
+# ====
+# listExercises
 
 # merely displays the questions (no progress or anything)
 Template.listExercises.helpers
@@ -204,9 +275,15 @@ Template.listExercises.helpers
     return getLectures()
 
 
+
+# ====
+# exerciseSet
+
 Template.exerciseSet.helpers
-  isForTutee : () -> Meteor.users.find().count() > 1
   exerciseSetReady : () -> Template.instance().exerciseSet.ready() and Template.instance().datesExercisesSubmitted.ready()
+
+Template.exerciseSetInner.helpers
+  isForTutee : () -> Meteor.users.find().count() > 1
   
   userIsExerciseSetOwner : () ->
     exerciseSet = getExerciseSet()
@@ -321,14 +398,13 @@ Template.exerciseSet.helpers
 
 Template.exerciseSetEdit.helpers
   exerciseSetReady : () -> Template.instance().exerciseSet.ready() 
+  
+  
+Template.exerciseSetEditInner.helpers
   textbook : () -> getExerciseSet()?.textbook
   lectures : () -> 
     theLectures = getLectures({reactive:beReactive()})
     return theLectures 
-  canDeleteExerciseSet : () ->
-    exerciseSet = getExerciseSet()
-    return exerciseSet?.lectures?.length is 0
-  
 
 
 # -------------
@@ -364,9 +440,42 @@ updateExerciseSetField = (exerciseSet, toSet, thing) ->
       Materialize.toast "Success #{thing}", 4000
 
 
-  
 Template.exerciseSetEdit.events
-
+  'click .pasteUnit' : (event, target) ->
+    newUnit = ix.clipboard.get('unit')
+    unless newUnit?
+      Materialize.toast "Sorry, there is no unit on the clipboard", 4000
+      return
+    exerciseSet = getExerciseSet()
+    lectureIdx = @idx
+    lecture = exerciseSet.lectures[lectureIdx]
+    units = lecture.units or []
+    existingUnitNames = (u.name for u in units)
+    name = newUnit.name
+    num = 0
+    while name in existingUnitNames
+      num += 1
+      name = "#{newUnit.name} #{num}"
+    newUnit.name = name
+    toSet = {"lectures.#{lectureIdx}.units.#{units.length}":newUnit}
+    updateExerciseSetField exerciseSet, toSet, "pasting ‘#{newUnit.name}’ at the end of the list"
+  'click .pasteLecture' : (event, target) ->
+    newLecture = ix.clipboard.get('lecture')
+    unless newLecture?
+      Materialize.toast "Sorry, there is no lecture on the clipboard", 4000
+      return
+    exerciseSet = getExerciseSet()
+    lectures = exerciseSet.lectures or []
+    existingLectureNames = (l.name for l in lectures)
+    name = newLecture.name
+    num = 0
+    while name in existingLectureNames
+      num += 1
+      name = "#{newLecture.name} #{num}"
+    newLecture.name = name
+    toSet = {"lectures.#{lectures.length}":newLecture}
+    updateExerciseSetField exerciseSet, toSet, "pasting ‘#{newLecture.name}’ at the end of the list"
+    
   'click .deleteExerciseSet' : (event, target) ->
     courseName = FlowRouter.getParam('_courseName')
     variant = getExerciseSetName()
@@ -382,16 +491,27 @@ Template.exerciseSetEdit.events
   # NB: currently this messes up because Subscriptions 
   # specify variant by name!
   'blur .exerciseSetName' : (event, template) ->
-    # TODO : check it has no followers, otherwise deny update.
+    # check it has no followers, otherwise deny update.
     exerciseSet = getExerciseSet()
+    updateHasFailed = (msg) ->
+      event.target.innerText = exerciseSet.variant
+      Materialize.toast msg, 4000
     newName = event.target.innerText?.trim()
     unless newName?.length > 0 and nameIsOkToUseAsURIComponent(newName)
-      event.target.innerText = exerciseSet.variant
+      updateHasFailed('Name contains invalid characters.')
       return
-    toSet = {"variant":newName}
-    updateExerciseSetField exerciseSet, toSet, 'updating the name of the exercise set'
-    # changing name changes url:
-    FlowRouter.go ix.url().replace(/\/[^\/]*\/edit$/,"/#{newName}/edit")
+    Meteor.call 'exerciseSetHasFollowers', exerciseSet.courseName, exerciseSet.variant, (error, result) ->
+      if error
+        updateHasFailed("Sorry, there was an error checking followers. (#{error.message})")
+      else
+        console.log result
+        unless result is false
+          updateHasFailed("Sorry, cannot change name because this exercise set already has followers.")
+        else
+          toSet = {"variant":newName}
+          updateExerciseSetField exerciseSet, toSet, 'updating the name of the exercise set'
+          # changing name changes url:
+          FlowRouter.go ix.url().replace(/\/[^\/]*\/edit$/,"/#{newName}/edit")
   'blur .exerciseSetDescription' : (event, template) ->
     exerciseSet = getExerciseSet()
     newName = event.target.innerText?.trim()
@@ -564,13 +684,23 @@ Template.exerciseSetEdit.events
     exerciseSet = getExerciseSet()
     lectures = exerciseSet.lectures
     lectureIdx = @idx
+    lecture = lectures[lectureIdx]
+    deleteLecture = () ->
+      lectures.splice(lectureIdx,1)
+      toSet = {"lectures":lectures}
+      updateExerciseSetField exerciseSet, toSet, 'deleting the lecture'
     units = lectures[lectureIdx].units
-    if units?.length > 0
-      Materialize.toast "Sorry, cannot delete lecture because it has units (delete the units first)", 4000
+    if units?.length is 0
+      # no units; delete without asking
+      deleteLecture()
       return
-    lectures.splice(lectureIdx,1)
-    toSet = {"lectures":lectures}
-    updateExerciseSetField exerciseSet, toSet, 'deleting the lecture'
+    MaterializeModal.confirm
+      title: "Delete Lecture"
+      message: "Do you want to delete the <em>#{lecture.name}</em>? This cannot be undone."
+      submitLabel : "delete"
+      callback: (error, result) ->
+        if result?.submit
+          deleteLecture()
   'click .deleteUnit' : (event, template) ->
     exerciseSet = getExerciseSet()
     lectureIdx = @lectureIdx
@@ -595,18 +725,21 @@ Template.exerciseSetEdit.events
 
   'click .editSlides' : (event, template) ->
     exerciseSet = getExerciseSet()
-    lectureIdx = @lectureIdx or @idx
-    lecture = exerciseSet.lectures[lectureIdx]
+    lectureIdx = @lectureIdx
     if @lectureIdx?
       # This is for a unit
+      lecture = exerciseSet.lectures[lectureIdx]
       unitIdx = @idx
       unit = lecture.units[unitIdx]
       slides = unit.slides
-      message = "Specify the url of the slides for <em>unit.name</em>."
+      message = "Specify the url of the slides for <em>#{unit.name}</em>."
       toSetField = "lectures.#{lectureIdx}.units.#{unitIdx}.slides"
     else
+      # This is for a lecture
+      lectureIdx = @idx
+      lecture = exerciseSet.lectures[lectureIdx]
       slides = lecture.slides
-      message = "Specify the url of the slides for <em>lecture.name</em>."
+      message = "Specify the url of the slides for <em>#{lecture.name}</em>."
       toSetField = "lectures.#{lectureIdx}.slides"
     MaterializeModal.form
       title : "Slides"
@@ -623,18 +756,21 @@ Template.exerciseSetEdit.events
           
   'click .editHandout' : (event, template) ->
     exerciseSet = getExerciseSet()
-    lectureIdx = @lectureIdx or @idx
-    lecture = exerciseSet.lectures[lectureIdx]
+    lectureIdx = @lectureIdx
     if @lectureIdx?
       # This is for a unit
+      lecture = exerciseSet.lectures[lectureIdx]
       unitIdx = @idx
       unit = lecture.units[unitIdx]
       handout = unit.handout
-      message = "Specify the url of the handout for <em>unit.name</em>."
+      message = "Specify the url of the handout for <em>#{unit.name}</em>."
       toSetField = "lectures.#{lectureIdx}.units.#{unitIdx}.handout"
     else
+      # This is for a lecture
+      lectureIdx = @idx
+      lecture = exerciseSet.lectures[lectureIdx]
       handout = lecture.handout
-      message = "Specify the url of the slides for <em>lecture.name</em>."
+      message = "Specify the url of the slides for <em>#{lecture.name}</em>."
       toSetField = "lectures.#{lectureIdx}.handout"
     MaterializeModal.form
       title : "Handout"

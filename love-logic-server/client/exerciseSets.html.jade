@@ -7,7 +7,9 @@ template(name='courses')
           a(href="/course/#{name}") #{name}
           span --- #{description}
     if isInstructorOrTutor
-      p: a.createNewCourse.btn.waves-effect.grey create a new course
+      p: a.createNewCourse.btn-flat.hint--bottom(data-hint="create a new course")
+        i.material-icons add_circle_outline
+      
         
   else
     +loading
@@ -36,7 +38,8 @@ template(name='exerciseSetsForCourse')
       span  > #{courseName} 
       span --- #{courseDescription}
     if canDeleteCourse
-      p: a.deleteCourse.btn.waves-effect.red-text.grey delete this course
+      p: a.deleteCourse.btn-flat.red-text.hint-bottom(data-hint="delete this course")
+        i.material-icons delete
   
   if exerciseSets
     h2 Select an exercise set
@@ -46,10 +49,17 @@ template(name='exerciseSetsForCourse')
         li.collection-item
           a(href="/course/#{courseName}/exerciseSet/#{variant}") #{variant}
           span --- #{description}
-    if isInstructorOrTutor
-      p: a.createNewExerciseSet.btn.waves-effect.grey create a new exercise set
+    p
+      if isInstructorOrTutor
+        a.createNewExerciseSet.btn-flat.hint--bottom(data-hint="create a new exercise set")
+          i.material-icons add_circle_outline
+      if clipboardHasExerciseSet
+        a.pasteExerciseSet.btn-flat.hint--bottom(data-hint="paste exercise set from clipboard")
+          i.material-icons content_paste
+      
   else
     +loading
+  
   
 template(name='createNewExerciseSetModal')
   .input-field
@@ -95,6 +105,7 @@ template(name='slidesAndHandoutsLinks')
     a(href="#{handout}", target="_blank") handout
     span ] 
 
+
 template(name='slidesAndHandoutsLinksEditable')
   span [
   if slides
@@ -118,23 +129,77 @@ template(name='slidesAndHandoutsLinksEditable')
   span ] 
 
 
+template(name="deleteCopyPasteButtons")
+  //- Buttons to delete and copy exercise set, or paste lecture
+  //- Only shown when showing all lectures
+  unless paramsSpecifyLecture
+    if isEditing
+      if canDeleteExerciseSet
+        a.deleteExerciseSet.btn-flat.red-text.hint--bottom(data-hint="delete this exercise set") 
+          i.material-icons delete
+    a.copyExerciseSet.btn-flat.hint--bottom(data-hint="copy this exercise set to clipboard")
+      i.material-icons.wide content_copy
+    if isEditing
+      if clipboardHasLecture
+        a.pasteLecture.btn-flat.hint--bottom(data-hint="paste lecture from clipboard") 
+          i.material-icons content_paste
+
+  //- Buttons to copy or paste lecture or unit
+  if paramsSpecifyLecture
+    each lectures
+      unless paramsSpecifyUnit
+        a.copyLecture.btn-flat.hint--bottom(data-hint="copy this lecture to clipboard")  
+          i.material-icons content_copy
+          //- span copy this lecture to clipboard
+        if isEditing
+          if clipboardHasUnit
+            a.pasteUnit.btn-flat.hint--bottom(data-hint="paste unit from clipboard")  
+              i.material-icons content_paste
+      if paramsSpecifyUnit
+        each units 
+          a.copyUnit.btn-flat.hint--bottom(data-hint="copy this unit to clipboard")  
+            i.material-icons content_copy
+
 
 template(name='exerciseSet')
-  if exerciseSetReady
-    +courseNameHeader(courseName=courseName courseDescription=courseDescription)
-  
-    h2 
-      if isForTutee
-        span #{tuteeName} &lsaquo;#{tuteeEmail}&rsaquo;
-        br
-      if paramsSpecifyLecture
-        a(href="/course/#{courseName}/exerciseSet/#{exerciseSetName}") #{exerciseSetName}
+  if Template.subscriptionsReady
+    if exerciseSetReady
+      if exerciseSetExists
+        +exerciseSetInner
       else
-        span #{exerciseSetName}
+        h2 This exercise set
+        p does not exist.
+        p Maybe its owner deleted it?
+    else
+      +loading
+  else
+    +loading
+
+
+template(name='exerciseSetInner')
+  +courseNameHeader(courseName=courseName courseDescription=courseDescription)
+
+  h2 
+    if isForTutee
+      span #{tuteeName} &lsaquo;#{tuteeEmail}&rsaquo;
+      br
+    if paramsSpecifyLecture
+      a(href="/course/#{courseName}/exerciseSet/#{exerciseSetName}") #{exerciseSetName}
+    else
+      span #{exerciseSetName}
+  unless paramsSpecifyLecture
+    p #{exerciseSetDescription}
+  
+  //- buttons
+  p
     unless paramsSpecifyLecture
-      p #{exerciseSetDescription}
       if userIsExerciseSetOwner
-        p: a.btn.waves-effect.grey(href="/course/#{courseName}/exerciseSet/#{exerciseSetName}/edit") edit
+        a.btn-flat(href="/course/#{courseName}/exerciseSet/#{exerciseSetName}/edit").hint--bottom(data-hint="edit this exercise set")
+          i.material-icons mode_edit
+    if isInstructorOrTutor
+      //- This won’t actually include delete or paste because not editing:
+      +deleteCopyPasteButtons lectures=lectures
+
   
   h4 Progress with 
     if paramsSpecifyUnit
@@ -154,268 +219,260 @@ template(name='exerciseSet')
     else
       | all exercises
     
-  if exerciseSetReady
-    if paramsSpecifyLecture
-      each lectures
-        p
-          +slidesAndHandoutsLinks    
+  if paramsSpecifyLecture
+    each lectures
+      p
+        +slidesAndHandoutsLinks    
     
-  if Template.subscriptionsReady
-    table.centered
-      thead
-        tr
-          th Number submitted
-          th correct
-          th incorrect
-          th ungraded
-      tbody
-        tr
-          td all time
-          td #{lectures.stats.submitted} of #{lectures.stats.nofExercises}
-          td #{lectures.stats.correct}
-          td #{lectures.stats.incorrect}
-          td #{lectures.stats.ungraded}
-        tr
-          td last 7 days
-          td #{lectures.stats.lastNDays.submitted} 
-          td #{lectures.stats.lastNDays.correct}
-          td #{lectures.stats.lastNDays.incorrect}
-          td #{lectures.stats.lastNDays.ungraded}
-  else
-    +loading
+  table.centered
+    thead
+      tr
+        th Number submitted
+        th correct
+        th incorrect
+        th ungraded
+    tbody
+      tr
+        td all time
+        td #{lectures.stats.submitted} of #{lectures.stats.nofExercises}
+        td #{lectures.stats.correct}
+        td #{lectures.stats.incorrect}
+        td #{lectures.stats.ungraded}
+      tr
+        td last 7 days
+        td #{lectures.stats.lastNDays.submitted} 
+        td #{lectures.stats.lastNDays.correct}
+        td #{lectures.stats.lastNDays.incorrect}
+        td #{lectures.stats.lastNDays.ungraded}
   
   #progressChart
     
-  if isForTutee
-    .pass
-  else
-    if Template.subscriptionsReady
-      if isAlreadyFollowing
-        a#unfollow.btn.waves-effect.grey stop following ‘#{exerciseSetName}’
-      else
-        a#follow.btn.waves-effect.grey follow ‘#{exerciseSetName}’
+  unless isForTutee
+    if isAlreadyFollowing
+      a#unfollow.btn.waves-effect.grey stop following ‘#{exerciseSetName}’
+    else
+      a#follow.btn.waves-effect.grey follow ‘#{exerciseSetName}’
 
-  if Template.subscriptionsReady
-    if exerciseSetReady
-      if paramsSpecifyLecture  
-        each lectures
-          each units
-            p.vspace &nbsp;
-            h5(id="#{htmlAnchor}") 
-              //- unless paramsSpecifyUnit
-              //-   span #{idx}.
-              a(href="#{exerciseSetUnitURL}") #{name}
-            if reading
-              p Reading: #{reading}
-            p 
-              +slidesAndHandoutsLinks    
-            //- div(style="padding-left:2em;border-left:1px dotted black")
-            ul.collection
-              each exercises
-                li.collection-item
-                  if exerciseIsCorrect
-                    span.green-text ✔ 
-                  if exerciseIsIncorrect
-                    span.red-text ✘
-                  if exerciseIsUngraded
-                    span.orange.white-text(style="font-weight:bold;border-radius:16px;padding-left:3px;padding-right:2px;") ?
-                  //- if isSubmitted
-                  //-   span.pass
-                  //- else
-                  //-   span.black-text ✪
-                  span #{unitIdx}.#{idx} 
-                  if isForTutee
-                    a(href="#{gradeURL}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}&user=#{tuteeId}") #{name}
-                  else
-                    a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
-                  if isSubmitted
-                    span.grey-text [submitted #{dateSubmitted}]
-                  else
-                    span.red-text [todo]
-                  
-      else
-        p Select a lecture to view exercises:
+  if paramsSpecifyLecture  
+    each lectures
+      each units
+        p.vspace &nbsp;
+        h5(id="#{htmlAnchor}") 
+          //- unless paramsSpecifyUnit
+          //-   span #{idx}.
+          a(href="#{exerciseSetUnitURL}") #{name}
+        if reading
+          p Reading: #{reading}
+        p 
+          +slidesAndHandoutsLinks    
+        //- div(style="padding-left:2em;border-left:1px dotted black")
         ul.collection
-          each lectures
-            li.collection-item(id="#{htmlAnchor}")
-              a(href="#{exerciseSetLectureURL}") #{name} 
-              span --- #{progress.todo} todo (of #{progress.total} in total)
-              if progress.correct
-                span , 
-                span.green-text ✔#{progress.correct}
-              if progress.incorrect
-                span , 
-                span.red-text ✘#{progress.incorrect}
-              if progress.ungraded
-                span , 
-                span.orange.white-text(style="font-weight:bold;border-radius:16px;padding-left:3px;padding-right:2px;") ?#{progress.ungraded}
+          each exercises
+            li.collection-item
+              if exerciseIsCorrect
+                span.green-text ✔ 
+              if exerciseIsIncorrect
+                span.red-text ✘
+              if exerciseIsUngraded
+                span.orange.white-text(style="font-weight:bold;border-radius:16px;padding-left:3px;padding-right:2px;") ?
+              //- if isSubmitted
+              //-   span.pass
+              //- else
+              //-   span.black-text ✪
+              span #{unitIdx}.#{idx} 
+              if isForTutee
+                a(href="#{gradeURL}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}&user=#{tuteeId}") #{name}
+              else
+                a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
+              if isSubmitted
+                span.grey-text [submitted #{dateSubmitted}]
+              else
+                span.red-text [todo]
+              
+  unless paramsSpecifyLecture  
+    p Select a lecture to view exercises:
+    ul.collection
+      each lectures
+        li.collection-item(id="#{htmlAnchor}")
+          a(href="#{exerciseSetLectureURL}") #{name} 
+          span --- #{progress.todo} todo (of #{progress.total} in total)
+          if progress.correct
+            span , 
+            span.green-text ✔#{progress.correct}
+          if progress.incorrect
+            span , 
+            span.red-text ✘#{progress.incorrect}
+          if progress.ungraded
+            span , 
+            span.orange.white-text(style="font-weight:bold;border-radius:16px;padding-left:3px;padding-right:2px;") ?#{progress.ungraded}
 
-  else
-    +loading
 
 
 template(name='exerciseSetEdit')
   if Template.subscriptionsReady
-    +courseNameHeader(courseName=courseName courseDescription=courseDescription)
-    h2 
-      if paramsSpecifyLecture
-        a(href="/course/#{courseName}/exerciseSet/#{exerciseSetName}/edit") #{exerciseSetName}
-      else
-        span.exerciseSetName(contentEditable="true") #{exerciseSetName}
-        i.material-icons mode_edit
-    unless paramsSpecifyLecture
-      p 
-        span.exerciseSetDescription(contentEditable="true") 
-          if exerciseSetDescription
-            | #{exerciseSetDescription}
-          else
-            | [describe this exercise set here]
-        i.material-icons mode_edit
-      p
-        span.textbook(contentEditable="true") 
-          if textbook
-            | #{textbook}
-          else
-            | [specify the textbook here]
-        i.material-icons mode_edit
-      if canDeleteExerciseSet
-        p: a.deleteExerciseSet.btn.waves-effect.red-text.grey delete this exercise set
-      
-        
     if exerciseSetReady
-      h4 
-        if paramsSpecifyUnit
-          each lectures
-            each units
-              span.unitName(contentEditable="true") #{name}
-              i.material-icons mode_edit
-        if paramsSpecifyLecture
-          if paramsSpecifyUnit
-            each lectures
-              span  (
-              each units
-                span Unit §#{idx} of 
-              a(href="#{exerciseSetLectureURL}") #{lectureName}
-              span )
-          else
-            each lectures
-              span.lectureName(contentEditable="true") #{name} 
-              i.material-icons mode_edit
-        else
-          | all lectures
-    
-      if paramsSpecifyLecture
+      +exerciseSetEditInner 
+    else
+      +loading
+  else
+    +loading
+
+        
+template(name='exerciseSetEditInner')
+  +courseNameHeader(courseName=courseName courseDescription=courseDescription)
+  h2 
+    if paramsSpecifyLecture
+      a(href="/course/#{courseName}/exerciseSet/#{exerciseSetName}/edit") #{exerciseSetName}
+    else
+      span.exerciseSetName(contentEditable="true") #{exerciseSetName}
+      i.material-icons mode_edit
+
+  //- Subheading if looking at a particular lecture or unit
+  if paramsSpecifyLecture
+    h4
+      unless paramsSpecifyUnit
+        //- we’re looking at a whole lecture (will eventually show all units)
         each lectures
-          unless paramsSpecifyUnit
-            p
-              +slidesAndHandoutsLinksEditable
-    
-      //- list units
-      if paramsSpecifyLecture  
-        unless paramsSpecifyUnit
-          each lectures   
-            p: a.addUnit.waves-effect
-              i.material-icons add_circle_outline
-              span add a unit 
-              if units
-                span to the end of the list of units
+          span.lectureName(contentEditable="true") #{name} 
+          i.material-icons mode_edit
+      if paramsSpecifyUnit
         each lectures
           each units
-            p.vspace &nbsp;
-            h5(id="#{htmlAnchor}") 
-              if paramsSpecifyUnit
-                #{name}
+            span.unitName(contentEditable="true") #{name}
+            i.material-icons mode_edit
+            span  (Unit §#{idx} of 
+            a(href="#{../exerciseSetLectureURL}") #{lectureName}
+            span )
+
+  //- Exercise set description, textbook etc
+  //- Only shown when showing all lectures
+  unless paramsSpecifyLecture
+    p 
+      span.exerciseSetDescription(contentEditable="true") 
+        if exerciseSetDescription
+          | #{exerciseSetDescription}
+        else
+          | [describe this exercise set here]
+      i.material-icons mode_edit
+    p
+      span.textbook(contentEditable="true") 
+        if textbook
+          | #{textbook}
+        else
+          | [specify the textbook here]
+      i.material-icons mode_edit
+
+  //- Slide and handout links
+  if paramsSpecifyLecture
+    each lectures
+      unless paramsSpecifyUnit
+        //- This is the page for a single lecture
+        p
+          +slidesAndHandoutsLinksEditable 
+      if paramsSpecifyUnit
+        //- This is the page for a single unit
+        each units
+          p Reading: 
+            if reading
+              span #{reading}
+            else
+              span [none set]
+            if paramsSpecifyUnit
+              if reading
+                a.editReading.waves-effect 
+                  i.material-icons mode_edit
               else
+                a.editReading.waves-effect 
+                  i.material-icons add_circle_outline
+          p 
+            +slidesAndHandoutsLinksEditable
+
+
+
+  //- Buttons to add lecture, unit or exercise
+  p
+    unless paramsSpecifyLecture
+      a.addLecture.btn-flat.hint--bottom(data-hint="add a lecture to the end of the list of lectures")
+        i.material-icons add_circle_outline
+    if paramsSpecifyLecture  
+      each lectures   
+        unless paramsSpecifyUnit
+          a.addUnit.btn-flat.hint--bottom(data-hint="add a unit to the end of the list of units")
+            i.material-icons add_circle_outline
+        if paramsSpecifyUnit
+          each units
+            a.addExerciseUsingExerciseBuilder.btn-flat.hint--bottom(data-hint="add an exercise to the end of the list of exercises")
+              i.material-icons add_circle_outline
+    +deleteCopyPasteButtons lectures=lectures
+
+  //- list units
+  if paramsSpecifyLecture  
+    each lectures
+      each units
+        p.vspace &nbsp;
+        h5(id="#{htmlAnchor}") 
+          if paramsSpecifyUnit
+            #{name}
+          else
+            unless isFirst
+              a.moveUnitUp.waves-effect
+                i.material-icons arrow_upward
+            else
+              i.material-icons.grey-text arrow_upward
+            unless isLast
+              a.moveUnitDown.waves-effect 
+                i.material-icons arrow_downward
+            else
+              i.material-icons.grey-text arrow_downward
+            a.deleteUnit.waves-effect 
+              i.material-icons delete
+            span(style="width:1em;") &nbsp;
+            a(href="#{exerciseSetUnitURL}") #{name}
+          unless paramsSpecifyUnit
+            +slidesAndHandoutsLinks
+        ul.collection
+          each exercises
+            li.collection-item
+              if paramsSpecifyUnit
                 unless isFirst
-                  a.moveUnitUp.waves-effect
+                  a.moveExerciseUp.waves-effect 
                     i.material-icons arrow_upward
                 else
                   i.material-icons.grey-text arrow_upward
                 unless isLast
-                  a.moveUnitDown.waves-effect 
+                  a.moveExerciseDown.waves-effect 
                     i.material-icons arrow_downward
                 else
                   i.material-icons.grey-text arrow_downward
-                a.deleteUnit.waves-effect 
-                  i.material-icons delete
-                span(style="width:1em;") &nbsp;
-                a(href="#{exerciseSetUnitURL}") #{name}
-            p Reading: 
-              if reading
-                span #{reading}
-              else
-                span [none set]
+              span #{unitIdx}.#{idx} 
+              a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
               if paramsSpecifyUnit
-                if reading
-                  a.editReading.waves-effect 
-                    i.material-icons mode_edit
-                else
-                  a.editReading.waves-effect 
-                    i.material-icons add_circle_outline
-                
-            p 
-              if paramsSpecifyUnit
-                +slidesAndHandoutsLinksEditable
-                p: a.addExerciseUsingExerciseBuilder.waves-effect
-                  i.material-icons add_circle_outline
-                  span add an exercise 
-                  if exercises
-                    span to the end of the list of exercises
-                
-                
-              else
-                +slidesAndHandoutsLinks
-            ul.collection
-              each exercises
-                li.collection-item
-                  if paramsSpecifyUnit
-                    unless isFirst
-                      a.moveExerciseUp.waves-effect 
-                        i.material-icons arrow_upward
-                    else
-                      i.material-icons.grey-text arrow_upward
-                    unless isLast
-                      a.moveExerciseDown.waves-effect 
-                        i.material-icons arrow_downward
-                    else
-                      i.material-icons.grey-text arrow_downward
-                  span #{unitIdx}.#{idx} 
-                  a(href="#{link}?variant=#{exerciseSetName}&courseName=#{courseName}&lectureName=#{../../name}&unitName=#{../name}") #{name}
-                  if paramsSpecifyUnit
-                    a.editExerciseUsingExerciseBuilder.waves-effect 
-                      i.material-icons mode_edit
-                  
-                  
-      else
-        p: a.addLecture.waves-effect
-          i.material-icons add_circle_outline
-          span add a lecture 
-          if lectures
-            span to the end of the list of lectures
-        p Select a lecture to edit units and exercises:
-        ul.collection
-          each lectures
-            li.collection-item(id="#{htmlAnchor}")
-              a.deleteLecture.waves-effect(data-lectureIdx="#{idx}")
-                i.material-icons delete
-              unless isFirst
-                a.moveLectureUp.waves-effect
-                  i.material-icons arrow_upward
-              else
-                i.material-icons.grey-text arrow_upward
-              unless isLast
-                a.moveLectureDown.waves-effect 
-                  i.material-icons arrow_downward
-              else
-                i.material-icons.grey-text arrow_downward
-              span(style="width:1em;") &nbsp;
-              a(href="#{exerciseSetLectureURL}") #{name} 
-
+                a.editExerciseUsingExerciseBuilder.waves-effect 
+                  i.material-icons mode_edit
+              
+              
   else
-    +loading
+    p Select a lecture to edit units and exercises:
+    ul.collection
+      each lectures
+        li.collection-item(id="#{htmlAnchor}")
+          a.deleteLecture.waves-effect(data-lectureIdx="#{idx}")
+            i.material-icons delete
+          unless isFirst
+            a.moveLectureUp.waves-effect
+              i.material-icons arrow_upward
+          else
+            i.material-icons.grey-text arrow_upward
+          unless isLast
+            a.moveLectureDown.waves-effect 
+              i.material-icons arrow_downward
+          else
+            i.material-icons.grey-text arrow_downward
+          span(style="width:1em;") &nbsp;
+          a(href="#{exerciseSetLectureURL}") #{name} 
 
 template(name="urlModal")
-  p #{message}.
+  p !{message}
   .input-field
     input.url(type="text", value="#{url}", name="url")
     
@@ -423,3 +480,4 @@ template(name="exerciseModal")
   p Specify an exercise
   .input-field
     input(type="text", value="#{exercise}", name="exercise")
+

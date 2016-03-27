@@ -115,7 +115,7 @@ Meteor.methods
     Courses.remove(course._id)
     
   createNewExerciseSet : (courseName, variant, description) ->
-    unless courseName is encodeURIComponent(courseName)
+    unless courseName is encodeURIComponent(courseName) and variant is encodeURIComponent(variant)
       throw new Meteor.Error "illegal characters in name"
     userId = Meteor.user()?._id
     if not userId
@@ -132,6 +132,25 @@ Meteor.methods
       created : new Date()
     exerciseSet = ExerciseSets.insert(newExSet)
     return {courseName, exerciseSet}
+  
+  pasteExerciseSet : (newExSet) ->
+    unless newExSet.courseName is encodeURIComponent(newExSet.courseName) and newExSet.variant is encodeURIComponent(newExSet.variant)
+      throw new Meteor.Error "illegal characters in name"
+    userId = Meteor.user()?._id
+    if not userId
+      throw new Meteor.Error "not-authorized"
+    alreadyExistsCount = ExerciseSets.find({variant:newExSet.variant, courseName:newExSet.courseName}).count()
+    if alreadyExistsCount > 0
+      throw new Meteor.Error "already exists"
+    newExSet = 
+      courseName : newExSet.courseName
+      variant : newExSet.variant
+      description : newExSet.description
+      owner : userId
+      lectures : newExSet.lectures
+      created : new Date()
+    exerciseSet = ExerciseSets.insert(newExSet)
+    return {courseName:exerciseSet.courseName, exerciseSet:exerciseSet}
   
   deleteExerciseSet : (courseName, variant) ->
     userId = Meteor.user()?._id
@@ -172,6 +191,19 @@ Meteor.methods
     findAndModify = Meteor.wrapAsync(rawSubmittedExercises.findAndModify, rawSubmittedExercises)
     query = { owner : userId, exerciseId : exercise.exerciseId, humanFeedback : {$exists:false} }
     findAndModify(query, {}, newDoc, {upsert: true})
+
+  getCorrectAnswer : (exerciseId) ->
+    userId = Meteor.user()?._id
+    q = 
+      exerciseId : exerciseId
+      $or : [
+        {'humanFeedback.isCorrect' : true}
+        {'machineFeedback.isCorrect' : true}
+      ]
+      owner : {$ne:userId}
+    fields = 
+      answer : 1
+    return SubmittedExercises.find(q, {limit:1, fields:fields}).fetch()?[0]
 
   subscribeToExerciseSet : (courseName, variant) ->
     userId = Meteor.user()._id
@@ -294,7 +326,9 @@ Meteor.methods
     if not userId or (exerciseSet.owner? and exerciseSet.owner isnt userId)
       throw new Meteor.Error "not-authorized"
     ExerciseSets.update(exerciseSet._id, $set:toSet)
-    
+  
+  exerciseSetHasFollowers : (courseName, variant) ->
+    return Subscriptions.find({courseName, variant},{limit:1}).count() > 0
 
 # -----
 # Methods for getting data

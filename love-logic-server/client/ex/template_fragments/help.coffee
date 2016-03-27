@@ -122,6 +122,35 @@ Template.ask_for_help.events
         if response.submit
           requestHelp(response.form)
 
+  'click .showCorrectAnswer' : (event, template) ->
+    q = 
+      exerciseId : ix.getExerciseId()
+      owner : Meteor.userId()
+    hasSubmitted = SubmittedExercises.find(q,{limit:1}).count() > 0
+    unless hasSubmitted
+      Materialize.toast "First submit your answer.", 4000
+      return
+    Meteor.call 'getCorrectAnswer', ix.getExerciseId(), (error, response) ->
+      if error
+        Materialize.toast "Sorry, there was an error. [#{error.message}]", 4000
+        return
+      unless response?
+        Materialize.toast "Sorry, could not find a correct answer.", 4000
+        return
+      console.log response
+      url = ix.url()
+      type = url.split('/')[2]
+      displayAnswer = "#{type}_ex_display_answer"
+      Tracker.autorun () ->
+        MaterializeModal.message
+          title : "Here is a correct answer"
+          bodyTemplate : displayAnswer
+          answer : response.answer
+          # displayAnswer : displayAnswer
+          # submitLabel : "send"
+          # closeLabel : "cancel"
+    
+
 requestHelp = (data) ->
   owner = Meteor.userId()
   exerciseId = ix.getExerciseId()

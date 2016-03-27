@@ -9,9 +9,11 @@ template(name='topic_header')
 
 
 template(name="help_with_this_exercise")
-  if slidesOrReadingForThisUnit
-    h4 Help with this exercise
-    p 
+  
+  h4 Help with this exercise
+  p See the 
+    a(href="https://logic-1.butterfill.com/logic-ex-guide.html", target="_blank") zoxiy guide.
+    if slidesOrReadingForThisUnit
       if slidesForThisUnit
         span Review the 
         a(href="#{slidesForThisUnit}", target="_blank") lecture slides on 
@@ -41,6 +43,8 @@ template(name="ask_for_help")
 
   button#request-help.btn.waves-effect.grey ask for help
    i.material-icons.right live_help
+  span &nbsp;
+  button.showCorrectAnswer.btn.waves-effect.grey show an answer
 
 template(name="requestHelpModal")
   if slidesForThisUnit
@@ -57,3 +61,10 @@ template(name="requestHelpModal")
     textarea#description.materialize-textarea(name='description')
     label(for='description') What are you stuck on?
   p: em Requests for help may go unanswered outside of the weeks in which lectures are given for your course.
+
+template(name="showCorrectAnswerModal")
+  p  #{displayAnswer}
+  each answers
+    p #{type}
+    p #{content.proof}
+    +Template.dynamic(template=displayAnswer)

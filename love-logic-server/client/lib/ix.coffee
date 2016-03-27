@@ -823,3 +823,15 @@ ix.truthTable =
             resultRow.push null
       result.push resultRow
     return result
+
+getSessionKeyForUserClipboard = (type) ->
+  return "#{ix.getUserId()}/clipboard/#{type}"
+
+ix.clipboard = 
+  set : (object, type) ->
+    clone = _.clone(object)
+    Session.setPersistent(getSessionKeyForUserClipboard(type), clone)
+  get : (type) ->
+    Session.get(getSessionKeyForUserClipboard(type))
+    
+    
