@@ -106,7 +106,12 @@ Template.proof_ex.events
 Template.proof_ex_display_answer.helpers
   displayProof : () -> @answer.content.proof?
   answerLines : () ->
-    return ({line:x, lineNumber:"  #{idx+1}".slice(-3)} for x, idx in @answer.content.proof?.split('\n'))
+    return '' unless @answer.content.proof?
+    theProof = proof.parse(@answer.content.proof)
+    if _.isString theProof
+      return ({line:x, lineNumber:"  #{idx+1} ".slice(-4)} for x, idx in @answer.content.proof?.split('\n'))
+    else
+      return ({line:x} for x in theProof.toString().split('\n') )
   exSubtypeIsOrInvalid : () -> ix.isExerciseSubtype('orInvalid', @)
   sentences : () ->
     answerTorF = @answer.content.TorF?[0]

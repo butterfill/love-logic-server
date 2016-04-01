@@ -31,6 +31,17 @@ ix.url = () ->
     return decodeURIComponent(path)
   return undefined
 
+# add a bit to the path (e.g '/grade')
+ix.extendUrl = (extra) ->
+  search = window.location.search
+  url = ix.url()
+  return "#{url}#{extra}#{search}"
+ix.contractUrl = (toRemove) ->
+  search = window.location.search
+  url = ix.url()
+  re = new RegExp("#{toRemove}(/?)$")
+  return "#{url.replace(re, '')}#{search}"
+
 ix.queryString = () ->
   # # NOTE: this would make calls to ix.url reactive
   # FlowRouter.watchPathChange()

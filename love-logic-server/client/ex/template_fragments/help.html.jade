@@ -6,6 +6,11 @@ template(name='topic_header')
       em #{unitTitle}
       span --- 
       a(href='/course/#{courseName}/exerciseSet/#{variant}')  #{variant} exercises for #{courseName}
+  if isSeminarTutor
+    unless isGrading
+      .right
+        button#grade.btn.waves-effect.grey grade
+    
 
 
 template(name="help_with_this_exercise")

@@ -262,3 +262,15 @@ Template.editProof.events
           giveFeedback ""
           ix.setAnswerKey(ix.getProofFromParams(), 'proof')
     
+  'click #convert-to-symbols' : (event, template) ->
+    proofText = ix.getAnswer()?.proof
+    return undefined unless proofText?
+    theProof = proof.parse(proofText)
+    if _.isString theProof
+      Materialize.toast "Syntax error in proof [#{theProof}]", 4000
+      return undefined 
+    newText = theProof.toString()
+    ix.setAnswerKey(newText, 'proof')
+    
+    
+    

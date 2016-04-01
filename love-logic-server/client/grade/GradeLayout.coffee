@@ -55,7 +55,7 @@ Template.GradeLayout.helpers
     return "#{type}_ex_display_question"
   gradeURL : () -> 
     FlowRouter.watchPathChange()
-    return ix.url().replace(/\/grade(\/?)$/, '')
+    return ix.contractUrl('/grade')
   isHideCorrectAnswers : isHideCorrectAnswers
   displayAnswer : () ->
     url = ix.url()

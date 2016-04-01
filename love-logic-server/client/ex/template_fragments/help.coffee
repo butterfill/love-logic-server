@@ -98,6 +98,12 @@ Template.topic_header.helpers
   variant : () ->
     ctx = Template.instance().exerciseContext.get()
     return ctx?.exerciseSet?.variant or ''
+  isSeminarTutor : () -> Meteor.user().profile.is_seminar_tutor
+  isGrading : () -> ix.url().endsWith('/grade')
+
+Template.topic_header.events
+  'click #grade' : (event, template) ->
+    FlowRouter.go(ix.extendUrl('/grade'))
 
 Template.requestHelpModal.helpers
 
