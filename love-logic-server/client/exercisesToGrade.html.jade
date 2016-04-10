@@ -1,5 +1,13 @@
 template(name='exercisesToGrade')
   h2 Exercises to Grade
+  
+  p For all exercise sets.  
+    if subscriptions
+      span  Restrict to:
+  ul
+    each subscriptions
+      li(style="margin-left:2em;"): a(href="/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}#{urlQueryPart}") The #{variant} exercises for #{courseName}
+  
   p The following exercises are those for which students specifying you as seminar tutor have submitted work and for which you have not yet provided feedback.
   p (This does not include any exercises submitted which were automatically marked as correct.)
   
@@ -10,3 +18,27 @@ template(name='exercisesToGrade')
           a(href="#{gradeURL}") #{exerciseName}
   else
     +loading
+
+
+template(name='exercisesToGradeForExerciseSet')
+  p
+    a(href='/exercisesToGrade') Exercises to Grade 
+    if paramsSpecifyLecture
+      span ---
+      a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}') The #{variant} exercises for #{courseName}
+  unless paramsSpecifyLecture
+    h2 The #{variant} exercises for #{courseName}
+  
+  unless paramsSpecifyLecture
+    ul.collection
+      each exerciseList
+        li.collection-item: a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}/lecture/#{name}') #{name}
+  
+  if paramsSpecifyLecture
+    each exerciseList
+      h2 #{name}
+      each units
+        h4 #{name}
+        ul.collection
+          each exercises
+            li.collection-item: a(href="#{gradeURL}#{exerciseSetURLQuery}") #{exerciseName}

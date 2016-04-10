@@ -86,8 +86,6 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: exercisesToGrade doesn’t pick up on ‘Beatrice is’.  Why not?
 
-# TODO: all emails are lower case 
-
 # TODO: improve proof checking (maybe have redundant cycles at present)
 
 # TODO: instructor can monitor all students’ progress.
@@ -292,6 +290,16 @@ FlowRouter.route '/myTutors',
 FlowRouter.route '/exercisesToGrade',
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'exercisesToGrade'
+
+FlowRouter.route '/exercisesToGrade/course/:_courseName/exerciseSet/:_variant',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'exercisesToGradeForExerciseSet'
+FlowRouter.route '/exercisesToGrade/course/:_courseName/exerciseSet/:_variant/lecture/:_lecture',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'exercisesToGradeForExerciseSet'
+FlowRouter.route '/exercisesToGrade/course/:_courseName/exerciseSet/:_variant/lecture/:_lecture/unit/:_unit',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'exercisesToGradeForExerciseSet'
 
 FlowRouter.route '/helpRequestsToAnswer',
   action : (params, queryParams) ->
