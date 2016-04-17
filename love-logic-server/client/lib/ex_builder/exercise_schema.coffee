@@ -1,16 +1,21 @@
 # Define types of exercise for zoxiy.
 # Used to create the exerciseBuilder
 
+
 @exerciseTypes = {}
 
+# Complication : when creating an exercise, user will write
+# in her current dialect (`fol.getCurrentDialectNameAndVersion()`).
+# But when the URL is created, we want it to be in awFOL.
+# The following ensures just this combination of things:
 processFOL = (sentence) ->
   sentence = sentence?.trim?()
-  sentence = fol.parse(sentence).toString({replaceSymbols:true})
+  sentence = fol.parse(sentence).toString({replaceSymbols:true, symbols:fol.symbols.default})
   return sentence
 processMaybeFOL = (sentence) ->
   sentence = sentence?.trim?()
   try
-    sentence = fol.parse(sentence).toString({replaceSymbols:true})
+    sentence = fol.parse(sentence).toString({replaceSymbols:true, symbols:fol.symbols.default})
   return sentence
 
 # Check sentences are awFOL: fol.parse will throw if not

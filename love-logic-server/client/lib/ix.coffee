@@ -128,6 +128,22 @@ ix.submitExercise = (exercise, cb) ->
     exerciseId : ix.convertToExerciseId(ix.url())
   ), cb)
 
+ix.getExerciseSet = (options) ->
+  FlowRouter.watchPathChange()
+  options ?= {}
+  courseName = FlowRouter.getParam('_courseName') or FlowRouter.getQueryParam('courseName')
+  variant = FlowRouter.getParam('_variant') or FlowRouter.getQueryParam('variant')
+  return ExerciseSets.findOne({courseName, variant}, options)
+
+ix.setDialectFromExerciseSet = () ->
+  FlowRouter.watchPathChange()
+  currentUnit = ix.getExerciseContext()?.unit
+  if currentUnit?.dialectName?
+    fol.setDialect(currentUnit.dialectName)
+  else
+    es = ix.getExerciseSet()
+    if es?.dialectName?
+      fol.setDialect(es.dialectName)
 
 # ----
 # Relating to auto grading
@@ -332,7 +348,7 @@ ix.getPremisesFromParams = (self) ->
   return [] unless _premises?
   txtList = decodeURIComponent(_premises).split('|')
   try
-    folList = (fol.parse(t) for t in txtList)
+    folList = (fol.parseUsingSystemParser(t) for t in txtList)
   catch e
     # The premises may occasionally be sentences of English or another natural language.
     return (_fixEnglishSentence(x) for x in txtList)
@@ -352,7 +368,7 @@ ix.getConclusionFromParams = (self) ->
         _conclusion = exercisesIdParts[conclusionIdx+1]
   return undefined unless _conclusion?
   try
-    e = fol.parse(decodeURIComponent(_conclusion))
+    e = fol.parseUsingSystemParser(decodeURIComponent(_conclusion))
   catch error
     return _fixEnglishSentence(_conclusion)
   return e
@@ -425,7 +441,7 @@ _sentencesToAwFOL = (sentences) ->
   result = []
   for s in sentences
     try
-      result.push(fol.parse(s))
+      result.push(fol.parseUsingSystemParser(s))
     catch e
       # The sentences may be English rather than awFOL.
       result.push(_fixEnglishSentence(s))

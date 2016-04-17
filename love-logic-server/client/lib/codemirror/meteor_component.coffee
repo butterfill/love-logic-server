@@ -73,6 +73,13 @@ Template.editSentence.helpers
 Template.editSentence.events
   'click #convert-to-symbols' : (event, template) ->
     answer = ix.getAnswer()?.sentence
+    dialectName = ix.getAnswer()?.dialectName
+    dialectVersion = ix.getAnswer()?.dialectName
+    if dialectName?
+      fol.setDialect(dialectName, dialectVersion)
+    unless answer?
+      console.log "Error getting answer (ix.getAnswer()?.sentence is undefined)."
+      return
     try
       answerFOL = fol.parse( answer.replace(/\n/g,' ') )
     catch error

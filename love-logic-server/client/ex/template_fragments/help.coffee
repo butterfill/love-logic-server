@@ -1,10 +1,3 @@
-getExerciseSet = (options) ->
-  FlowRouter.watchPathChange()
-  options ?= {}
-  courseName = FlowRouter.getQueryParam 'courseName'
-  variant = FlowRouter.getQueryParam 'variant'
-  return ExerciseSets.findOne({courseName, variant}, options)
-
 doSubscriptions = (templateInstance) ->
   templateInstance ?= this
   templateInstance.autorun () ->
@@ -47,7 +40,7 @@ slidesForThisUnit = () ->
   return '' unless ctx
   return ctx.unit.slides
 readingForThisUnit = () ->
-  exerciseSet = getExerciseSet()
+  exerciseSet = ix.getExerciseSet()
   ctx = Template.instance().exerciseContext.get()
   unit = ctx?.unit
   return '' unless exerciseSet? and unit?

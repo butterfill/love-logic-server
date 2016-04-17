@@ -24,7 +24,7 @@ template(name='exercisesToGradeForExerciseSet')
   p
     a(href='/exercisesToGrade') Exercises to Grade 
     if paramsSpecifyLecture
-      span ---
+      span --- 
       a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}') The #{variant} exercises for #{courseName}
   unless paramsSpecifyLecture
     h2 The #{variant} exercises for #{courseName}
@@ -32,13 +32,26 @@ template(name='exercisesToGradeForExerciseSet')
   unless paramsSpecifyLecture
     ul.collection
       each exerciseList
-        li.collection-item: a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}/lecture/#{name}') #{name}
+        li.collection-item
+          a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}/lecture/#{name}') #{name}
+          span(style="background-color:#CCCCCC;padding-left:#{nofExercises}px;padding-right:#{nofExercises}px")  
+          span (#{nofExercises})
   
   if paramsSpecifyLecture
     each exerciseList
-      h2 #{name}
+      if paramsSpecifyUnit
+        h4: a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}/lecture/#{name}') #{name}
+      else
+        h2 #{name}
+      unless units
+        p Marking completed for #{name}.
       each units
-        h4 #{name}
+        if paramsSpecifyUnit
+          h2 #{name}
+        else
+          h4: a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}/lecture/#{lectureNameOfUnit}/unit/#{name}') #{name}
         ul.collection
           each exercises
             li.collection-item: a(href="#{gradeURL}#{exerciseSetURLQuery}") #{exerciseName}
+        unless exercises
+          p Marking completed for #{name}.

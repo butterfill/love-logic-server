@@ -354,6 +354,13 @@ template(name='exerciseSetEditInner')
         else
           | [describe this exercise set here]
       i.material-icons mode_edit
+    p Dialect (syntax and rules of proof): 
+      if dialectNameForExerciseSet
+        | #{dialectNameForExerciseSet}
+      else
+        | [unspecified]
+      a.editDialectExerciseSet.waves-effect 
+        i.material-icons mode_edit
     p
       span.textbook(contentEditable="true") 
         if textbook
@@ -361,6 +368,17 @@ template(name='exerciseSetEditInner')
         else
           | [specify the textbook here]
       i.material-icons mode_edit
+      
+  if paramsSpecifyUnit
+    each lectures
+      each units
+        p Dialect for this unit (syntax and rules of proof): 
+          if dialectName
+            | #{dialectName}
+          else
+            | [unspecified]
+          a.editDialectUnit.waves-effect 
+            i.material-icons mode_edit
 
   //- Slide and handout links
   if paramsSpecifyLecture
@@ -481,3 +499,9 @@ template(name="exerciseModal")
   .input-field
     input(type="text", value="#{exercise}", name="exercise")
 
+template(name="setDialectModal")
+  p !{message}
+  .input-field
+    input.dialectName.typeahead(type="text", value="#{dialectName}", name="dialectName")
+  p !{postMessage}
+  div(style="min-height:250px") &nbsp;

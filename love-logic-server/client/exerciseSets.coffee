@@ -148,13 +148,6 @@ Template.listExercises.onCreated () ->
     self.exerciseSet = self.subscribe 'exercise_set', courseName, variant
 
 
-getExerciseSet = (options) ->
-  options ?= {}
-  FlowRouter.watchPathChange()
-  courseName = FlowRouter.getParam('_courseName')
-  variant = FlowRouter.getParam('_variant')
-  return ExerciseSets.findOne({courseName, variant}, options)
-
 Template.exerciseSet.onCreated () ->
   self = this
   self.autorun () ->
@@ -204,7 +197,7 @@ commonHelpers =
   exerciseSetName : () ->
     return getExerciseSetName()
   exerciseSetDescription : () ->
-    return getExerciseSet({reactive:beReactive()})?.description
+    return ix.getExerciseSet({reactive:beReactive()})?.description
     
   tuteeId : () -> 
     tuteeId = ix.getUserId()
@@ -217,7 +210,7 @@ commonHelpers =
     return Meteor.users.findOne(ix.getUserId())?.emails?[0]?.address
   submittedDateAndCorrectnessInfoReady : () -> Template.instance().datesExercisesSubmitted.ready()
   
-  exerciseSetExists : () -> getExerciseSet()?
+  exerciseSetExists : () -> ix.getExerciseSet()?
   
   isEditing : () -> window.location.pathname.indexOf('/edit') isnt -1
   clipboardHasLecture : () ->
@@ -225,7 +218,7 @@ commonHelpers =
   clipboardHasUnit : () ->
     return (ix.clipboard.get('unit') isnt undefined)
   canDeleteExerciseSet : () ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     return exerciseSet?.lectures?.length is 0
   
 Template.listExercises.helpers commonHelpers
@@ -239,17 +232,17 @@ Template.deleteCopyPasteButtons.helpers commonHelpers
 
 commonEventHandlers = 
   'click .copyExerciseSet' : (event, target) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     ix.clipboard.set(exerciseSet, 'exerciseSet')
     Materialize.toast "Exercise set ‘#{exerciseSet.variant}’ copied to clipboard", 4000
   'click .copyLecture' : (event, target) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @idx
     lecture = exerciseSet.lectures[lectureIdx]
     ix.clipboard.set(lecture, 'lecture')
     Materialize.toast "‘#{lecture.name}’ copied to clipboard", 4000
   'click .copyUnit' : (event, target) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @idx
     console.log exerciseSet
@@ -286,7 +279,7 @@ Template.exerciseSetInner.helpers
   isForTutee : () -> Meteor.users.find().count() > 1
   
   userIsExerciseSetOwner : () ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     return exerciseSet?.owner is ix.getUserId()
   
   # NB: has side-effect: draws the chart
@@ -401,7 +394,8 @@ Template.exerciseSetEdit.helpers
   
   
 Template.exerciseSetEditInner.helpers
-  textbook : () -> getExerciseSet()?.textbook
+  dialectNameForExerciseSet : () -> ix.getExerciseSet()?.dialectName
+  textbook : () -> ix.getExerciseSet()?.textbook
   lectures : () -> 
     theLectures = getLectures({reactive:beReactive()})
     return theLectures 
@@ -446,7 +440,7 @@ Template.exerciseSetEdit.events
     unless newUnit?
       Materialize.toast "Sorry, there is no unit on the clipboard", 4000
       return
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @idx
     lecture = exerciseSet.lectures[lectureIdx]
     units = lecture.units or []
@@ -464,7 +458,7 @@ Template.exerciseSetEdit.events
     unless newLecture?
       Materialize.toast "Sorry, there is no lecture on the clipboard", 4000
       return
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectures = exerciseSet.lectures or []
     existingLectureNames = (l.name for l in lectures)
     name = newLecture.name
@@ -492,7 +486,7 @@ Template.exerciseSetEdit.events
   # specify variant by name!
   'blur .exerciseSetName' : (event, template) ->
     # check it has no followers, otherwise deny update.
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     updateHasFailed = (msg) ->
       event.target.innerText = exerciseSet.variant
       Materialize.toast msg, 4000
@@ -513,7 +507,7 @@ Template.exerciseSetEdit.events
           # changing name changes url:
           FlowRouter.go ix.url().replace(/\/[^\/]*\/edit$/,"/#{newName}/edit")
   'blur .exerciseSetDescription' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     newName = event.target.innerText?.trim()
     unless newName?.length > 0
       event.target.innerText = exerciseSet.description
@@ -521,7 +515,7 @@ Template.exerciseSetEdit.events
     toSet = {"description":newName}
     updateExerciseSetField exerciseSet, toSet, 'updating the description of the exercise set'
   'blur .textbook' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     newName = event.target.innerText?.trim()
     if newName?.length is 0
       toSet = {"textbook":null}
@@ -529,7 +523,7 @@ Template.exerciseSetEdit.events
       toSet = {"textbook":newName}
     updateExerciseSetField exerciseSet, toSet, 'updating the textbook for this exercise set'
   'blur .unitName' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @idx
     newName = event.target.innerText?.trim()
@@ -541,7 +535,7 @@ Template.exerciseSetEdit.events
     # changing name changes url:
     FlowRouter.go ix.url().replace(/\/[^\/]*$/,"/#{newName}")
   'blur .lectureName' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @idx
     newName = event.target.innerText?.trim()
     unless newName?.length > 0 and nameIsOkToUseAsURIComponent(newName)
@@ -554,7 +548,7 @@ Template.exerciseSetEdit.events
   
   # moving things up and down
   'click .moveExerciseDown' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @unitIdx
     exIdx = @idx
@@ -568,7 +562,7 @@ Template.exerciseSetEdit.events
       "lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises.#{exIdx+1}" : ex
     updateExerciseSetField exerciseSet, toSet, 'updating the order of the exercise'
   'click .moveExerciseUp' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @unitIdx
     exIdx = @idx
@@ -582,7 +576,7 @@ Template.exerciseSetEdit.events
       "lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises.#{exIdx-1}" : ex
     updateExerciseSetField exerciseSet, toSet, 'updating the order of the exercise'
   'click .moveLectureDown' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @idx
     lectures = exerciseSet.lectures
     if lectureIdx >= lectures.length-1
@@ -594,7 +588,7 @@ Template.exerciseSetEdit.events
       "lectures.#{lectureIdx+1}" : lecture
     updateExerciseSetField exerciseSet, toSet, 'updating the order of the lecture'
   'click .moveLectureUp' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @idx
     lectures = exerciseSet.lectures
     if lectureIdx < 1
@@ -606,7 +600,7 @@ Template.exerciseSetEdit.events
       "lectures.#{lectureIdx-1}" : lecture
     updateExerciseSetField exerciseSet, toSet, 'updating the order of the lecture'
   'click .moveUnitDown' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @idx
     units = exerciseSet.lectures[lectureIdx].units
@@ -619,7 +613,7 @@ Template.exerciseSetEdit.events
       "lectures.#{lectureIdx}.units.#{unitIdx+1}" : unit
     updateExerciseSetField exerciseSet, toSet, 'updating the order of the unit'
   'click .moveUnitUp' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @lectureIdx
     unitIdx = @idx
     units = exerciseSet.lectures[lectureIdx].units
@@ -633,7 +627,7 @@ Template.exerciseSetEdit.events
     updateExerciseSetField exerciseSet, toSet, 'updating the order of the unit'
 
   'click .addLecture' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     return undefined unless exerciseSet?
     lectures = exerciseSet.lectures
     name = undefined
@@ -661,7 +655,7 @@ Template.exerciseSetEdit.events
     toSet = {"lectures.#{lectures.length}":newLecture}
     updateExerciseSetField exerciseSet, toSet, 'creating a new lecture at the end of the list'
   'click .addUnit' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @idx
     lecture = exerciseSet.lectures[lectureIdx]
     units = lecture.units or []
@@ -681,7 +675,7 @@ Template.exerciseSetEdit.events
     updateExerciseSetField exerciseSet, toSet, 'creating a new unit at the end of the list'
     
   'click .deleteLecture' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectures = exerciseSet.lectures
     lectureIdx = @idx
     lecture = lectures[lectureIdx]
@@ -702,7 +696,7 @@ Template.exerciseSetEdit.events
         if result?.submit
           deleteLecture()
   'click .deleteUnit' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @lectureIdx
     units = exerciseSet.lectures[lectureIdx].units
     unitIdx = @idx
@@ -724,7 +718,7 @@ Template.exerciseSetEdit.events
           deleteUnit()
 
   'click .editSlides' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @lectureIdx
     if @lectureIdx?
       # This is for a unit
@@ -755,7 +749,7 @@ Template.exerciseSetEdit.events
           updateExerciseSetField exerciseSet, toSet, 'updating the url of the slides'
           
   'click .editHandout' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @lectureIdx
     if @lectureIdx?
       # This is for a unit
@@ -786,7 +780,7 @@ Template.exerciseSetEdit.events
           updateExerciseSetField exerciseSet, toSet, 'updating the url of the handout'
           
   'click .addExerciseUsingExerciseBuilder' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @lectureIdx 
     lecture = exerciseSet.lectures[lectureIdx]
     unitIdx = @idx
@@ -810,7 +804,7 @@ Template.exerciseSetEdit.events
           updateExerciseSetField exerciseSet, toSet, 'adding the exercise'
 
   # 'click .addExercise' : (event, template) ->
-  #   exerciseSet = getExerciseSet()
+  #   exerciseSet = ix.getExerciseSet()
   #   lectureIdx = @lectureIdx
   #   lecture = exerciseSet.lectures[lectureIdx]
   #   unitIdx = @idx
@@ -831,7 +825,7 @@ Template.exerciseSetEdit.events
   #         updateExerciseSetField exerciseSet, toSet, 'adding the exercise'
   #
   # 'click .editExercise' : (event, template) ->
-  #   exerciseSet = getExerciseSet()
+  #   exerciseSet = ix.getExerciseSet()
   #   lectureIdx = @lectureIdx
   #   lecture = exerciseSet.lectures[lectureIdx]
   #   unitIdx = @unitIdx
@@ -861,7 +855,7 @@ Template.exerciseSetEdit.events
   #         updateExerciseSetField exerciseSet, toSet, actionMsg
 
   'click .editExerciseUsingExerciseBuilder' : (event, template) ->
-    exerciseSet = getExerciseSet()
+    exerciseSet = ix.getExerciseSet()
     lectureIdx = @lectureIdx 
     lecture = exerciseSet.lectures[lectureIdx]
     unitIdx = @unitIdx
@@ -889,6 +883,60 @@ Template.exerciseSetEdit.events
           toSet = {"lectures.#{lectureIdx}.units.#{unitIdx}.rawExercises" : rawExercises}
           updateExerciseSetField exerciseSet, toSet, 'deleting the exercise'
 
+  'click .editDialectUnit' : (event, template) ->
+    exerciseSet = ix.getExerciseSet()
+    lectureIdx = @lectureIdx 
+    lecture = exerciseSet.lectures[lectureIdx]
+    unitIdx = @idx
+    unit = lecture.units[unitIdx]
+    dialectName = unit.dialectName or ''
+    MaterializeModal.form
+      title : "Set Dialect for Unit"
+      bodyTemplate : "setDialectModal"
+      submitLabel : "update"
+      closeLabel : "cancel"
+      dialectName : dialectName
+      message : "Specify a dialect to use for just this unit."
+      postMessage : "<em>(Set a dialect for the whole exercise set from the top page of the exercise set.)</em>"
+      callback : (error, response) ->
+        if response.submit
+          newDialectName = response.form.dialectName
+          # Check the name is correct:
+          allDialectNamesAndDescriptions = fol.getAllDialectNamesAndDescriptions()
+          allNames = (x.name for x in allDialectNamesAndDescriptions)
+          unless newDialectName in allNames
+            Materialize.toast "No dialect called ‘#{newDialectName}’ exists.", 4000
+            return
+          toSet = {"lectures.#{lectureIdx}.units.#{unitIdx}.dialectName" : newDialectName}
+          updateExerciseSetField exerciseSet, toSet, 'updating the dialect for the unit'
+    
+  'click .editDialectExerciseSet' : (event, template) ->
+    exerciseSet = ix.getExerciseSet()
+    dialectName = exerciseSet.dialectName or ''
+    MaterializeModal.form
+      title : "Set Dialect"
+      bodyTemplate : "setDialectModal"
+      submitLabel : "update"
+      closeLabel : "cancel"
+      dialectName : dialectName
+      message : "Specify a dialect to use for this exercise set."
+      postMessage : "<em>(You can set different dialects for individual units.)</em>"
+      callback : (error, response) ->
+        if response.submit
+          newDialectName = response.form.dialectName
+          # Check the name is correct:
+          allDialectNamesAndDescriptions = fol.getAllDialectNamesAndDescriptions()
+          allNames = (x.name for x in allDialectNamesAndDescriptions)
+          unless newDialectName in allNames
+            Materialize.toast "No dialect called ‘#{newDialectName}’ exists.", 4000
+            return
+          toSet = {"dialectName" : newDialectName}
+          updateExerciseSetField exerciseSet, toSet, 'updating the dialect for the exercise set'
+          if exerciseSet.textbook? is false or exerciseSet.textbook is ''
+            textbook = fol.getTextbookForDialect(newDialectName)
+            updateExerciseSetField exerciseSet, {textbook}, 'updating the textbook for the exercise set'
+            
+    
     
 parseExercise = (ex) ->
   ex = ex.trim()
@@ -906,7 +954,7 @@ parseExercise = (ex) ->
 # (essentially: elaborate them by adding properties).
 getLectures = (options) ->
   options ?= {reactive:beReactive()}
-  exerciseSet = getExerciseSet(options)
+  exerciseSet = ix.getExerciseSet(options)
   theLectures = exerciseSet?.lectures
   return [] unless theLectures?.length > 0
 
@@ -992,4 +1040,47 @@ drawProgressDonut = (chartElemId, stats) ->
       chart = new google.visualization.PieChart(el)
       chart.draw(data, options)
   google.load('visualization', '1.0', {'packages':['corechart'], callback: drawChart})    
+
+
+
+Template.setDialectModal.onRendered () ->
+  allDialectNamesAndDescriptions = fol.getAllDialectNamesAndDescriptions()
+  $('.dialectName.typeahead').typeahead({
+    hint : true
+    minLength : 2
+    highlight : true
+    limit : 10
+  },{
+    name : 'dialectNames'
+    async : false
+    limit : 10
+    display : (o) -> o.name
+    source : (query, syncResults) ->
+      queryWords = query.toLowerCase().split(/\s+/)
+      maxScore = 0
+      for d in allDialectNamesAndDescriptions
+        d.score = 0
+        for qw in queryWords
+          d.score += 1 if d.description.toLowerCase().indexOf(qw) isnt -1
+          d.score += 1 if d.name.toLowerCase().indexOf(qw) isnt -1
+        if d.score > maxScore
+          maxScore = d.score
+      res = []
+      if maxScore isnt 0
+        res = (d for d in allDialectNamesAndDescriptions when d.score is maxScore)
+      fewerWordsFirstSorter = (a,b) ->
+        aWords = a.description.split(' ').length
+        bWords = b.description.split(' ').length
+        return aWords - bWords
+      res.sort( fewerWordsFirstSorter )
+      syncResults( res )
+    templates : 
+      empty : [
+          '<div class="empty-message">',
+            'unable to find any dialects matching the current query',
+          '</div>'
+        ].join('\n')
+      suggestion : (o) ->
+        return "<div><strong>#{o.name}</strong> - #{o.description}<div>"
+  })
 

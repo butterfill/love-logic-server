@@ -41,7 +41,10 @@ Template.trans_ex_display_question.helpers
   predicates : () -> getPredicatesFromParams(@)
   sentence : () -> 
     if checkIfTranslationToEn(@)
-      return fol.parse(ix.getSentenceFromParam(@)).toString({replaceSymbols:true})
+      folSentence = fol.parseUsingSystemParser(ix.getSentenceFromParam(@))
+      ix.setDialectFromExerciseSet()
+      sentenceTxt = folSentence.toString({replaceSymbols:true})
+      return sentenceTxt
     return ix.getSentenceFromParam(@)
   domain : () -> getDomainFromParams(@).join(', ')
   names : () -> getNames(@)
@@ -56,7 +59,7 @@ Template.trans_ex_display_question.helpers
 checkIfTranslationToEn = (self) ->
   sentence = ix.getSentenceFromParam(self)
   try
-    fol.parse sentence
+    fol.parseUsingSystemParser sentence
     # If we can parse the sentence given, it is an awFOL sentence to be 
     # translated into English.
     return true
@@ -111,7 +114,11 @@ extractPredicteFromParam = (rawPredicate) ->
     predicateDescription or=  ("x is #{predicateName} y and z" if arity is 3  and predicateNameNofWords>1)
     predicateDescription or=  ("x #{predicateName} y to z" if arity is 3 and predicateNameNofWords is 1) 
   variables = ['x','y','z','z1','z2','z3','z4','z5','z6']
-  description = "#{name}(#{variables[0..arity-1]}) : #{predicateDescription}"
+  predicateAwFOLText = "#{name}(#{variables[0..arity-1]})"
+  predicateFOL = fol.parseUsingSystemParser(predicateAwFOLText)
+  ix.setDialectFromExerciseSet()
+  predicateTxt = predicateFOL.toString({replaceSymbols:true})
+  description = "#{predicateTxt} : #{predicateDescription}"
   return {name, arity, description}
 
 getDomainFromParams = (self) ->
@@ -158,11 +165,17 @@ getAnswerAsFOLsentence = () ->
 
 
 Template.trans_ex.onCreated () ->
-  self = this
+  templateInstance = @
   @autorun () ->
     FlowRouter.watchPathChange()
     exerciseId = ix.getExerciseId()
-    self.subscribe 'graded_answers', exerciseId
+    templateInstance.subscribe 'graded_answers', exerciseId
+  @autorun () ->
+    courseName = FlowRouter.getQueryParam 'courseName'
+    variant = FlowRouter.getQueryParam 'variant'
+    if courseName? and variant?
+      templateInstance.subscribe 'exercise_set', courseName, variant
+    
 
 Template.trans_ex.onRendered () ->
   isTranslationToEn = checkIfTranslationToEn()
@@ -180,7 +193,11 @@ Template.trans_ex.events
         type : 'trans'
         content : {sentence:answer}
     }
-    
+    dialectNameAndVersion = fol.getCurrentDialectNameAndVersion()
+    if dialectNameAndVersion?
+      doc.answer.dialectName = dialectNameAndVersion.name
+      doc.answer.dialectVersion = dialectNameAndVersion.version
+      
     answerShouldBeEnglish = checkIfTranslationToEn()
     if answerShouldBeEnglish
       # Try to get human feedback from the grade and comments on a previous student’s answer.
