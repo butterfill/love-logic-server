@@ -157,6 +157,8 @@ addGradedExercise = (submittedExercse, isCorrect, comment) ->
   ownerIdHash = ix.hash(submittedExercse.owner)
   answerHash = ix.hashAnswer(submittedExercse)
   answerPNFsimplifiedSorted = submittedExercse.answerPNFsimplifiedSorted
+  dialectName = submittedExercse.answer.content.dialectName
+  dialectVersion = submittedExercse.answer.content.dialectVersion
   # Must save graded answer if we already have a graded answer for this owner, answer and exercise
   mustSave = GradedAnswers.find({$and:[{exerciseId}, {ownerIdHash}, {answerHash}]}).count() > 0
   if not mustSave
@@ -168,7 +170,7 @@ addGradedExercise = (submittedExercse, isCorrect, comment) ->
       console.log "Not saving graded exercise because already have an exemplar."
       return undefined
   console.log "saving graded exercise ..."
-  Meteor.call "addGradedExercise", exerciseId, ownerIdHash, answerHash, isCorrect, comment, answerPNFsimplifiedSorted
+  Meteor.call "addGradedExercise", exerciseId, ownerIdHash, answerHash, isCorrect, comment, answerPNFsimplifiedSorted, dialectName, dialectVersion
   
 
 Template.grading_form.events

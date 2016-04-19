@@ -35,18 +35,23 @@ Template.display_argument.helpers
     premises = ix.getPremisesFromParams(@)
     # Premises may be awFOL objects or strings.
     # But because strings have `.toString`, this works either way.
-    (e.toString({replaceSymbols:true}) for e in premises)
-  conclusion : () -> ix.getConclusionFromParams(@).toString({replaceSymbols:true})
+    ix.setDialectFromExerciseSet()
+    return (e.toString({replaceSymbols:true}) for e in premises)
+  conclusion : () -> 
+    ix.setDialectFromExerciseSet()
+    ix.getConclusionFromParams(@).toString({replaceSymbols:true})
 
 
 Template.TorF_ex.helpers
   sentences : () ->
     sentences = ix.getSentencesFromParam(@) or []
+    ix.setDialectFromExerciseSet()
     return ({theSentence:x.toString({replaceSymbols:true}), idx:idx} for x, idx in sentences)
 
 Template.TorF_ex_display_question.helpers
   sentences : () ->
     sentences = ix.getSentencesFromParam(@) or []
+    ix.setDialectFromExerciseSet()
     return ({theSentence:x.toString({replaceSymbols:true}), idx:idx} for x, idx in sentences)
 
 
@@ -149,6 +154,7 @@ Template.TorF_ex.events
 Template.TorF_ex_display_answer.helpers
   sentences : () ->
     ss = ix.getSentencesFromParam(this)
+    ix.setDialectFromExerciseSet()
     ss = (x.toString({replaceSymbols:true}) for x in ss)
     return ({value:"#{v}", idx:idx, theSentence:ss[idx]}  for v, idx in @answer.content.TorF)
 

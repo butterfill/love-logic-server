@@ -17,6 +17,20 @@ FlowRouter.route '/termsOfUse',
     BlazeLayout.render 'ApplicationLayout', main:'termsOfUse'
   name : 'termsOfUse'
 
+makeRoute = (name) ->
+  FlowRouter.route "/#{name}", 
+    action : (params, queryParams) ->
+      BlazeLayout.render 'ApplicationLayout', main:name
+    name : name
+
+makeRoute('iAmATutor')
+makeRoute('iAmHonestlyReallyAndTrulyAnInstructor')
+
+FlowRouter.route '/exploreZoxiy', 
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'exploreZoxiy'
+  name : 'exploreZoxiy'
+
 FlowRouter.route '/oldBrowserSorry', 
   action : (params, queryParams) ->
     BlazeLayout.render 'ApplicationLayout', main:'oldBrowserSorry'

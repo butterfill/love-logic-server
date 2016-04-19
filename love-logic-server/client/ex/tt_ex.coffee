@@ -151,6 +151,7 @@ Template.tt_ex_display_question.helpers
   isArgument : () -> exerciseSpecifiesAnArgument(@)
   sentences : () ->
     ss = ix.getSentencesFromParam(@)
+    ix.setDialectFromExerciseSet()
     ss = (x.toString({replaceSymbols:true}) for x in ss)
     ssObj = ({theSentence:x, idx} for x, idx in ss)
     return ssObj
@@ -158,8 +159,11 @@ Template.tt_ex_display_question.helpers
     premises = ix.getPremisesFromParams(@)
     # Premises may be awFOL objects or strings.
     # But because strings have `.toString`, this works either way.
+    ix.setDialectFromExerciseSet()
     (e.toString({replaceSymbols:true}) for e in premises)
-  conclusion : () -> ix.getConclusionFromParams(@).toString({replaceSymbols:true})
+  conclusion : () -> 
+    ix.setDialectFromExerciseSet()
+    ix.getConclusionFromParams(@).toString({replaceSymbols:true})
 
 Template.tt_ex_display_answer.helpers
   isAskQuestions : () -> thereAreQuestionsToAsk(@)

@@ -78,11 +78,23 @@ Meteor.methods
       throw new Meteor.Error "not-authorized"
     Meteor.users.update(userId, {$set: {'profile.is_seminar_tutor':true}})
     
+  makeMeNotATutor : () ->
+    userId = Meteor.user()?._id
+    if not userId 
+      throw new Meteor.Error "not-authorized"
+    Meteor.users.update(userId, {$set: {'profile.is_seminar_tutor':false}})
+    
   makeMeAnInstructor : () ->
     userId = Meteor.user()?._id
     if not userId 
       throw new Meteor.Error "not-authorized"
     Meteor.users.update(userId, {$set: {'profile.is_instructor':true}})
+    
+  makeMeNotAnInstructor : () ->
+    userId = Meteor.user()?._id
+    if not userId 
+      throw new Meteor.Error "not-authorized"
+    Meteor.users.update(userId, {$set: {'profile.is_instructor':false}})
     
   createNewCourse : (name, description) ->
     unless name is encodeURIComponent(name)
@@ -278,7 +290,7 @@ Meteor.methods
     # Anyone may answer a help request
     HelpRequest.update(helpReq, $set:{dateAnswered:new Date(), answererId, answer, answererName} )
 
-  addGradedExercise : (exerciseId, ownerIdHash, answerHash, isCorrect, comment, answerPNFsimplifiedSorted) ->
+  addGradedExercise : (exerciseId, ownerIdHash, answerHash, isCorrect, comment, answerPNFsimplifiedSorted, dialectName, dialectVersion) ->
     graderId = Meteor.user()?._id
     if not graderId
       throw new Meteor.Error "not-authorized"
@@ -289,6 +301,12 @@ Meteor.methods
       newDoc.isCorrect = isCorrect
     if comment? 
       newDoc.comment = comment
+    if dialectName?
+      newDoc.answer ?= {}
+      newDoc.answer.content ?= {}
+      newDoc.answer.content.dialectName = dialectName
+      newDoc.answer.content.dialectVersion = dialectVersion
+      
     # (Checking that we actually need to add this answer has already been done on the client.)
     if Meteor.isClient
       return undefined
@@ -302,6 +320,9 @@ Meteor.methods
     ] }
     findAndModify(query, {}, newDoc, {upsert: true})
 
+  # currently only used for testing
+  _removeGradedExercises : (exerciseId) ->
+    GradedAnswers.remove({exerciseId})
 
   upsertExerciseSet : (exerciseSet) ->
     userId = Meteor.user()._id

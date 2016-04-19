@@ -35,10 +35,16 @@ ix.url = () ->
 ix.extendUrl = (extra) ->
   search = window.location.search
   url = ix.url()
+  if url.startsWith('/ex/')
+    # Take care of encoding
+    url = ix.getExerciseId()
   return "#{url}#{extra}#{search}"
 ix.contractUrl = (toRemove) ->
   search = window.location.search
   url = ix.url()
+  if url.startsWith('/ex/')
+    # Take care of encoding
+    url = ix.getExerciseId()
   re = new RegExp("#{toRemove}(/?)$")
   return "#{url.replace(re, '')}#{search}"
 
@@ -145,6 +151,22 @@ ix.setDialectFromExerciseSet = () ->
     if es?.dialectName?
       fol.setDialect(es.dialectName)
 
+ix.setDialectFromCurrentAnswer = () ->
+  if ix.getAnswer().dialectName?
+    dialectName = ix.getAnswer().dialectName
+    dialectVersion = ix.getAnswer().dialectVersion
+    fol.setDialect(dialectName, dialectVersion)
+ix.setDialectFromThisAnswer = (answer) ->
+  dialectName = answer.content?.dialectName
+  dialectVersion = answer.content?.dialectVersion
+  if dialectName?
+    fol.setDialect(dialectName, dialectVersion)
+  else
+    # Where no dialect is specified, we assume lpl
+    # (TODO: if lpl becomes more restrictive, change this
+    # to a new dialect that specifies the awFOL parser.)
+    fol.setDialect('lpl')
+    
 # ----
 # Relating to auto grading
 
@@ -218,10 +240,15 @@ _gradePNF = (answerDoc) ->
   comment = ''
   conflict = false
   answerPNF = answerDoc.answerPNFsimplifiedSorted
-  for graded in GradedAnswers.find().fetch()
+  exerciseId = ix.getExerciseId()
+  for graded in GradedAnswers.find({exerciseId}).fetch()
     gradedPNF = graded.answerPNFsimplifiedSorted
-    a = fol.parse(answerPNF)
+    ix.setDialectFromThisAnswer(graded.answer)
+    # console.log "graded #{fol.getCurrentDialectNameAndVersion().name}"
     g = fol.parse(gradedPNF)
+    ix.setDialectFromThisAnswer(answerDoc.answer)
+    # console.log "answer #{fol.getCurrentDialectNameAndVersion().name}"
+    a = fol.parse(answerPNF)
     test = a.isPNFExpressionEquivalent(g)
     if test
       if isCorrect isnt undefined and isCorrect isnt graded.isCorrect
@@ -378,6 +405,7 @@ ix.getProofFromParams = () ->
   premises = ix.getPremisesFromParams() or []
   conclusion = ix.getConclusionFromParams()
   return undefined unless conclusion?
+  ix.setDialectFromExerciseSet()
   premiseTxt = (t.toString({replaceSymbols:true}) for t in premises).join('\n| ')
   conclusionTxt = conclusion.toString({replaceSymbols:true})
   return "| #{premiseTxt}\n|---\n| \n| \n| #{conclusionTxt}"  
@@ -395,7 +423,7 @@ ix.getTTrowFromParam = () ->
 
 ix.checkPremisesAndConclusionOfProof = (theProof) ->
     # Now check the conclusion is what its supposed to be.
-    conclusionIsOk = theProof.getConclusion()?.isIdenticalTo?( ix.getConclusionFromParams() )
+    conclusionIsOk = theProof.getConclusion().toString({replaceSymbols:true}) is ix.getConclusionFromParams().toString({replaceSymbols:true})
     if not conclusionIsOk 
       return "Your conclusion (#{theProof.getConclusion()}) is not the one you were supposed to prove (#{ix.getConclusionFromParams()})."
     # Finally, check no premises other than those stipulated have been used (but

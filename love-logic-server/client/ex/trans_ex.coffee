@@ -149,6 +149,7 @@ getDomainFromParams = (self) ->
 
 isAnswerFOLsentence = () ->
   rawAnswer = ix.getAnswer()?.sentence
+  ix.setDialectFromCurrentAnswer()
   try 
     answer = fol.parse( rawAnswer.replace(/\n/g,' ') )
     return true
@@ -157,6 +158,7 @@ isAnswerFOLsentence = () ->
 
 getAnswerAsFOLsentence = () ->
   rawAnswer = ix.getAnswer().sentence
+  ix.setDialectFromCurrentAnswer()
   try 
     answer = fol.parse( rawAnswer.replace(/\n/g,' ') )
     return answer
@@ -170,11 +172,6 @@ Template.trans_ex.onCreated () ->
     FlowRouter.watchPathChange()
     exerciseId = ix.getExerciseId()
     templateInstance.subscribe 'graded_answers', exerciseId
-  @autorun () ->
-    courseName = FlowRouter.getQueryParam 'courseName'
-    variant = FlowRouter.getQueryParam 'variant'
-    if courseName? and variant?
-      templateInstance.subscribe 'exercise_set', courseName, variant
     
 
 Template.trans_ex.onRendered () ->
@@ -195,8 +192,8 @@ Template.trans_ex.events
     }
     dialectNameAndVersion = fol.getCurrentDialectNameAndVersion()
     if dialectNameAndVersion?
-      doc.answer.dialectName = dialectNameAndVersion.name
-      doc.answer.dialectVersion = dialectNameAndVersion.version
+      doc.answer.content.dialectName = dialectNameAndVersion.name
+      doc.answer.content.dialectVersion = dialectNameAndVersion.version
       
     answerShouldBeEnglish = checkIfTranslationToEn()
     if answerShouldBeEnglish
@@ -225,6 +222,7 @@ Template.trans_ex.events
       machineFeedback.hasFreeVariables = (freeVariables.length isnt 0)
       if not machineFeedback.hasFreeVariables
         answerPNFsimplifiedSorted = answerFOLobject.convertToPNFsimplifyAndSort().toString({replaceSymbols:true})
+        # TODO : replace ‘awFOL’ with the dialectName’s language
         machineFeedback.comment = "Your answer is a sentence of awFOL."
         
         # check whether the answer uses only  names which are allowed.

@@ -91,6 +91,7 @@ Template.scope_ex.events
 Template.scope_ex_display_sentences.helpers
   sentences : () ->
     ss = ix.getSentencesFromParam(@)
+    ix.setDialectFromExerciseSet()
     ss = (x.toString({replaceSymbols:true, wrapWithDivs:true}) for x in ss)
     ssObj = ({theSentence:x, idx} for x, idx in ss)
     return ssObj

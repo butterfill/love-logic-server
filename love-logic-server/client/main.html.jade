@@ -4,8 +4,10 @@ template(name='display_subscription')
 
 template(name='main')
   
+  h2 Main Page
+  
   if hasSubscriptions
-    h3 Exercises
+    h4 Exercises
     if isLastExercise
       p
         a#resume-last-exercise.btn.waves-effect.grey.darken-1
@@ -28,7 +30,7 @@ template(name='main')
     
 
   if isTutor
-    h3 Links for tutors
+    h4 Links for tutors
     ul.collection
       li.collection-item: a(href="/exercisesToGrade") Exercises to grade
       li.collection-item: a(href="/helpRequestsToAnswer") Help requests to answer [#{nofHelpRequestsForTutor}]
@@ -37,7 +39,7 @@ template(name='main')
       li.collection-item: a(href="/upsertExerciseSet") Add or update an exercise set.
 
   if isInstructor
-    h3 Links for instructors
+    h4 Links for instructors
     ul.collection
       li.collection-item: a(href="/myTutors") List of tutors on your course(s)
 

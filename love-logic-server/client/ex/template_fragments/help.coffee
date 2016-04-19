@@ -1,9 +1,18 @@
+# Because the help template fragment appears on all exercises,
+# and because it subscribes to the current ExerciseSet, this 
+# template fragment does a few things in the background like
+# setting the correct dialect.
+
 doSubscriptions = (templateInstance) ->
   templateInstance ?= this
   templateInstance.autorun () ->
+    FlowRouter.watchPathChange()
     courseName = FlowRouter.getQueryParam 'courseName'
     variant = FlowRouter.getQueryParam 'variant'
-    templateInstance.subscribe 'exercise_set', courseName, variant
+    exSetSub = templateInstance.subscribe 'exercise_set', courseName, variant
+    # set dialect depending on the exerciseSet the exercise is part of
+    if exSetSub.ready()
+      ix.setDialectFromExerciseSet()
 
   # Tell the templates to update when the current unit changes by
   # creating a reactive var which they can observe.

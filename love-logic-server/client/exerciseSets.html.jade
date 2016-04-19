@@ -1,14 +1,14 @@
 template(name='courses')
   h2 Select a course
   if Template.subscriptionsReady 
+    if isInstructorOrTutor
+      p: a.createNewCourse.btn-flat.hint--bottom(data-hint="create a new course")
+        i.material-icons add_circle_outline
     ul.collection
       each courses
         li.collection-item
           a(href="/course/#{name}") #{name}
           span --- #{description}
-    if isInstructorOrTutor
-      p: a.createNewCourse.btn-flat.hint--bottom(data-hint="create a new course")
-        i.material-icons add_circle_outline
       
         
   else
@@ -113,9 +113,10 @@ template(name='slidesAndHandoutsLinksEditable')
     a.editSlides.waves-effect 
       i.material-icons mode_edit
   else
-    span add link to slides
+    span link to slides
     a.editSlides.waves-effect 
-      i.material-icons add_circle_outline
+      i.material-icons mode_edit
+      //- i.material-icons add_circle_outline
   span ] 
   span  [
   if handout
@@ -123,9 +124,10 @@ template(name='slidesAndHandoutsLinksEditable')
     a.editHandout.waves-effect 
       i.material-icons mode_edit
   else
-    span add link to handout
+    span link to handout
     a.editHandout.waves-effect 
-      i.material-icons add_circle_outline
+      i.material-icons mode_edit
+      //- i.material-icons add_circle_outline
   span ] 
 
 
@@ -200,6 +202,15 @@ template(name='exerciseSetInner')
       //- This won’t actually include delete or paste because not editing:
       +deleteCopyPasteButtons lectures=lectures
 
+  //- button to follow exercise set
+  unless paramsSpecifyLecture
+    unless isForTutee
+      if isAlreadyFollowing
+        a#unfollow.btn.waves-effect.grey stop following ‘#{exerciseSetName}’
+      else
+        a#follow.btn.waves-effect.grey follow ‘#{exerciseSetName}’
+
+    
   
   h4 Progress with 
     if paramsSpecifyUnit
@@ -247,12 +258,6 @@ template(name='exerciseSetInner')
   
   #progressChart
     
-  unless isForTutee
-    if isAlreadyFollowing
-      a#unfollow.btn.waves-effect.grey stop following ‘#{exerciseSetName}’
-    else
-      a#follow.btn.waves-effect.grey follow ‘#{exerciseSetName}’
-
   if paramsSpecifyLecture  
     each lectures
       each units
@@ -396,12 +401,8 @@ template(name='exerciseSetEditInner')
             else
               span [none set]
             if paramsSpecifyUnit
-              if reading
-                a.editReading.waves-effect 
-                  i.material-icons mode_edit
-              else
-                a.editReading.waves-effect 
-                  i.material-icons add_circle_outline
+              a.editReading.waves-effect 
+                i.material-icons mode_edit
           p 
             +slidesAndHandoutsLinksEditable
 

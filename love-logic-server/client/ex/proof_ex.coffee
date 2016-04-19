@@ -26,11 +26,16 @@ Template.proof_ex.helpers
 
 Template.proof_ex_display_question.helpers
   conclusion : () ->
+    FlowRouter.watchPathChange()
+    ix.setDialectFromExerciseSet()
     return ix.getConclusionFromParams(@)?.toString({replaceSymbols:true})
   premises : () -> 
+    FlowRouter.watchPathChange()
     folList = ix.getPremisesFromParams(@) or []
+    ix.setDialectFromExerciseSet()
     return (e.toString({replaceSymbols:true}) for e in folList)
   hasPremises : () -> 
+    FlowRouter.watchPathChange()
     return ix.getPremisesFromParams(@)?.length > 0
   exSubtypeIsOrInvalid : () -> 
     FlowRouter.watchPathChange()
@@ -88,12 +93,17 @@ Template.proof_ex.events
       isCorrect : isCorrect
       comment : "Your submitted proof is #{('not' if not isCorrect) or ''} correct.  #{message}"
     }
-    ix.submitExercise({
-        answer : 
-          type : 'proof'
-          content : {proof:proofText}
-        machineFeedback : machineFeedback
-      }, () ->
+    doc = {
+      answer : 
+        type : 'proof'
+        content : {proof:proofText}
+      machineFeedback : machineFeedback
+    }
+    dialectNameAndVersion = fol.getCurrentDialectNameAndVersion()
+    if dialectNameAndVersion?
+      doc.answer.content.dialectName = dialectNameAndVersion.name
+      doc.answer.content.dialectVersion = dialectNameAndVersion.version
+    ix.submitExercise(doc, () ->
         Materialize.toast "Your proof has been submitted.", 4000
     )
 
@@ -107,11 +117,12 @@ Template.proof_ex_display_answer.helpers
   displayProof : () -> @answer.content.proof?
   answerLines : () ->
     return '' unless @answer.content.proof?
+    ix.setDialectFromThisAnswer(@answer)
     theProof = proof.parse(@answer.content.proof)
     if _.isString theProof
       return ({line:x, lineNumber:"  #{idx+1} ".slice(-4)} for x, idx in @answer.content.proof?.split('\n'))
     else
-      return ({line:x} for x in theProof.toString().split('\n') )
+      return ({line:x} for x in theProof.toString({numberLines:true}).split('\n') )
   exSubtypeIsOrInvalid : () -> ix.isExerciseSubtype('orInvalid', @)
   sentences : () ->
     answerTorF = @answer.content.TorF?[0]

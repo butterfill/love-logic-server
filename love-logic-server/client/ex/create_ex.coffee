@@ -120,14 +120,18 @@ Template.create_ex_display_question.helpers
   sentences : () ->
     FlowRouter.watchPathChange()
     folSentences = ix.getSentencesFromParam(@) or []
+    ix.setDialectFromExerciseSet()
     return ({theSentence:x.toString({replaceSymbols:true})} for x in folSentences)
   premises : () -> 
     FlowRouter.watchPathChange()
     premises = ix.getPremisesFromParams(@)
     # Premises may be awFOL objects or strings.
     # But because strings have `.toString`, this works either way.
+    ix.setDialectFromExerciseSet()
     (e.toString({replaceSymbols:true}) for e in premises)
-  conclusion : () -> ix.getConclusionFromParams(@).toString({replaceSymbols:true})
+  conclusion : () -> 
+    ix.setDialectFromExerciseSet()
+    ix.getConclusionFromParams(@).toString({replaceSymbols:true})
 
 
 Template.create_ex_display_answer.helpers
@@ -164,6 +168,7 @@ Template.reveal_incorrect_truth_values.helpers
       sentences = ix.getPremisesFromParams(@)
     return [] unless counterexample? and sentences?
     result = []
+    ix.setDialectFromExerciseSet()
     for s in sentences
       try
         isTrue = s.evaluate(counterexample) or 'F'

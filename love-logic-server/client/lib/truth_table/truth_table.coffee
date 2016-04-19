@@ -32,6 +32,7 @@ nofRowsNeeded = () ->
 Template.truth_table.helpers
   sentences : () ->
     folSentences = ix.getSentencesOrPremisesAndConclusion() or []
+    ix.setDialectFromExerciseSet()
     return ({theSentence:x.toString({replaceSymbols:true}), idx:idx} for x, idx in folSentences)
   
   letters : () ->
@@ -178,6 +179,7 @@ Template.truth_table_static.helpers
   sentences : () ->
     self = this
     ss = ix.getSentencesOrPremisesAndConclusion(self) or []
+    ix.setDialectFromExerciseSet()
     return ({theSentence:x.toString({replaceSymbols:true}), idx} for x, idx in ss)
   rows : () ->
     return getRowsFromValues(@answer.content.tt)

@@ -909,6 +909,7 @@ Template.exerciseSetEdit.events
             return
           toSet = {"lectures.#{lectureIdx}.units.#{unitIdx}.dialectName" : newDialectName}
           updateExerciseSetField exerciseSet, toSet, 'updating the dialect for the unit'
+          fol.setDialect(newDialectName)
     
   'click .editDialectExerciseSet' : (event, template) ->
     exerciseSet = ix.getExerciseSet()
@@ -932,6 +933,7 @@ Template.exerciseSetEdit.events
             return
           toSet = {"dialectName" : newDialectName}
           updateExerciseSetField exerciseSet, toSet, 'updating the dialect for the exercise set'
+          fol.setDialect(newDialectName)
           if exerciseSet.textbook? is false or exerciseSet.textbook is ''
             textbook = fol.getTextbookForDialect(newDialectName)
             updateExerciseSetField exerciseSet, {textbook}, 'updating the textbook for the exercise set'
@@ -1047,7 +1049,7 @@ Template.setDialectModal.onRendered () ->
   allDialectNamesAndDescriptions = fol.getAllDialectNamesAndDescriptions()
   $('.dialectName.typeahead').typeahead({
     hint : true
-    minLength : 2
+    minLength : 0
     highlight : true
     limit : 10
   },{

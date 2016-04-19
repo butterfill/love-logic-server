@@ -1,0 +1,17 @@
+template(name="iAmATutor")
+  h4 Tutor Registration
+  if isTutor
+    p Zoxiy now recognises you as a tutor.
+    a#makeMeNotATutor.btn.waves-effect.grey I am not a tutor
+  else
+    p Zoxiy does not recognise you as a tutor.
+    a#makeMeATutor.btn.waves-effect.grey  I am a tutor
+  
+template(name="iAmHonestlyReallyAndTrulyAnInstructor")
+  h4 Instructor Registration
+  if isInstructor
+    p Zoxiy now recognises you as an instructor.
+    a#makeMeNotAnInstructor.btn.waves-effect.grey I am not an instructor
+  else
+    p Zoxiy does not recognise you as a tutor.
+    a#makeMeAnInstructor.btn.waves-effect.grey  I am an instructor

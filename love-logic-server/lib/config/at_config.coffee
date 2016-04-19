@@ -66,7 +66,7 @@ AccountsTemplates.addField({
   type: "checkbox"
   required: true
   # TODO : make that it is required to be true
-  displayName: "All my datas are belong to you."
+  displayName: "I accept the Terms of Use"
   func: (value) -> 
     # If this returns false, there is no error.
     return true unless value is true
