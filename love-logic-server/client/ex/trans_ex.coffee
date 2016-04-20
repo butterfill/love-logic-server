@@ -30,6 +30,9 @@ getRawNames = (self) ->
   
   
 Template.trans_ex_display_question.helpers
+  predLanguageName : () -> 
+    ix.setDialectFromExerciseSet()
+    fol.getPredLanguageName()
   isTranslationToEn : () ->
     return checkIfTranslationToEn(@)
   isPredicates : () ->
@@ -222,8 +225,7 @@ Template.trans_ex.events
       machineFeedback.hasFreeVariables = (freeVariables.length isnt 0)
       if not machineFeedback.hasFreeVariables
         answerPNFsimplifiedSorted = answerFOLobject.convertToPNFsimplifyAndSort().toString({replaceSymbols:true})
-        # TODO : replace ‘awFOL’ with the dialectName’s language
-        machineFeedback.comment = "Your answer is a sentence of awFOL."
+        machineFeedback.comment = "Your answer is a sentence of #{fol.getPredLanguageName()}."
         
         # check whether the answer uses only  names which are allowed.
         namesUsed = answerFOLobject.getNames()
@@ -251,10 +253,10 @@ Template.trans_ex.events
           machineFeedback.comment += " But you used predicates other than those specified in the question."
           machineFeedback.isCorrect = false
       else 
-        machineFeedback.comment = "Your answer is a sentence of awFOL but it cannot be correct because it contains free variables (#{freeVariables}).  Have you forgotten a quantifier or made a mistake with brackets?"
+        machineFeedback.comment = "Your answer is a sentence of #{fol.getPredLanguageName()} but it cannot be correct because it contains free variables (#{freeVariables}).  Have you forgotten a quantifier or made a mistake with brackets?"
         machineFeedback.isCorrect = false
     else
-      machineFeedback.comment = "Your answer is incorrect because it is not a sentence of awFOL."
+      machineFeedback.comment = "Your answer is incorrect because it is not a sentence of #{fol.getPredLanguageName()}."
       machineFeedback.isCorrect = false
     doc.answerFOL = answerFOLstring
     doc.answerPNFsimplifiedSorted = answerPNFsimplifiedSorted

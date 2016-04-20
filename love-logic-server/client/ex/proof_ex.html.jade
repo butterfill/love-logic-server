@@ -4,7 +4,7 @@ template(name='proof_ex')
 
   +proof_ex_display_question
 
-  p Your answer:
+  h5 Your answer:
   if exSubtypeIsOrInvalid
     +TorF_questions sentences=sentences
 
@@ -22,13 +22,13 @@ template(name='proof_ex')
   +next_exercise
 
 template(name="proof_ex_display_question")
-  h2 Write a proof
+  h4 Write a proof
     if exSubtypeIsOrInvalid
       span unless the argument is invalid
   
   .row
     .col.s6
-      h4 premises (#{premises.length}) 
+      p premises (#{premises.length}):
       if hasPremises
         ul.collection
           each premises
@@ -38,13 +38,14 @@ template(name="proof_ex_display_question")
           li.collection-item [No premises]
       
     .col.s6
-      h4 conclusion
+      p conclusion:
       ul.collection
         li.collection-item #{conclusion}
 
 
 template(name="proof_ex_display_answer")
   if displayProof
+    p rules of proof: #{proofRulesName}
     p.monospace.grey.lighten-2(style="white-space:pre") 
       each answerLines
         .grey.lighten-2(style='padding-left:2px;padding-right:2px;margin-bottom:-4px;') #{lineNumber}#{line}

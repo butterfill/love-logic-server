@@ -14,6 +14,8 @@ Template.main.onCreated () ->
 
   self.autorun () ->
     self.subscribe('subscriptions')
+    if ix.isInstructorOrTutor()
+      self.subscribe('exercise_sets_owned_by', Meteor.userId())
     self.subscribe('next_exercise_with_unseen_feedback')
     self.subscribe('next_help_request_with_unseen_answer')
     if ix.userIsTutor()
@@ -91,7 +93,20 @@ Template.main.helpers
     return Subscriptions.find({owner}).count() is 0
   subscriptions : () ->
     owner = Meteor.userId()
-    return Subscriptions.find({owner})
+    allSubs =  Subscriptions.find({owner}).fetch()
+    # Make sure we don’t also list exercises the individual owns 
+    # (as these will be listed anyway):
+    ownedExerciseSets = ExerciseSets.find({owner}).fetch()
+    ownedNames = []
+    makeName = (e) -> "#{e.courseName}:?/#{e.variant}"
+    for e in ownedExerciseSets
+      ownedNames.push(makeName(e))
+    res = []
+    for s in allSubs
+      res.push(s) unless (makeName(s) in ownedNames)
+    return res
+
+  ownedExerciseSets : () -> ExerciseSets.find({owner:Meteor.userId()})
 
   hasSeminarTutor : () ->
     return Meteor.user()?.profile?.seminar_tutor?

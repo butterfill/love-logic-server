@@ -94,13 +94,12 @@ Template.ask_for_help.helpers
 Template.topic_header.helpers
   unitTitle : unitTitle
   courseName : () ->
-    ctx = Template.instance().exerciseContext.get()
-    return '' unless ctx
-    return ctx.exerciseSet.courseName
+    ctx = Template.instance().exerciseContext?.get()
+    return ctx?.exerciseSet?.courseName or ''
   variant : () ->
-    ctx = Template.instance().exerciseContext.get()
+    ctx = Template.instance().exerciseContext?.get()
     return ctx?.exerciseSet?.variant or ''
-  isSeminarTutor : () -> Meteor.user().profile.is_seminar_tutor
+  isSeminarTutor : () -> Meteor.user()?.profile?.is_seminar_tutor
   isGrading : () -> ix.url().endsWith('/grade')
 
 Template.topic_header.events

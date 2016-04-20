@@ -23,7 +23,7 @@ CodeMirror.defineMode("fol", function(conf, parserConf) {
   }
 
   var operators = /^(?:->|=>|\+[+=]?|\*[\*=]?|\/[\/=]?|[=!]=|<[><]?=?|>>?=?|%=?|&=?|\^=?|\~|!|\?|(or|and|&&|\?)=)/;
-  var moreOperators = /(¬|⊥|∧|→|↔|∨|↓|↑|∀|∃)/
+  var moreOperators = /(¬|~|⊥|∧|&|→|⊃|↔|≡|∨|↓|↑|∀|∃)/
   var delimiters = /^(?:[()\[\]{},:`=;]|\.\.?\.?)/;
   var identifiers = /^[A-Za-z$][A-Za-z$0-9]*/;
   var atProp = /^@[A-Za-z$][A-Za-z$0-9]*/;

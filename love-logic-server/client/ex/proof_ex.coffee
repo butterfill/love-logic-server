@@ -114,6 +114,7 @@ Template.proof_ex.events
 
 
 Template.proof_ex_display_answer.helpers
+  proofRulesName : () -> "#{@answer.content.dialectName or '[unspecified]'} (version #{@answer.content.dialectVersion})"
   displayProof : () -> @answer.content.proof?
   answerLines : () ->
     return '' unless @answer.content.proof?

@@ -18,12 +18,13 @@ template(name='scope_ex')
 
 template(name="scope_ex_display_question_header")
   p In each of the following sentences,
-  h5 select the connective or quantifier with widest scope.
+  h4 select the connective or quantifier with widest scope.
   p (That is, the connective or quantifier outermost of the brackets.)
 
 //- Used by listExercises template
 template(name="scope_ex_display_question")
   +scope_ex_display_question_header
+  h5 Your answer:
   +scope_ex_display_sentences
   
   

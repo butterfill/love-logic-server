@@ -80,7 +80,7 @@ Template.editSentence.events
     try
       answerFOL = fol.parse( answer.replace(/\n/g,' ') )
     catch error
-      giveFeedback "Your answer is not a correct sentence of awFOL. (#{error})"
+      giveFeedback "Your answer is not a correct sentence of #{fol.getPredLanguageName()}. (#{error})"
       return
     giveFeedback ""
     ix.setAnswerKey(answerFOL.toString({replaceSymbols:true}), 'sentence')

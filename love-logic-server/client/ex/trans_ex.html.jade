@@ -22,16 +22,16 @@ template(name="trans_ex")
                 
 template(name="trans_ex_display_question")
   if isTranslationToEn
-    h2 Translate FOL to English
+    h4 Translate #{predLanguageName} to English
   else
-    h2 Translate English to FOL
+    h4 Translate English to #{predLanguageName}
   .row
     .col.s6
-      h4 domain
+      p domain:
       ul.collection
         li.collection-item #{domain}
       
-      h4 names
+      p names:
       ul.collection
         if isNames
           each names
@@ -39,7 +39,7 @@ template(name="trans_ex_display_question")
         else
           li.collection-item [no names]
     .col.s6
-      h4 predicates
+      p predicates:
       ul.collection
         if isPredicates
           each predicates
@@ -48,7 +48,7 @@ template(name="trans_ex_display_question")
           li.collection-item [no predicates]
   .row
     .col.s12
-      h4 sentence
+      p sentence:
       ul.collection
         li.collection-item #{sentence}
   

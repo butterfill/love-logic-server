@@ -156,9 +156,12 @@ ix.setDialectFromCurrentAnswer = () ->
     dialectName = ix.getAnswer().dialectName
     dialectVersion = ix.getAnswer().dialectVersion
     fol.setDialect(dialectName, dialectVersion)
+# Param `answer` may be undefined; this is because
+# sometimes it’s called like `ix.setDialectFromThisAnswer(graded.answer)` 
+# where the GradedAnswer (`graded`) doesn’t have the answer field.
 ix.setDialectFromThisAnswer = (answer) ->
-  dialectName = answer.content?.dialectName
-  dialectVersion = answer.content?.dialectVersion
+  dialectName = answer?.content?.dialectName
+  dialectVersion = answer?.content?.dialectVersion
   if dialectName?
     fol.setDialect(dialectName, dialectVersion)
   else
@@ -633,7 +636,7 @@ ix.possibleWorld =
     return (x for x in predicates when x?)
   
   mouths : [
-    {symbol:')', predicate:'Happy'}
+    {symbol:')', predicate:'Happy,Smiling'}
     {symbol:'|', predicate:'Neutral'}
     {symbol:'(', predicate:'Sad'}
     {symbol:'D', predicate:'Laughing,Happy'}

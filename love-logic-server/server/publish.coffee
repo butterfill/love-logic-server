@@ -11,6 +11,11 @@ Meteor.publish "exercise_sets", (courseName) ->
 Meteor.startup ->
   ExerciseSets._ensureIndex({courseName:1})
 
+Meteor.publish "exercise_sets_owned_by", (userId) ->
+  return ExerciseSets.find({owner:userId},{fields:{courseName:1, variant:1, description:1, owner:1}})
+Meteor.startup ->
+  ExerciseSets._ensureIndex({owner:1})
+
 Meteor.publish "exercise_set", (courseName, variant) ->
   return ExerciseSets.find({courseName, variant})
 Meteor.startup ->

@@ -6,25 +6,32 @@ template(name='main')
   
   h2 Main Page
   
-  if hasSubscriptions
-    h4 Exercises
-    if isLastExercise
-      p
-        a#resume-last-exercise.btn.waves-effect.grey.darken-1
-          | Resume from last exercise
+  if Template.subscriptionsReady
+    if hasSubscriptions
+      h4 Exercises
+      if isLastExercise
+        p
+          a#resume-last-exercise.btn.waves-effect.grey.darken-1
+            | Resume from last exercise
     
-    ul.collection
-      each subscriptions
-        li.collection-item
-          +display_subscription 
-    
-    .row: .col.s12
-      .right
-        a.btn.waves-effect.grey.darken-1(href="/courses") 
-          if isInstructorOrTutor
-            | all exercise sets
-          else
-            | Follow another exercise set
+      ul.collection
+        each subscriptions
+          li.collection-item
+            +display_subscription 
+        each ownedExerciseSets
+          li.collection-item
+            +display_subscription 
+            span (
+            a(href="/course/#{courseName}/exerciseSet/#{variant}/edit").waves-effect 
+              i.material-icons mode_edit
+            span )
+      .row: .col.s12
+        .right
+          a.btn.waves-effect.grey.darken-1(href="/courses") 
+            if isInstructorOrTutor
+              | all exercise sets
+            else
+              | Follow another exercise set
 
     .divider
     

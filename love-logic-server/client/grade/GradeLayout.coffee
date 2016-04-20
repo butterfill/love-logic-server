@@ -164,7 +164,7 @@ addGradedExercise = (submittedExercse, isCorrect, comment) ->
   if not mustSave
     # Don't want to save if we already have give this answer the same grade
     # TODO: check if we have new, useful feedback and can that?  Or create a facility for graders
-    # to exit the canned feedback?
+    # to edit the canned feedback?
     nofExistingGradedAnswers = GradedAnswers.find({$and:[{exerciseId}, {answerHash}, {isCorrect}]}).count()
     if nofExistingGradedAnswers > 0
       console.log "Not saving graded exercise because already have an exemplar."
