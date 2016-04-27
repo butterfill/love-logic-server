@@ -14,7 +14,7 @@ Template.exercisesToGrade.helpers
   'subscriptions' : () -> return Subscriptions.find()
   'urlQueryPart' : () -> window.location.search
   'exercises' : () -> Template.instance().exercises?.get?()
-  'gradeURL' : () -> (@exerciseId.replace(/\/$/, ''))+"/grade"
+  'gradeURL' : () -> ix.getGradeURL(@exerciseId)
   'exerciseName' : () -> decodeURIComponent(@exerciseId)
 
 
@@ -76,7 +76,7 @@ Template.exercisesToGradeForExerciseSet.helpers
     variant = FlowRouter.getParam('_variant' )
     return "?courseName=#{courseName}&variant=#{variant}"
   'exerciseList' : () -> Template.instance().exerciseList?.get?()
-  'gradeURL' : () -> (@exerciseId.replace(/\/$/, ''))+"/grade"
+  'gradeURL' : () -> ix.getGradeURL(@exerciseId)
   'exerciseName' : () -> decodeURIComponent(@exerciseId)
   lectureNameOfUnit : () ->
     lecture = Template.parentData()

@@ -104,7 +104,8 @@ ix.checkBrowserCompatible = () ->
 ix.convertToExerciseId = (exerciseLink) ->
   # Remove any trailing slash
   exerciseLink = exerciseLink.replace /\/?$/, ''
-  return (encodeURIComponent(i) for i in exerciseLink.split('/')).join('/')
+  # fudge: because we’re not sure, we decode first (avoids double encode, chokes if URI contains % sign)
+  return (encodeURIComponent(decodeURIComponent(i)) for i in exerciseLink.split('/')).join('/')
 
 # Get the exerciseId of the current page (when called from a 
 # page like `/ex/proof/from/A%7CB%7CC/to/A%20and%20(B%20and%20C)`)
@@ -116,6 +117,9 @@ ix.getExerciseId = () ->
   # Remove the extra bit added when grading
   exerciseLink = exerciseLink.replace /\/grade\/?$/, ''
   return ix.convertToExerciseId(exerciseLink) 
+
+ix.getGradeURL = (exerciseId) ->
+  (ix.convertToExerciseId(exerciseId))+"/grade"
 
 ix.getExerciseType = () ->
   return ix.url().split('/')[2]

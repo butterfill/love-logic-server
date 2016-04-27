@@ -7,7 +7,6 @@ Template.helpRequestsToAnswer.onCreated () ->
 Template.helpRequestsToAnswer.helpers
   'exercises' : () ->
     return HelpRequest.find(answer:{$exists:false})
-  'gradeURL' : () ->
-    return (@exerciseId.replace(/\/$/, ''))+"/grade"
+  'gradeURL' : () -> ix.getGradeURL(@exerciseId)
   'exerciseName' : () ->
     return decodeURIComponent(@exerciseId)
