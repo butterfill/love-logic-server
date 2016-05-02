@@ -4,13 +4,16 @@ template(name='tt_ex')
   +tt_ex_display_question
   
   
-  h5 Your truth table:
-  +truth_table
+  
+  if Template.subscriptionsReady 
+    h5 Your truth table:
+    +truth_table
 
-  if isAskQuestions
-    h5 Answer these questions:
-    +TorF_questions sentences=sentences 
-
+    if isAskQuestions
+      h5 Answer these questions:
+      +TorF_questions sentences=sentences 
+  else
+    +loading
   +submitted_answer
 
   +help_with_this_exercise
