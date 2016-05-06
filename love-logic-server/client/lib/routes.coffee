@@ -108,22 +108,21 @@ FlowRouter.route '/mySubmittedExercises',
 
 # TODO: Allow users to see and complete exercises, but not submit them, without being logged in? (Tricky because when the log in the saved answer will no longer appear; but maybe necessary for advertising?)
 
+makeExRoute = (routeTxt) ->
+  templateName = "#{routeTxt.split('/')[2]}_ex"
+  FlowRouter.route routeTxt,
+    action : (params, queryParams) ->
+      BlazeLayout.render 'ApplicationLayout', main: templateName
+  FlowRouter.route "#{routeTxt}/grade",
+    action : (params, queryParams) ->
+      BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+  
 
 # Create a tree for an argument
-FlowRouter.route '/ex/tree/from/:_premises/to/:_conclusion',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'tree_ex'
-FlowRouter.route '/ex/tree/from/:_premises/to/:_conclusion/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+makeExRoute '/ex/tree/require/:_requirements/from/:_premises/to/:_conclusion'
 
 # Write a proof exercise
-FlowRouter.route '/ex/proof/from/:_premises/to/:_conclusion',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'proof_ex'
-FlowRouter.route '/ex/proof/from/:_premises/to/:_conclusion/grade',
-  action : (params, queryParams) ->
-    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
+makeExRoute '/ex/proof/from/:_premises/to/:_conclusion'
 # Say that the argument is invalid or write a proof
 FlowRouter.route '/ex/proof/orInvalid/from/:_premises/to/:_conclusion',
   action : (params, queryParams) ->

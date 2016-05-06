@@ -7,9 +7,7 @@
 #
 # Check that premises and conclusion of the tree proof are correct,
 # or that the setMembers specified in the URL are the only ones in the proof.
-#
-# Figure out how to make it work with dialects (verify must use the 
-# tree proof rules!)
+
 
 Template.tree_ex.onCreated () ->
   self=this
@@ -56,13 +54,29 @@ Template.tree_ex.helpers
         treeProof = tree.makeTreeProof('')
       displayTreeProofEditable(treeProof)
     return 'loading'
-    
+
+
+getRequirements = () -> FlowRouter.getParam('_requirements').split('|')
+reqCheckers =
+  complete : (treeProof) ->
+    test = treeProof.areAllBranchesClosedOrOpen()
+    if test
+      return {isCorrect: true}
+    else
+      return {isCorrect: false, errorMessage: "your tree proof is not complete (remember to mark all branches open or closed)."}
+  stateIfValid : (treeProof) ->
+    # assumes `complete` is also a requirement
+    # TODO!!!
+    return {isCorrect: false, errorMessage: "[This function is not implemented yet]"}
+
 Template.tree_ex_display_question.helpers
   conclusion : getConclusionAsText
   premises : getPremisesAsText
   hasPremises : () -> 
     FlowRouter.watchPathChange()
     return ix.getPremisesFromParams(@)?.length > 0
+  requireComplete : () -> 'complete' in getRequirements()
+  requireStateIfValid : () -> 'stateIfValid' in getRequirements()
   
 Template.tree_ex_display_answer.helpers
   answerId : () -> 
@@ -86,6 +100,17 @@ Template.tree_ex_display_answer.helpers
 # -------------
 # User interactions
 
+submitEx = (treeProof, machineFeedback) ->
+  doc = {
+    answer : 
+      type : 'tree'
+      content : {tree:treeProof.toBareTreeProof()}
+    machineFeedback : machineFeedback
+  }
+  ix.submitExercise(doc, () ->
+      Materialize.toast "Your tree proof has been submitted.", 4000
+  )
+
 
 Template.tree_ex.events
 
@@ -104,26 +129,25 @@ Template.tree_ex.events
     tree.decorateTreeProof(treeProof)
     machineFeedback = undefined
     {isCorrect, errorMessages} = treeProof.verify()
-    if isCorrect
-      machineFeedback = 
-        comment : "Your submitted tree proof does not contain any errors."
-    else
+    unless isCorrect
       machineFeedback = 
         isCorrect : false
         comment : "Your submitted tree proof is not correct. #{errorMessages}"
-    doc = {
-      answer : 
-        type : 'tree'
-        content : {tree:treeProof.toBareTreeProof()}
-      machineFeedback : machineFeedback
-    }
-    dialectNameAndVersion = fol.getCurrentDialectNameAndVersion()
-    if dialectNameAndVersion?
-      doc.answer.content.dialectName = dialectNameAndVersion.name
-      doc.answer.content.dialectVersion = dialectNameAndVersion.version
-    ix.submitExercise(doc, () ->
-        Materialize.toast "Your tree proof has been submitted.", 4000
-    )
+      return submitEx(treeProof, machineFeedback)
+    
+    for r in getRequirements()
+      test = reqCheckers[r](treeProof)
+      console.log test
+      unless test.isCorrect
+        machineFeedback = 
+          isCorrect : false
+          comment : "There are no errors in your tree proof.  But #{test.errorMessage}"
+        return submitEx(treeProof, machineFeedback)
+        
+    machineFeedback = 
+      isCorrect : true
+      comment : "Your answer is correct."
+    return submitEx(treeProof, machineFeedback)
   
   'click #checkProof' : (event, template) ->
     treeProof = ix.getAnswer()?.tree

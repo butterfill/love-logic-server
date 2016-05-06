@@ -134,6 +134,13 @@ ix.isSubmitted = (exerciseLink) ->
   return SubmittedExercises.find({exerciseId}).count() > 0
 
 ix.submitExercise = (exercise, cb) ->
+  exercise.userAgent = navigator?.userAgent
+  
+  dialectNameAndVersion = fol.getCurrentDialectNameAndVersion()
+  if dialectNameAndVersion? and exercise.answer?.content?
+    exercise.answer.content.dialectName = dialectNameAndVersion.name
+    exercise.answer.content.dialectVersion = dialectNameAndVersion.version
+  
   Meteor.call('submitExercise', _.defaults(exercise,
     exerciseId : ix.convertToExerciseId(ix.url())
   ), cb)
@@ -429,21 +436,24 @@ ix.getTTrowFromParam = () ->
     
 
 ix.checkPremisesAndConclusionOfProof = (theProof) ->
-    # Now check the conclusion is what its supposed to be.
-    conclusionIsOk = theProof.getConclusion().toString({replaceSymbols:true}) is ix.getConclusionFromParams().toString({replaceSymbols:true})
-    if not conclusionIsOk 
-      return "Your conclusion (#{theProof.getConclusion()}) is not the one you were supposed to prove (#{ix.getConclusionFromParams()})."
-    # Finally, check no premises other than those stipulated have been used (but
-    # you don't have to use the premises given.)
-    proofPremises = theProof.getPremises()
-    proofPremisesStr = (p.toString({replaceSymbols:true}) for p in proofPremises)
-    actualPremisesList = (p.toString({replaceSymbols:true}) for p in ix.getPremisesFromParams())
-    proofPremisesNotInActualPremises = _.difference proofPremisesStr, actualPremisesList
-    premisesAreOk = proofPremisesNotInActualPremises.length is 0
-    if not premisesAreOk
-      return "Your premises (#{proofPremisesStr.join(', ')}) are not the ones you were supposed to start from---you added #{proofPremisesNotInActualPremises.join(', ')}."
-    #Everything is  ok
-    return true
+  # Now check the conclusion is what its supposed to be.
+  conclusionIsOk = theProof.getConclusion().toString({replaceSymbols:true}) is ix.getConclusionFromParams().toString({replaceSymbols:true})
+  if not conclusionIsOk 
+    return "Your conclusion (#{theProof.getConclusion()}) is not the one you were supposed to prove (#{ix.getConclusionFromParams()})."
+  thePremises = ix.getPremisesFromParams()
+  return ix.checkPremisesOfProof(theProof, thePremises)
+    
+# Check no premises other than those stipulated have been used (but
+# you don't have to use the premises given.)
+ix.checkPremisesOfProof = (theProof, thePremises) ->
+  proofPremises = theProof.getPremises()
+  proofPremisesStr = (p.toString({replaceSymbols:true}) for p in proofPremises)
+  actualPremisesList = (p.toString({replaceSymbols:true}) for p in thePremises)
+  proofPremisesNotInActualPremises = _.difference proofPremisesStr, actualPremisesList
+  premisesAreOk = proofPremisesNotInActualPremises.length is 0
+  if not premisesAreOk
+    return "Your premises (#{proofPremisesStr.join(', ')}) are not the ones you were supposed to start from---you added #{proofPremisesNotInActualPremises.join(', ')}."
+  return true
 
 ix.getSentenceFromParam = (self) ->
   sentence = FlowRouter.getParam('_sentence')

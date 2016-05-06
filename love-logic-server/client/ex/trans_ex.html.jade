@@ -55,6 +55,8 @@ template(name="trans_ex_display_question")
 
 
 template(name="trans_ex_display_answer")
+  if dialect
+    p Dialect #{dialect}
   p.monospace.grey.lighten-2 
     if answerFOL
       | #{answerFOL}

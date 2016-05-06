@@ -99,10 +99,6 @@ Template.proof_ex.events
         content : {proof:proofText}
       machineFeedback : machineFeedback
     }
-    dialectNameAndVersion = fol.getCurrentDialectNameAndVersion()
-    if dialectNameAndVersion?
-      doc.answer.content.dialectName = dialectNameAndVersion.name
-      doc.answer.content.dialectVersion = dialectNameAndVersion.version
     ix.submitExercise(doc, () ->
         Materialize.toast "Your proof has been submitted.", 4000
     )

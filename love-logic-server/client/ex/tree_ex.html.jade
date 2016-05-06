@@ -27,6 +27,9 @@ template(name='tree_ex')
 template(name="tree_ex_display_question")
   h4 Create a tree for this argument
   
+  if requireComplete
+    p Your tree must be complete
+  
   .row
     .col.s6
       p premises (#{premises.length}):

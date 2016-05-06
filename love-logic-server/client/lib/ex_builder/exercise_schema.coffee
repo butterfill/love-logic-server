@@ -1,7 +1,7 @@
 # Define types of exercise for zoxiy.
 # Used to create the exerciseBuilder
 
-
+# Global object: container for useful functions (no data)
 @exerciseTypes = {}
 
 # Complication : when creating an exercise, user will write
@@ -302,6 +302,22 @@ exComponents =
 # selected. (So where a URI could match two exTypes, put the exType it is
 # supposed to match first.)
 exTypes = [
+  {
+    description : 'construct a complete tree proof for an argument and state whether or not the argument is valid'
+    root : 'tree/require/complete|stateIfValid'
+    components : [
+      exComponents.premisesFOL
+      exComponents.conclusionFOL
+    ]
+  }
+  {
+    description : 'construct a complete tree proof for an argument'
+    root : 'tree/require/complete'
+    components : [
+      exComponents.premisesFOL
+      exComponents.conclusionFOL
+    ]
+  }
   {
     description : 'prove an argument if it is valid (proof)'
     root : 'proof/orInvalid'

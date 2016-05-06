@@ -1,6 +1,12 @@
 # Example URL:
 # http://localhost:3000/ex/trans/domain/3things/names/a=thing-1%7Cb=thing-2/predicates/Fish1-x-is-a-fish%7CBetween3-xIsBetweenYAndZ%7CRed1/sentence/At%20least%20two%20people%20are%20not%20fish
 
+# For some reason this is sometimes not defined.
+# We need it below
+_.where ?= (obj, attrs) ->
+  return _.filter(obj, _.matches(attrs))
+
+
 editor = undefined  #This will be our codemirror thing.
 
 # This will be configured `.onRender`
@@ -193,10 +199,6 @@ Template.trans_ex.events
         type : 'trans'
         content : {sentence:answer}
     }
-    dialectNameAndVersion = fol.getCurrentDialectNameAndVersion()
-    if dialectNameAndVersion?
-      doc.answer.content.dialectName = dialectNameAndVersion.name
-      doc.answer.content.dialectVersion = dialectNameAndVersion.version
       
     answerShouldBeEnglish = checkIfTranslationToEn()
     if answerShouldBeEnglish
@@ -272,3 +274,6 @@ Template.trans_ex.events
     ix.submitExercise(doc, () ->
         Materialize.toast "Your translation has been submitted.", 4000
     )
+
+Template.trans_ex_display_answer.helpers
+  dialect : () -> "#{@answer.content.dialectName or '[unspecified]'} (version #{@answer.content.dialectVersion})"
