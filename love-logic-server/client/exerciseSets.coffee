@@ -984,7 +984,7 @@ getLectures = (options) ->
     l.htmlAnchor = encodeURIComponent(l.name)
     l.exerciseSetLectureURL = ''
     if ix.url().indexOf('/unit/') is -1 and ix.url().indexOf('/lecture/') is -1
-        l.exerciseSetLectureURL = "#{ix.url().replace(/\/$/,'')}/lecture/#{l.name}#{document.location.search}"
+        l.exerciseSetLectureURL = "#{ix.url().replace(/\/$/,'')}/lecture/#{encodeURIComponent(l.name)}#{document.location.search}"
     if ix.url().indexOf('/unit/') isnt -1
       # move up from unit to lecture
       l.exerciseSetLectureURL = "#{ix.url().replace(/\/unit\/.+/, '')}#{document.location.search}"
@@ -996,9 +996,9 @@ getLectures = (options) ->
       unit.exerciseSetUnitURL = ''
       if ix.url().indexOf('/unit/') is -1
         if ix.url().indexOf('/lecture/') is -1
-          unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'')}/lecture/#{l.name}/unit/#{unit.name}#{document.location.search}"
+          unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'')}/lecture/#{encodeURIComponent(l.name)}/unit/#{encodeURIComponent(unit.name)}#{document.location.search}"
         else
-          unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'')}/unit/#{unit.name}#{document.location.search}"
+          unit.exerciseSetUnitURL = "#{ix.url().replace(/\/$/,'')}/unit/#{encodeURIComponent(unit.name)}#{document.location.search}"
       exercises = []
       for e, eidx in unit.rawExercises
         exDoc = 

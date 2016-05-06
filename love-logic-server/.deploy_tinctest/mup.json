@@ -5,21 +5,21 @@
       // logic-a-uk6
       "host": "108.61.166.113",
       "username": "root",
-      "pem": "~/.ssh/id_rsa"// ,
-//       "env": {
-//         "CLUSTER_BALANCER_URL": "https://logic-ex-v-uk1.butterfill.com"
-//       }
-    }// ,
-//     {
-//       // logic-a-uk5
-//       "host": "185.58.225.8",
-//       "username": "root",
-//       "pem": "~/.ssh/id_rsa",
-//       "env": {
-//         "CLUSTER_BALANCER_URL": "https://logic-ex-a-uk5.butterfill.com"
-//       }
-//     }
-    
+      "pem": "~/.ssh/id_rsa",
+      "env": {
+        "CLUSTER_BALANCER_URL": "https://tinctest2.zoxiy.xyz"
+      }
+    },
+    {
+      // logic-a-uk5
+      "host": "45.32.180.115",
+      "username": "root",
+      "pem": "~/.ssh/id_rsa",
+      "env": {
+        "CLUSTER_BALANCER_URL": "https://tinctest4.zoxiy.xyz"
+      }
+    }
+
     
   ],
 
@@ -33,7 +33,7 @@
   "nodeVersion": "0.10.40",
 
   // Install PhantomJS in the server
-  "setupPhantom": true,
+  "setupPhantom": false,
 
   // Show a progress bar during the upload of the bundle to the server. 
   // Might cause an error in some rare cases if set to true, for instance in Shippable CI
@@ -50,10 +50,10 @@
     "PORT":3000,
     "ROOT_URL": "http://tinctest.zoxiy.xyz",
     "DISABLE_WEBSOCKETS":1,
-    "MONGO_URL": "mongodb://10.0.0.1/love-logic?replicaSet=bDb" //,
-    // "MONGO_OPLOG_URL": "mongodb://10.0.0.1/local?replicaSet=bDb" // ,
-//     "CLUSTER_SERVICE": "web",
-//     "CLUSTER_DISCOVERY_URL": "mongodb://10.8.0.1,10.8.0.6/love-logic-cluster?replicaSet=aDb"
+    "MONGO_URL": "mongodb://10.0.0.1/love-logic?replicaSet=bDb" ,
+    "MONGO_OPLOG_URL": "mongodb://10.0.0.1/local?replicaSet=bDb" ,
+    "CLUSTER_SERVICE": "web",
+    "CLUSTER_DISCOVERY_URL": "mongodb://10.0.0.1/love-logic-cluster?replicaSet=bDb"
   },
 
   // Meteor Up checks if the app comes online just after the deployment

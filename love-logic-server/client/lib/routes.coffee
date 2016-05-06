@@ -109,6 +109,13 @@ FlowRouter.route '/mySubmittedExercises',
 # TODO: Allow users to see and complete exercises, but not submit them, without being logged in? (Tricky because when the log in the saved answer will no longer appear; but maybe necessary for advertising?)
 
 
+# Create a tree for an argument
+FlowRouter.route '/ex/tree/from/:_premises/to/:_conclusion',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'tree_ex'
+FlowRouter.route '/ex/tree/from/:_premises/to/:_conclusion/grade',
+  action : (params, queryParams) ->
+    BlazeLayout.render 'ApplicationLayout', main:'GradeLayout'
 
 # Write a proof exercise
 FlowRouter.route '/ex/proof/from/:_premises/to/:_conclusion',

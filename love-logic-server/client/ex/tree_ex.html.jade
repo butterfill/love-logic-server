@@ -1,0 +1,51 @@
+template(name='tree_ex')
+  //- Display something like ‘Topic: Rules of Proof for Identity --- normal exercises for UK_W20_PH126’
+  +topic_header
+
+  +tree_ex_display_question
+
+  h5 Your answer:
+  #treeEditor #{displayEditableTreeInDiv}
+
+  .row: .col.s12
+    p#feedback
+  .row: .col.s12
+    button#checkProof.btn.waves-effect.grey check
+    button#resetProof.btn.waves-effect.grey reset
+    button#convert-to-symbols.btn.waves-effect.grey convert to symbols
+
+    +submitted_answer
+  
+  +help_with_this_exercise
+
+  .right
+    +ask_for_help
+    +submit_btn
+        
+  +next_exercise
+
+template(name="tree_ex_display_question")
+  h4 Create a tree for this argument
+  
+  .row
+    .col.s6
+      p premises (#{premises.length}):
+      if hasPremises
+        ul.collection
+          each premises
+            li.collection-item #{this}
+      else
+        ul.collection
+          li.collection-item [No premises]
+      
+    .col.s6
+      p conclusion:
+      ul.collection
+        li.collection-item #{conclusion}
+
+
+template(name="tree_ex_display_answer")
+  p rules of proof: #{proofRulesName}
+  p.monospace.grey.lighten-2(style="white-space:pre") 
+    div(id="#{answerId}") #{displayStaticAnswerInDiv}
+  

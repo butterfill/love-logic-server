@@ -13,9 +13,8 @@ template(name="editSentence")
 
 template(name="editProof")
   textarea(id="#{editorId}", style="display: none") 
-  .row
-    .col.s12
-      p#feedback
+  .row: .col.s12
+    p#feedback
       
   .row: .col.s12
     button#checkProof.btn.waves-effect.grey check
