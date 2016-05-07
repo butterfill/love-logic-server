@@ -28,7 +28,10 @@ template(name="tree_ex_display_question")
   h4 Create a tree for this argument
   
   if requireComplete
-    p Your tree must be complete
+    p Your tree must be complete.
+  if requireClosed
+    p Your tree must be closed.
+    
   
   .row
     .col.s6
@@ -48,7 +51,8 @@ template(name="tree_ex_display_question")
 
 
 template(name="tree_ex_display_answer")
-  p rules of proof: #{proofRulesName}
+  if dialect
+    p Dialect: #{dialect}
   p.monospace.grey.lighten-2(style="white-space:pre") 
     div(id="#{answerId}") #{displayStaticAnswerInDiv}
   

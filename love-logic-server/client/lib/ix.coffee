@@ -441,11 +441,11 @@ ix.checkPremisesAndConclusionOfProof = (theProof) ->
   if not conclusionIsOk 
     return "Your conclusion (#{theProof.getConclusion()}) is not the one you were supposed to prove (#{ix.getConclusionFromParams()})."
   thePremises = ix.getPremisesFromParams()
-  return ix.checkPremisesOfProof(theProof, thePremises)
+  return ix.checkPremisesOfProofAreThePremisesAllowed(theProof, thePremises)
     
 # Check no premises other than those stipulated have been used (but
 # you don't have to use the premises given.)
-ix.checkPremisesOfProof = (theProof, thePremises) ->
+ix.checkPremisesOfProofAreThePremisesAllowed = (theProof, thePremises) ->
   proofPremises = theProof.getPremises()
   proofPremisesStr = (p.toString({replaceSymbols:true}) for p in proofPremises)
   actualPremisesList = (p.toString({replaceSymbols:true}) for p in thePremises)

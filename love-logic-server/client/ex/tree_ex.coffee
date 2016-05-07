@@ -2,11 +2,6 @@
 # have paths like /ex/tree/require/complete/from/...
 #                 /ex/tree/require/counterexample/from/...
 #                 /ex/tree/require/closed/from/...
-#
-# Allow that  /from/... as well as /setMembers/...
-#
-# Check that premises and conclusion of the tree proof are correct,
-# or that the setMembers specified in the URL are the only ones in the proof.
 
 
 Template.tree_ex.onCreated () ->
@@ -28,10 +23,10 @@ giveMoreFeedback = (message) ->
 getConclusionAsText = () ->
   FlowRouter.watchPathChange()
   ix.setDialectFromExerciseSet()
-  return ix.getConclusionFromParams(@)?.toString({replaceSymbols:true})
+  return ix.getConclusionFromParams()?.toString({replaceSymbols:true})
 getPremisesAsText = () ->
   FlowRouter.watchPathChange()
-  folList = ix.getPremisesFromParams(@) or []
+  folList = ix.getPremisesFromParams() or []
   ix.setDialectFromExerciseSet()
   return (e.toString({replaceSymbols:true}) for e in folList)
 
@@ -57,6 +52,9 @@ Template.tree_ex.helpers
 
 
 getRequirements = () -> FlowRouter.getParam('_requirements').split('|')
+# These functions will be called on submission to check
+# that the requirements specified in the `exerciseId` are met.
+# Keys are the values of the `:_requirements` route parameter.
 reqCheckers =
   complete : (treeProof) ->
     test = treeProof.areAllBranchesClosedOrOpen()
@@ -64,7 +62,17 @@ reqCheckers =
       return {isCorrect: true}
     else
       return {isCorrect: false, errorMessage: "your tree proof is not complete (remember to mark all branches open or closed)."}
+  closed : (treeProof) ->
+    test = treeProof.areAllBranchesClosed()
+    if test
+      return {isCorrect: true}
+    else
+      return {isCorrect: false, errorMessage: "your tree proof is not closed (remember to mark all closed branches closed)."}
   stateIfValid : (treeProof) ->
+    # assumes `complete` is also a requirement
+    # TODO!!!
+    return {isCorrect: false, errorMessage: "[This function is not implemented yet]"}
+  stateIfConsistent : (treeProof) ->
     # assumes `complete` is also a requirement
     # TODO!!!
     return {isCorrect: false, errorMessage: "[This function is not implemented yet]"}
@@ -76,9 +84,11 @@ Template.tree_ex_display_question.helpers
     FlowRouter.watchPathChange()
     return ix.getPremisesFromParams(@)?.length > 0
   requireComplete : () -> 'complete' in getRequirements()
+  requireClosed : () -> 'closed' in getRequirements()
   requireStateIfValid : () -> 'stateIfValid' in getRequirements()
   
 Template.tree_ex_display_answer.helpers
+  dialect : () -> "#{@answer.content.dialectName or '[unspecified]'} (version #{@answer.content.dialectVersion})"
   answerId : () -> 
     res = @._id?._str or @._id
     console.log res
@@ -120,6 +130,7 @@ Template.tree_ex.events
     newTree = tree.decorateTreeProof(oldTree).convertToSymbols()
     ix.setAnswerKey(newTree.toBareTreeProof(), 'tree')
     displayTreeProofEditable(newTree)
+  
     
   # The html is in the `submit_btn` template
   'click #submit' : (event, template) ->
@@ -133,6 +144,22 @@ Template.tree_ex.events
       machineFeedback = 
         isCorrect : false
         comment : "Your submitted tree proof is not correct. #{errorMessages}"
+      return submitEx(treeProof, machineFeedback)
+    
+    # Check premises / set members are as specified in the question:
+    conclusion = ix.getConclusionFromParams()
+    if conclusion?
+      # The exercise involves an argument.
+      allowedPremises = ix.getPremisesFromParams()
+      allowedPremises.push( conclusion.negate() )
+    else
+      # The exercise specifies set members.
+      allowedPremises = ix.getSentencesFromParam()
+    test = ix.checkPremisesOfProofAreThePremisesAllowed(treeProof, allowedPremises)
+    if _.isString(test)
+      machineFeedback = 
+        isCorrect : false
+        comment : "Your submitted tree proof is correct. But you used premises which you are not allowed to use in this question."
       return submitEx(treeProof, machineFeedback)
     
     for r in getRequirements()
@@ -170,5 +197,3 @@ Template.tree_ex.events
           displayTreeProofEditable(treeProof)
 
 
-Template.tree_ex_display_answer.helpers
-  proofRulesName : () -> "#{@answer.content.dialectName or '[unspecified]'} (version #{@answer.content.dialectVersion})"

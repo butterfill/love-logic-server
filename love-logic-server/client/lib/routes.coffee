@@ -120,6 +120,8 @@ makeExRoute = (routeTxt) ->
 
 # Create a tree for an argument
 makeExRoute '/ex/tree/require/:_requirements/from/:_premises/to/:_conclusion'
+# Create a tree for set of sentences
+makeExRoute '/ex/tree/require/:_requirements/qq/:_sentences'
 
 # Write a proof exercise
 makeExRoute '/ex/proof/from/:_premises/to/:_conclusion'

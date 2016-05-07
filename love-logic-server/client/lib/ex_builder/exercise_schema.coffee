@@ -302,6 +302,7 @@ exComponents =
 # selected. (So where a URI could match two exTypes, put the exType it is
 # supposed to match first.)
 exTypes = [
+  
   {
     description : 'construct a complete tree proof for an argument and state whether or not the argument is valid'
     root : 'tree/require/complete|stateIfValid'
@@ -316,6 +317,35 @@ exTypes = [
     components : [
       exComponents.premisesFOL
       exComponents.conclusionFOL
+    ]
+  }
+  {
+    description : 'construct a closed tree proof for an argument'
+    root : 'tree/require/closed'
+    components : [
+      exComponents.premisesFOL
+      exComponents.conclusionFOL
+    ]
+  }
+  {
+    description : 'construct a complete tree proof for some sentences'
+    root : 'tree/require/complete'
+    components : [
+      exComponents.qqFOL
+    ]
+  }
+  {
+    description : 'construct a complete tree proof for some sentences and state whether or not the sentences are consistent'
+    root : 'tree/require/complete|stateIfConsistent'
+    components : [
+      exComponents.qqFOL
+    ]
+  }
+  {
+    description : 'construct a closed tree proof for some sentences'
+    root : 'tree/require/closed'
+    components : [
+      exComponents.qqFOL
     ]
   }
   {
