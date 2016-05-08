@@ -302,9 +302,16 @@ exComponents =
 # selected. (So where a URI could match two exTypes, put the exType it is
 # supposed to match first.)
 exTypes = [
-  
   {
-    description : 'construct a complete tree proof for an argument and state whether or not the argument is valid'
+    description : 'construct a tree proof to determine whether or not an argument is valid'
+    root : 'tree/require/stateIfValid'
+    components : [
+      exComponents.premisesFOL
+      exComponents.conclusionFOL
+    ]
+  }
+  {
+    description : 'construct a complete tree proof for an argument and determine whether or not the argument is valid'
     root : 'tree/require/complete|stateIfValid'
     components : [
       exComponents.premisesFOL
@@ -320,7 +327,7 @@ exTypes = [
     ]
   }
   {
-    description : 'construct a closed tree proof for an argument'
+    description : 'construct a closed tree proof for an argument (you must specify an argument which is actually logically valid)'
     root : 'tree/require/closed'
     components : [
       exComponents.premisesFOL
@@ -335,14 +342,21 @@ exTypes = [
     ]
   }
   {
-    description : 'construct a complete tree proof for some sentences and state whether or not the sentences are consistent'
+    description : 'construct a tree proof to determine whether or not some sentences are logically consistent'
+    root : 'tree/require/stateIfConsistent'
+    components : [
+      exComponents.qqFOL
+    ]
+  }
+  {
+    description : 'construct a complete tree proof for some sentences and determine whether or not the sentences are logically consistent'
     root : 'tree/require/complete|stateIfConsistent'
     components : [
       exComponents.qqFOL
     ]
   }
   {
-    description : 'construct a closed tree proof for some sentences'
+    description : 'construct a closed tree proof for some sentences (you must specify sentences which are actually logically inconsistent)'
     root : 'tree/require/closed'
     components : [
       exComponents.qqFOL

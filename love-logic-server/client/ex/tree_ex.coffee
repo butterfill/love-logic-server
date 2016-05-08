@@ -1,7 +1,3 @@
-# TODO
-# have paths like /ex/tree/require/complete/from/...
-#                 /ex/tree/require/counterexample/from/...
-#                 /ex/tree/require/closed/from/...
 
 
 Template.tree_ex.onCreated () ->
@@ -17,8 +13,6 @@ Template.tree_ex.onCreated () ->
 
 giveFeedback = (message) ->
   $('#feedback').text(message)
-giveMoreFeedback = (message) ->
-  $('#feedback').text("#{$('#feedback').text()}  #{message}")
 
 getConclusionAsText = () ->
   FlowRouter.watchPathChange()
@@ -29,11 +23,48 @@ getPremisesAsText = () ->
   folList = ix.getPremisesFromParams() or []
   ix.setDialectFromExerciseSet()
   return (e.toString({replaceSymbols:true}) for e in folList)
+getSentencesAsText = () ->
+  FlowRouter.watchPathChange()
+  folList = ix.getSentencesFromParam() or []
+  ix.setDialectFromExerciseSet()
+  return (e.toString({replaceSymbols:true}) for e in folList)
+getTreeFromParams = () ->
+  ss = getSentencesAsText()
+  if ss.length is 0
+    prfTxt = ''
+  else
+    prfTxt = ("#{s}    SM" for s in ss).join('\n')
+  return tree.makeTreeProof(prfTxt)
 
+
+# `bareTreeInEditor` will help us keep track of which tree is in the editor
+# so we know when to re-draw on `ix.setAnswer(...` happening
+bareTreeInEditor = undefined
 displayTreeProofEditable = (treeProof) ->
+  if treeProof.displayEditable?
+    bareTreeInEditor = treeProof.toBareTreeProof()
+  else
+    bareTreeInEditor = treeProof
+    treeProof = tree.decorateTreeProof( _.clone(treeProof) )
   doWhenTreeUpdates = () ->
-    ix.setAnswerKey(treeProof.toBareTreeProof(), 'tree')
+    bareTreeInEditor = treeProof.toBareTreeProof()
+    ix.setAnswerKey(bareTreeInEditor, 'tree')
   treeProof.displayEditable('#treeEditor', doWhenTreeUpdates)
+
+
+Template.tree_ex.onRendered () ->
+  # Allow the value of the tree editor to be updated by setting the session 
+  # variable. (This is necessary for the `load answer` button to work.)
+  @autorun ->
+    FlowRouter.watchPathChange()
+    answerTreeProof = ix.getAnswer()?.tree or getTreeFromParams()
+    if answerTreeProof?
+      unless answerTreeProof is bareTreeInEditor
+        if tree.areDistinctProofs(answerTreeProof, bareTreeInEditor)
+          # console.log "answerTreeProof autorun re-drawing tree!"
+          displayTreeProofEditable(answerTreeProof)
+          # Clear feedback because the answer has been changed from outside
+          giveFeedback ""
 
 
 Template.tree_ex.helpers
@@ -46,10 +77,18 @@ Template.tree_ex.helpers
       if oldTree?
         treeProof = tree.decorateTreeProof(oldTree)
       else
-        treeProof = tree.makeTreeProof('')
+        treeProof = getTreeFromParams()
       displayTreeProofEditable(treeProof)
     return 'loading'
-
+  requireStateIfValid : () -> 'stateIfValid' in getRequirements()
+  requireStateIfConsistent : () -> 'stateIfConsistent' in getRequirements()
+  stateIfValidSentences : () -> 
+    answerTorF = ix.getAnswer()?.TorF?[0]
+    return [{theSentence:'The argument is logically valid.', idx:0, value:"#{answerTorF}"}]
+  stateIfConsistentSentences : () -> 
+    answerTorF = ix.getAnswer()?.TorF?[0]
+    return [{theSentence:'The sentences are logically consistent.', idx:0, value:"#{answerTorF}"}]
+    
 
 getRequirements = () -> FlowRouter.getParam('_requirements').split('|')
 # These functions will be called on submission to check
@@ -68,24 +107,40 @@ reqCheckers =
       return {isCorrect: true}
     else
       return {isCorrect: false, errorMessage: "your tree proof is not closed (remember to mark all closed branches closed)."}
-  stateIfValid : (treeProof) ->
-    # assumes `complete` is also a requirement
-    # TODO!!!
-    return {isCorrect: false, errorMessage: "[This function is not implemented yet]"}
-  stateIfConsistent : (treeProof) ->
-    # assumes `complete` is also a requirement
-    # TODO!!!
-    return {isCorrect: false, errorMessage: "[This function is not implemented yet]"}
+  closedOrCompleteOpenBranch : (treeProof) ->
+    if treeProof.areAllBranchesClosed() or treeProof.hasOpenBranch()
+      return {isCorrect: true}
+    else
+      return {isCorrect: false, errorMessage: "your tree proof does not have a complete open branch nor are all branches closed (remember to mark branches open or closed)."}
+  stateIfValid : (treeProof, answerSaysLogicallyValid) ->
+    {isCorrect, errorMessage} = reqCheckers.closedOrCompleteOpenBranch(treeProof)
+    unless isCorrect
+      return {isCorrect, errorMessage}
+    isActuallyValid = treeProof.areAllBranchesClosed()
+    unless answerSaysLogicallyValid == isActuallyValid
+      return {isCorrect: false, errorMessage: "you did not answer the question about logical validity correctly."}
+    return {isCorrect:true}
+  stateIfConsistent : (treeProof, answerSaysLogicallyConsistent) ->
+    {isCorrect, errorMessage} = reqCheckers.closedOrCompleteOpenBranch(treeProof)
+    unless isCorrect
+      return {isCorrect, errorMessage}
+    isActuallyConsistent = not treeProof.areAllBranchesClosed()
+    unless answerSaysLogicallyConsistent == isActuallyConsistent
+      return {isCorrect: false, errorMessage: "you did not answer the question about logical consistency correctly."}
+    return {isCorrect:true}
 
 Template.tree_ex_display_question.helpers
+  isForArgument : () -> ix.getConclusionFromParams()?
   conclusion : getConclusionAsText
   premises : getPremisesAsText
+  theSentences : () -> getSentencesAsText().join('; ')
   hasPremises : () -> 
     FlowRouter.watchPathChange()
     return ix.getPremisesFromParams(@)?.length > 0
   requireComplete : () -> 'complete' in getRequirements()
   requireClosed : () -> 'closed' in getRequirements()
   requireStateIfValid : () -> 'stateIfValid' in getRequirements()
+  requireStateIfConsistent : () -> 'stateIfConsistent' in getRequirements()
   
 Template.tree_ex_display_answer.helpers
   dialect : () -> "#{@answer.content.dialectName or '[unspecified]'} (version #{@answer.content.dialectVersion})"
@@ -103,7 +158,16 @@ Template.tree_ex_display_answer.helpers
       tree.decorateTreeProof(treeProof)
       treeProof.convertToSymbols().displayStatic("##{containerId}")
     return 'loading'
-    
+  
+  requireStateIfValid : () -> 'stateIfValid' in getRequirements()
+  requireStateIfConsistent : () -> 'stateIfConsistent' in getRequirements()
+  stateIfValidSentences : () -> 
+    answerTorF = @answer.content?.TorF?[0]
+    return [{theSentence:'The argument is logically valid.', idx:0, value:"#{answerTorF}"}]
+  stateIfConsistentSentences : () -> 
+    answerTorF = @answer.content?.TorF?[0]
+    return [{theSentence:'The sentences are logically consistent.', idx:0, value:"#{answerTorF}"}]
+  
     
     
       
@@ -117,6 +181,8 @@ submitEx = (treeProof, machineFeedback) ->
       content : {tree:treeProof.toBareTreeProof()}
     machineFeedback : machineFeedback
   }
+  if ix.getAnswer()?.TorF?
+    doc.answer.content.TorF = ix.getAnswer().TorF
   ix.submitExercise(doc, () ->
       Materialize.toast "Your tree proof has been submitted.", 4000
   )
@@ -162,9 +228,9 @@ Template.tree_ex.events
         comment : "Your submitted tree proof is correct. But you used premises which you are not allowed to use in this question."
       return submitEx(treeProof, machineFeedback)
     
+    answerTorF = ix.getAnswer()?.TorF?[0]
     for r in getRequirements()
-      test = reqCheckers[r](treeProof)
-      console.log test
+      test = reqCheckers[r](treeProof, answerTorF)
       unless test.isCorrect
         machineFeedback = 
           isCorrect : false
@@ -193,7 +259,8 @@ Template.tree_ex.events
       callback : (error, response) ->
         if response.submit
           giveFeedback ""
-          treeProof = tree.makeTreeProof('')
-          displayTreeProofEditable(treeProof)
+          ix.setAnswerKey( getTreeFromParams(), 'tree')
+          # treeProof = tree.makeTreeProof('')
+          # displayTreeProofEditable(treeProof)
 
 

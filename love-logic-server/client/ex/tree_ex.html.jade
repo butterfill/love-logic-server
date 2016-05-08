@@ -7,6 +7,11 @@ template(name='tree_ex')
   h5 Your answer:
   #treeEditor #{displayEditableTreeInDiv}
 
+  if requireStateIfValid
+    +TorF_questions sentences=stateIfValidSentences
+  if requireStateIfConsistent
+    +TorF_questions sentences=stateIfConsistentSentences
+
   .row: .col.s12
     p#feedback
   .row: .col.s12
@@ -25,7 +30,18 @@ template(name='tree_ex')
   +next_exercise
 
 template(name="tree_ex_display_question")
-  h4 Create a tree for this argument
+
+  if requireStateIfValid
+    h4 Create a tree to determine whether this argument is valid.
+  else
+    if requireStateIfConsistent
+      h4 Create a tree to determine whether these sentences are consistent.
+    else
+      h4 Create a tree for  
+        if isForArgument
+          | this argument.
+        else
+          | these sentences.
   
   if requireComplete
     p Your tree must be complete.
@@ -34,25 +50,41 @@ template(name="tree_ex_display_question")
     
   
   .row
-    .col.s6
-      p premises (#{premises.length}):
-      if hasPremises
+    if isForArgument
+      .col.s6
+        p premises (#{premises.length}):
+        if hasPremises
+          ul.collection
+            each premises
+              li.collection-item #{this}
+        else
+          ul.collection
+            li.collection-item [No premises]
+      .col.s6
+        p conclusion:
         ul.collection
-          each premises
-            li.collection-item #{this}
-      else
-        ul.collection
-          li.collection-item [No premises]
-      
-    .col.s6
-      p conclusion:
-      ul.collection
-        li.collection-item #{conclusion}
-
+          li.collection-item #{conclusion}
+    unless isForArgument
+      p #{theSentences}
+    
 
 template(name="tree_ex_display_answer")
   if dialect
     p Dialect: #{dialect}
   p.monospace.grey.lighten-2(style="white-space:pre") 
     div(id="#{answerId}") #{displayStaticAnswerInDiv}
-  
+
+  if requireStateIfValid
+    ul.collection
+      each stateIfValidSentences
+        li.collection-item 
+          span.theSentence #{theSentence}
+          span.right #{value}
+    
+  if requireStateIfConsistent
+    ul.collection
+      each stateIfConsistentSentences
+        li.collection-item 
+          span.theSentence #{theSentence}
+          span.right #{value}
+    

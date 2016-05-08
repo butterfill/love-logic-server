@@ -205,6 +205,7 @@ Template.editProof.onRendered () ->
       checkLineAndUpdateFeedback(lineNumber, editor)
   
   # Allow the value of the editor to be updated by setting the session variable
+  # (This is necessary for the `load answer` button to work.)
   @autorun ->
     # We need to `watchPathChange` so that the editor gets updated.
     FlowRouter.watchPathChange()
