@@ -42,8 +42,20 @@ template(name='main')
       li.collection-item: a(href="/exercisesToGrade") Exercises to grade
       li.collection-item: a(href="/helpRequestsToAnswer") Help requests to answer [#{nofHelpRequestsForTutor}]
       li.collection-item: a(href="/myTutees") List of tutees
-      li.collection-item: a(href="/myTuteesProgress") Tutees’ progress
-      li.collection-item: a(href="/upsertExerciseSet") Add or update an exercise set.
+      li.collection-item
+        a(href="/myTuteesProgress") Tutees’ progress (all exercise sets)
+        span ...
+        ul.collection
+          each subscriptions
+            li.collection-item(style='margin-left:2em;')  ... 
+              a(href="/myTuteesProgress/course/#{courseName}/exerciseSet/#{variant}") on the ‘#{variant}’ exercises for #{courseName}
+          each ownedExerciseSets
+            li.collection-item(style='margin-left:2em;')  ... 
+              a(href="/myTuteesProgress/course/#{courseName}/exerciseSet/#{variant}") on the ‘#{variant}’ exercises for #{courseName}
+
+        
+      //- still works but now want everyone to use the exercise builder
+      //- li.collection-item: a(href="/upsertExerciseSet") Add or update an exercise set.
 
   if isInstructor
     h4 Links for instructors

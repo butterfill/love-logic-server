@@ -393,7 +393,8 @@ Meteor.methods
       return [] 
     tuteeIds = wy.getTuteeIds(tutor_email)
     if limitToSubscribersToThisExerciseSet?
-      q = Subscriptions.find({owner:{$in:tuteeIds}, courseName:limitToSubscribersToThisExerciseSet.courseName, variant:limitToSubscribersToThisExerciseSet.variant}, {owner:1}).fetch()
+      exerciseSetId = ExerciseSets.findOne({courseName:limitToSubscribersToThisExerciseSet.courseName, variant:limitToSubscribersToThisExerciseSet.variant},{_id:1})._id
+      q = Subscriptions.find({owner:{$in:tuteeIds}, exerciseSetId:exerciseSetId}, {owner:1}).fetch()
       tuteeIds = (x.owner for x in q)
     pipeline = []
     needsFeedback = 

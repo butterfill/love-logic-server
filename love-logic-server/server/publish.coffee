@@ -112,8 +112,8 @@ Meteor.publish "tutee_user_info", (userId) ->
     throw new Meteor.Error "not authorized" unless checkIsTutee(@userId, studentId)
   return Meteor.users.find(userId, {fields:{emails:1, "profile.name":1}})
 
-
-Meteor.publish "tutees", (tutorId) ->
+# `limitToSubscribersToThisExerciseSet` is optional
+Meteor.publish "tutees", (tutorId, limitToSubscribersToThisExerciseSet) ->
   unless tutorId
     tutorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
   else
@@ -124,7 +124,17 @@ Meteor.publish "tutees", (tutorId) ->
   if not tutorEmail
     console.log "Tutor has no email address!"
     return [] 
-  return Meteor.users.find({'profile.seminar_tutor':tutorEmail})
+  allTuteesCursor = Meteor.users.find({'profile.seminar_tutor':tutorEmail})
+  
+  return allTuteesCursor unless limitToSubscribersToThisExerciseSet?
+  
+  # make sure we limitToSubscribersToThisExerciseSet:
+  tuteeIds = (x._id for x in allTuteesCursor.fetch())
+  q = Subscriptions.find({owner:{$in:tuteeIds}, courseName:limitToSubscribersToThisExerciseSet.courseName, variant:limitToSubscribersToThisExerciseSet.variant}, {owner:1}).fetch()
+  limitedTuteeIds = (x.owner for x in q)
+  return Meteor.users.find({_id:{$in:limitedTuteeIds}})
+  
+  
 Meteor.startup ->
   Meteor.users._ensureIndex({"profile.seminar_tutor":1})
 
@@ -189,7 +199,7 @@ Meteor.startup ->
   HelpRequest._ensureIndex({requesterId:1})
 
 # Return fields from `SubmittedExercises` for working out what proportion of exercises tutees have completed.
-Meteor.publish "tutees_progress", (tutorId) ->
+Meteor.publish "tutees_progress", (tutorId, limitToSubscribersToThisExerciseSet) ->
   unless tutorId
     tutorEmail = Meteor.users.findOne({_id:@userId})?.emails?[0]?.address
   else
@@ -203,7 +213,14 @@ Meteor.publish "tutees_progress", (tutorId) ->
     return [] 
 
   tuteeIds = wy.getTuteeIds(tutorEmail)
+  if limitToSubscribersToThisExerciseSet?
+    exerciseSetId = ExerciseSets.findOne({courseName:limitToSubscribersToThisExerciseSet.courseName, variant:limitToSubscribersToThisExerciseSet.variant},{_id:1})._id
+    q = Subscriptions.find({owner:{$in:tuteeIds}, exerciseSetId:exerciseSetId}, {owner:1}).fetch()
+    tuteeIds = (x.owner for x in q)
+    
   return SubmittedExercises.find( {owner:{$in:tuteeIds}}, {fields:{'owner':1, 'exerciseId':1, 'humanFeedback.isCorrect':1, 'machineFeedback.isCorrect':1, 'created':1}} )
+Meteor.startup ->
+  SubmittedExercises._ensureIndex({owner:1, exerciseId:1})
 
 
 # ===

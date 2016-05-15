@@ -80,8 +80,8 @@ Template.tree_ex.helpers
         treeProof = getTreeFromParams()
       displayTreeProofEditable(treeProof)
     return 'loading'
-  requireStateIfValid : () -> 'stateIfValid' in getRequirements()
-  requireStateIfConsistent : () -> 'stateIfConsistent' in getRequirements()
+  requireStateIfValid : () -> 'stateIfValid' in getRequirements(@)
+  requireStateIfConsistent : () -> 'stateIfConsistent' in getRequirements(@)
   stateIfValidSentences : () -> 
     answerTorF = ix.getAnswer()?.TorF?[0]
     return [{theSentence:'The argument is logically valid.', idx:0, value:"#{answerTorF}"}]
@@ -90,7 +90,17 @@ Template.tree_ex.helpers
     return [{theSentence:'The sentences are logically consistent.', idx:0, value:"#{answerTorF}"}]
     
 
-getRequirements = () -> FlowRouter.getParam('_requirements').split('|')
+getRequirements = (submittedExercise) -> 
+  unless submittedExercise?.exerciseId?
+    # We are on a page for the particular exercise:
+    return FlowRouter.getParam('_requirements').split('|')
+  # We are on a page displaying multiple exercises:
+  urlParts = submittedExercise.exerciseId.split('/')
+  reqIdx = _.indexOf( urlParts, 'require' ) + 1
+  if reqIdx isnt -1
+    return decodeURIComponent(urlParts[reqIdx]).split('|') 
+  else
+    return []
 # These functions will be called on submission to check
 # that the requirements specified in the `exerciseId` are met.
 # Keys are the values of the `:_requirements` route parameter.
@@ -137,16 +147,15 @@ Template.tree_ex_display_question.helpers
   hasPremises : () -> 
     FlowRouter.watchPathChange()
     return ix.getPremisesFromParams(@)?.length > 0
-  requireComplete : () -> 'complete' in getRequirements()
-  requireClosed : () -> 'closed' in getRequirements()
-  requireStateIfValid : () -> 'stateIfValid' in getRequirements()
-  requireStateIfConsistent : () -> 'stateIfConsistent' in getRequirements()
+  requireComplete : () -> 'complete' in getRequirements(@)
+  requireClosed : () -> 'closed' in getRequirements(@)
+  requireStateIfValid : () -> 'stateIfValid' in getRequirements(@)
+  requireStateIfConsistent : () -> 'stateIfConsistent' in getRequirements(@)
   
 Template.tree_ex_display_answer.helpers
   dialect : () -> "#{@answer.content.dialectName or '[unspecified]'} (version #{@answer.content.dialectVersion})"
   answerId : () -> 
     res = @._id?._str or @._id
-    console.log res
     return res
   # WARNING: has DOM side effects (uses Treant to update DOM)
   displayStaticAnswerInDiv : () ->
@@ -159,8 +168,8 @@ Template.tree_ex_display_answer.helpers
       treeProof.convertToSymbols().displayStatic("##{containerId}")
     return 'loading'
   
-  requireStateIfValid : () -> 'stateIfValid' in getRequirements()
-  requireStateIfConsistent : () -> 'stateIfConsistent' in getRequirements()
+  requireStateIfValid : () -> 'stateIfValid' in getRequirements(@)
+  requireStateIfConsistent : () -> 'stateIfConsistent' in getRequirements(@)
   stateIfValidSentences : () -> 
     answerTorF = @answer.content?.TorF?[0]
     return [{theSentence:'The argument is logically valid.', idx:0, value:"#{answerTorF}"}]

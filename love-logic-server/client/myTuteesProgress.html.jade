@@ -11,6 +11,11 @@ template(name='myTuteesProgress')
       if paramsSpecifyLecture
         span #{lectureName} in 
       span #{exerciseSetName}
+    p
+      em This page shows only those tutees who follow #{exerciseSetName}. 
+      span You can also
+      a(href='/myTuteesProgress#{urlQueryPart}') see all your tutees’ progress
+      span.
   else
     if Template.subscriptionsReady
       p For all exercises. Restrict to:
@@ -81,7 +86,13 @@ template(name='myTuteesProgress')
   if Template.subscriptionsReady
     each tutees
       .spacer(style="margin-top:2em") &nbsp;
-      h4 #{profile.name} &lt;#{email}&gt;
+      h4 
+        if paramsSpecifyExerciseSet
+          a(href='/course/#{courseName}/exerciseSet/#{variant}?#{userQueryParam}')
+            span #{profile.name} 
+        else 
+          span #{profile.name}  
+        span &lt;#{email}&gt;
       
       table.centered
         thead
@@ -106,13 +117,13 @@ template(name='myTuteesProgress')
             td #{percentUngraded7Days}%
       
             
-    
-      p Following these exercise sets:
-      ul.collection
-        each subscriptions
-          li.collection-item
-            //- the `display_subscription` template is defined is defined in main.html.jade
-            +display_subscription courseName=courseName variant=variant userQueryParam=userQueryParam
+      unless paramsSpecifyExerciseSet
+        p Following these exercise sets:
+        ul.collection
+          each subscriptions
+            li.collection-item
+              //- the `display_subscription` template is defined is defined in main.html.jade
+              +display_subscription courseName=courseName variant=variant userQueryParam=userQueryParam
       ul.collapsible.popout
         if percentCorrect7Days
           li

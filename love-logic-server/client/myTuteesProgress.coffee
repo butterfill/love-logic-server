@@ -1,28 +1,34 @@
 
+# TODO: I need to change how these computations work and have summary stats in the
+# database rather than sending >14000 SubmittedExercises to the client.
+
 Template.myTuteesProgress.onCreated () ->
   templateInstance = this
   templateInstance.stats = new ReactiveVar()
   tutorId = FlowRouter.getQueryParam('tutor') 
+  tuteesSub = undefined
+  progressSub = undefined
   templateInstance.autorun () ->
     if tutorId
       templateInstance.subscribe 'tutors_for_instructor', tutorId
     
     # For the following, `tutorId` can be undefined
-    tuteesSub = templateInstance.subscribe 'tutees', tutorId
-    progressSub = templateInstance.subscribe 'tutees_progress', tutorId
-    templateInstance.subscribe 'tutees_subscriptions', tutorId
-    
-    FlowRouter.watchPathChange()
-    variant = FlowRouter.getParam '_variant' 
-    if variant?
-      courseName = FlowRouter.getParam '_courseName'
-      exSub = templateInstance.subscribe 'exercise_set', courseName, variant
-      if exSub.ready() and progressSub.ready() and tuteesSub.ready()
-        ex = getCurrentExercises()
-        templateInstance.stats.set( getAllStats(DAYSAGO7, ex) )
+    if isPageForParticularExercises()
+      limitToSubscribersToThisExerciseSet = {courseName:FlowRouter.getParam('_courseName' ), variant:FlowRouter.getParam('_variant' )}
     else
-      if progressSub.ready() and tuteesSub.ready()
-        templateInstance.stats.set( getAllStats(DAYSAGO7) )
+      limitToSubscribersToThisExerciseSet = undefined
+      # We list tutees’ subscriptions only if the page isn’t for a particular exercise
+      templateInstance.subscribe 'tutees_subscriptions', tutorId
+    templateInstance.subscribe 'tutees', tutorId, limitToSubscribersToThisExerciseSet, () ->
+      templateInstance.subscribe 'tutees_progress', tutorId, limitToSubscribersToThisExerciseSet, () ->
+        if isPageForParticularExercises()
+          variant = FlowRouter.getParam '_variant' 
+          courseName = FlowRouter.getParam '_courseName'
+          templateInstance.subscribe 'exercise_set', courseName, variant, () ->
+            ex = getCurrentExercises()
+            templateInstance.stats.set( getAllStats(DAYSAGO7, ex) )
+        else
+          templateInstance.stats.set( getAllStats(DAYSAGO7) )
       
     
 
@@ -56,20 +62,17 @@ getCurrentExercises = () ->
 getAllStats = (sinceDate, exercises) ->
   start = performance.now()
   
-  q = {}
-  
-  # restrict to certain exercises
-  if exercises?
-    q.exerciseId = {$in:exercises}
-  
   # restrict to tutees of the tutor
   tutees = _getTutees().fetch()
   tuteeIds = (x._id for x in tutees)
-  # Actually we won’t do that by querying - we’ll filter the others out below.
-  # q.owner = {$in:tuteeIds}
   
-  allSubmittedExercises = SubmittedExercises.find(q).fetch()
-  console.log "stats query took #{performance.now() - start} ms"
+  allSubmittedExercises = SubmittedExercises.find().fetch()
+  console.log "stats  SubmittedExercises.find query took #{performance.now() - start} ms"
+  # restrict to certain exercises
+  if exercises?
+    allSubmittedExercises = _.filter allSubmittedExercises, (sub) ->
+      sub.exerciseId in exercises
+      # q.exerciseId = {$in:exercises}
   
   stats = {}
   
@@ -117,12 +120,14 @@ getAllStats = (sinceDate, exercises) ->
   
   return stats
 
-
+# # TODO: This is a kludge because I can’t prevent `getAllStats` being called repeatedly.
+# Actually don’t do this because it somehow results in the wrong answers:
+# getAllStats = _.debounce getAllStats, 500, true
 
 getLectureNamesOfCurrentExerciseSet = () ->
   FlowRouter.watchPathChange()
   exerciseSet = getCurrentExerciseSet()
-  return undefined unless exerciseSet?
+  return [] unless exerciseSet?.lectures?
   return ({name:l.name, url:"/myTuteesProgress/course/#{exerciseSet.courseName}/exerciseSet/#{exerciseSet.variant}/lecture/#{l.name}"} for l in exerciseSet.lectures)
       
 getUnitNamesOfCurrentLecture = () ->
@@ -179,6 +184,12 @@ Template.myTuteesProgress.helpers
     return Meteor.users.findOne(tutorId)?.profile?.name
   
   paramsSpecifyExerciseSet : () -> FlowRouter.getParam('_variant' )?
+  courseName : () -> 
+    return @courseName if @courseName?
+    return FlowRouter.getParam('_courseName' )
+  variant : () -> 
+    return @variant if @variant
+    return FlowRouter.getParam('_variant' )
   exerciseSetName : () -> "the #{FlowRouter.getParam('_variant' )} exercises for #{FlowRouter.getParam('_courseName' )}"
   paramsSpecifyLecture : () -> FlowRouter.getParam('_lecture' )?
   lectureName :  () -> FlowRouter.getParam('_lecture' )
@@ -278,9 +289,12 @@ Template.myTuteesProgress.helpers
   
   'subscriptions' : () -> Subscriptions.find({owner:@_id})
   
-  # These are called where the data context is a `Subscription`.
+  # These are called where the data context is a `Subscription`
+  # or a `Tutee`.
   # Used to pass to the `display_subscription` template
-  'userQueryParam' :() -> "user=#{@owner}"
+  'userQueryParam' :() -> 
+    return "user=#{@owner}" if @owner?
+    return "user=#{@_id}"
   
   # These are called when the data context is an exerciseId<String>
   gradeURL : () ->

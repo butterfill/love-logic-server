@@ -87,8 +87,8 @@ Template.exercisesToGradeForExerciseSet.onCreated () ->
 Template.exercisesToGradeForExerciseSet.helpers
   paramsSpecifyLecture : () -> FlowRouter.getParam('_lecture' )?
   paramsSpecifyUnit : () -> FlowRouter.getParam('_unit' )?
-  variant : () -> FlowRouter.getParam('_variant' )
   courseName : () -> FlowRouter.getParam('_courseName' )
+  variant : () -> FlowRouter.getParam('_variant' )
   isShowOnlyFollowers : isShowOnlyFollowers
   'exerciseSetURLQuery' : () -> 
     courseName = FlowRouter.getParam('_courseName' )
