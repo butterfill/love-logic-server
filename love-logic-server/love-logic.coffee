@@ -125,7 +125,31 @@ Meteor.methods
     if nofExerciseSets isnt 0
       throw new Meteor.Error "has exercise sets"
     Courses.remove(course._id)
-    
+  
+  showExerciseSet : (exerciseSetId) ->
+    userId = Meteor.user()?._id
+    if not userId
+      throw new Meteor.Error "not-authorized"
+    exSetCursor = ExerciseSets.find({_id:exerciseSetId}, {owner:1})
+    if exSetCursor.count() isnt 1
+      throw new Meteor.Error "cannot find it"
+    exSet = exSetCursor.fetch()[0]
+    if exSet.owner isnt userId
+      throw new Meteor.Error "not-authorized: not yours"
+    ExerciseSets.update({_id:exerciseSetId}, {$set:{hidden:false}})
+  
+  hideExerciseSet : (exerciseSetId) ->
+    userId = Meteor.user()?._id
+    if not userId
+      throw new Meteor.Error "not-authorized"
+    exSetCursor = ExerciseSets.find({_id:exerciseSetId}, {owner:1})
+    if exSetCursor.count() isnt 1
+      throw new Meteor.Error "cannot find it"
+    exSet = exSetCursor.fetch()[0]
+    if exSet.owner isnt userId
+      throw new Meteor.Error "not-authorized: not yours"
+    ExerciseSets.update({_id:exerciseSetId}, {$set:{hidden:true}})
+  
   createNewExerciseSet : (courseName, variant, description) ->
     unless courseName is encodeURIComponent(courseName) and variant is encodeURIComponent(variant)
       throw new Meteor.Error "illegal characters in name"
@@ -217,7 +241,7 @@ Meteor.methods
       answer : 1
     return SubmittedExercises.find(q, {limit:1, fields:fields}).fetch()?[0]
 
-  subscribeToExerciseSet : (courseName, variant) ->
+  subscribeToExerciseSet : (courseName, variant, exerciseSetId) ->
     userId = Meteor.user()._id
     if not userId
       throw new Meteor.Error "not-authorized"
@@ -229,6 +253,7 @@ Meteor.methods
       created : new Date()
       courseName
       variant
+      exerciseSetId
     })
 
   unsubscribeToExerciseSet : (courseName, variant) ->
@@ -356,7 +381,7 @@ Meteor.methods
 Meteor.methods
 
   # Return a list of exerciseIds for which students have submitted work.
-  getExercisesToGrade : () ->
+  getExercisesToGrade : (limitToSubscribersToThisExerciseSet) ->
     if not Meteor.userId() 
       throw new Meteor.Error "not-authorized"
     if Meteor.isClient
@@ -367,6 +392,9 @@ Meteor.methods
       console.log "Current user has no email address!"
       return [] 
     tuteeIds = wy.getTuteeIds(tutor_email)
+    if limitToSubscribersToThisExerciseSet?
+      q = Subscriptions.find({owner:{$in:tuteeIds}, courseName:limitToSubscribersToThisExerciseSet.courseName, variant:limitToSubscribersToThisExerciseSet.variant}, {owner:1}).fetch()
+      tuteeIds = (x.owner for x in q)
     pipeline = []
     needsFeedback = 
       $or:[

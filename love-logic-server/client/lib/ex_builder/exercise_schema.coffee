@@ -7,7 +7,9 @@
 # Complication : when creating an exercise, user will write
 # in her current dialect (`fol.getCurrentDialectNameAndVersion()`).
 # But when the URL is created, we want it to be in awFOL.
-# The following ensures just this combination of things:
+# The following FAILS TO ensure just this combination of things.
+# This is because we get sentences from URLs (in awFOL regardless of the 
+# user’s dialect, and in the users dialect from the input fields)
 processFOL = (sentence) ->
   sentence = sentence?.trim?()
   sentence = fol.parse(sentence).toString({replaceSymbols:true, symbols:fol.symbols.default})
@@ -363,7 +365,7 @@ exTypes = [
     ]
   }
   {
-    description : 'prove an argument if it is valid (proof)'
+    description : 'prove an argument using natural deduction if it is valid (proof)'
     root : 'proof/orInvalid'
     components : [
       exComponents.premisesFOL
@@ -371,7 +373,7 @@ exTypes = [
     ]
   }
   {
-    description : 'prove an argument (proof)'
+    description : 'prove an argument using natural deduction (proof)'
     root : 'proof'
     components : [
       exComponents.premisesFOL

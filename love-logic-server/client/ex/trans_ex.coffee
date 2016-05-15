@@ -3,8 +3,8 @@
 
 # For some reason this is sometimes not defined.
 # We need it below
-_.where ?= (obj, attrs) ->
-  return _.filter(obj, _.matches(attrs))
+# _.where ?= (obj, attrs) ->
+#   return _.filter(obj, _.matches(attrs))
 
 
 editor = undefined  #This will be our codemirror thing.
@@ -96,6 +96,8 @@ getRawPredicates = () ->
     firstBit = parts.shift()
     # Assume arity is a single digit
     name = firstBit[0..firstBit.length-2]
+    if fol._dialectManager.getSymbols().singleLetterPredicates
+      name=name[0]
     arity = parseInt(firstBit[firstBit.length-1])
     _predicates.push {name, arity}
   return _predicates

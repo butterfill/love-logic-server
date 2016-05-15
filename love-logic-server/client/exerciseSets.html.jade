@@ -196,7 +196,7 @@ template(name='exerciseSetInner')
   p
     unless paramsSpecifyLecture
       if userIsExerciseSetOwner
-        a.btn-flat(href="/course/#{courseName}/exerciseSet/#{exerciseSetName}/edit").hint--bottom(data-hint="edit this exercise set")
+        a(href="/course/#{courseName}/exerciseSet/#{exerciseSetName}/edit", data-hint="edit this exercise set").hint--bottom.btn-flat
           i.material-icons mode_edit
     if isInstructorOrTutor
       //- This won’t actually include delete or paste because not editing:
@@ -322,7 +322,7 @@ template(name='exerciseSetEdit')
   else
     +loading
 
-        
+
 template(name='exerciseSetEditInner')
   +courseNameHeader(courseName=courseName courseDescription=courseDescription)
   h2 
@@ -352,6 +352,12 @@ template(name='exerciseSetEditInner')
   //- Exercise set description, textbook etc
   //- Only shown when showing all lectures
   unless paramsSpecifyLecture
+    if isHidden
+      p These exercises are currently hidden from those not already following them  
+        button#showExerciseSet.btn.waves-effect.grey show these exercises  
+    else
+      p These exercises are currently visible to all users 
+        button#hideExerciseSet.btn.waves-effect.grey hide these exercises
     p 
       span.exerciseSetDescription(contentEditable="true") 
         if exerciseSetDescription

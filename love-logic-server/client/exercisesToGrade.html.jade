@@ -26,32 +26,60 @@ template(name='exercisesToGradeForExerciseSet')
     if paramsSpecifyLecture
       span --- 
       a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}') The #{variant} exercises for #{courseName}
-  unless paramsSpecifyLecture
-    h2 The #{variant} exercises for #{courseName}
   
-  unless paramsSpecifyLecture
-    ul.collection
+  
+  .row
+    .col.s12.m6.l8
+      unless paramsSpecifyLecture
+        h2 The #{variant} exercises for #{courseName}
+      if paramsSpecifyLecture
+        each exerciseList
+          //- lecture name
+          if paramsSpecifyUnit
+            h4: a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}/lecture/#{name}') #{name}
+          else
+            h2 #{name}
+          //- Unit name (if this page is for a unit)
+          each units
+            if paramsSpecifyUnit
+              h2 #{name}
+      
+      
+    .col.s12.m6.l4
+      //- Controls for the grader
+      .right
+        .card.grey.lighten-2
+          .card-content.black-text
+            .card-title.black-text Limit
+            p Show answers from all students, or only from those following #{variant}?
+            .switch
+              label.black-text
+                | All
+                input.grey#showOnlyFollowers(type='checkbox', checked='#{isShowOnlyFollowers}')
+                .lever.grey
+                | Only followers
+
+  .row: .col.l12
+  
+    unless paramsSpecifyLecture
+      unless exerciseList
+        p Marking completed for #{variant}.
+      ul.collection
+        each exerciseList
+          li.collection-item
+            a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}/lecture/#{name}') #{name}
+            span(style="background-color:#CCCCCC;padding-left:#{nofExercises}px;padding-right:#{nofExercises}px")  
+            span (#{nofExercises})
+
+    if paramsSpecifyLecture
       each exerciseList
-        li.collection-item
-          a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}/lecture/#{name}') #{name}
-          span(style="background-color:#CCCCCC;padding-left:#{nofExercises}px;padding-right:#{nofExercises}px")  
-          span (#{nofExercises})
-  
-  if paramsSpecifyLecture
-    each exerciseList
-      if paramsSpecifyUnit
-        h4: a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}/lecture/#{name}') #{name}
-      else
-        h2 #{name}
-      unless units
-        p Marking completed for #{name}.
-      each units
-        if paramsSpecifyUnit
-          h2 #{name}
-        else
-          h4: a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}/lecture/#{lectureNameOfUnit}/unit/#{name}') #{name}
-        ul.collection
-          each exercises
-            li.collection-item: a(href="#{gradeURL}#{exerciseSetURLQuery}") #{exerciseName}
-        unless exercises
+        unless units
           p Marking completed for #{name}.
+        each units
+          unless paramsSpecifyUnit
+            h4: a(href='/exercisesToGrade/course/#{courseName}/exerciseSet/#{variant}/lecture/#{lectureNameOfUnit}/unit/#{name}') #{name}
+          ul.collection
+            each exercises
+              li.collection-item: a(href="#{gradeURL}#{exerciseSetURLQuery}") #{exerciseName}
+          unless exercises
+            p Marking completed for #{name}.

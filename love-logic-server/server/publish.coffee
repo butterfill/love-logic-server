@@ -1,5 +1,5 @@
 Meteor.publish "courses", () ->
-  return Courses.find()
+  return Courses.find({hidden:{$ne:true}})
 
 Meteor.publish "course", (courseName) ->
   return Courses.find({name:courseName})
@@ -7,7 +7,7 @@ Meteor.startup ->
   Courses._ensureIndex({name:1})
 
 Meteor.publish "exercise_sets", (courseName) ->
-  return ExerciseSets.find({courseName},{fields:{courseName:1, variant:1, description:1}})
+  return ExerciseSets.find({courseName, hidden:{$ne:true}},{fields:{courseName:1, variant:1, description:1}})
 Meteor.startup ->
   ExerciseSets._ensureIndex({courseName:1})
 

@@ -133,13 +133,17 @@ ix.isSubmitted = (exerciseLink) ->
     exerciseId = ix.convertToExerciseId exerciseLink
   return SubmittedExercises.find({exerciseId}).count() > 0
 
+ix.addDialectInfoToAnswerDoc = (answerDoc) ->
+  dialectNameAndVersion = fol.getCurrentDialectNameAndVersion()
+  if dialectNameAndVersion? and answerDoc.answer?.content?
+    answerDoc.answer.content.dialectName = dialectNameAndVersion.name
+    answerDoc.answer.content.dialectVersion = dialectNameAndVersion.version
+
 ix.submitExercise = (exercise, cb) ->
   exercise.userAgent = navigator?.userAgent
   
   dialectNameAndVersion = fol.getCurrentDialectNameAndVersion()
-  if dialectNameAndVersion? and exercise.answer?.content?
-    exercise.answer.content.dialectName = dialectNameAndVersion.name
-    exercise.answer.content.dialectVersion = dialectNameAndVersion.version
+  ix.addDialectInfoToAnswerDoc(exercise)
   
   Meteor.call('submitExercise', _.defaults(exercise,
     exerciseId : ix.convertToExerciseId(ix.url())
@@ -219,6 +223,9 @@ ix.gradeUsingGradedAnswers = (answerDoc, o) ->
   return undefined if GradedAnswers.find({exerciseId}).count() is 0
   answerDoc ?= {answer:{content:ix.getAnswer()}}
   answerHash = ix.hashAnswer(answerDoc)
+  # NB: adding dialect comes after calculating the hash --- differences in 
+  # dialect don’t affect the answer’s correctness:
+  ix.addDialectInfoToAnswerDoc(answerDoc)
   thisAnswersGrades = GradedAnswers.find({exerciseId, answerHash})
   if o.uniqueAnswer and thisAnswersGrades.count() is 0
     if GradedAnswers.find({exerciseId, isCorrect:true}).count() isnt 0
@@ -874,7 +881,7 @@ ix.truthTable =
     for s in folSentences
       moreLttrs = s.getSentenceLetters()
       lttrs = lttrs.concat moreLttrs
-    return _.uniq(lttrs)
+    return _.uniq(lttrs).sort()
   
   getValuesFromTable : () ->
     result = []

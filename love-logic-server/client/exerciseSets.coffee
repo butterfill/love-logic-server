@@ -399,6 +399,8 @@ Template.exerciseSetEditInner.helpers
   lectures : () -> 
     theLectures = getLectures({reactive:beReactive()})
     return theLectures 
+  isHidden : () -> ix.getExerciseSet()?.hidden
+    
 
 
 # -------------
@@ -409,7 +411,8 @@ Template.exerciseSet.events
   'click #follow' : (event, template) ->
     courseName = FlowRouter.getParam('_courseName')
     variant = getExerciseSetName()
-    Meteor.call 'subscribeToExerciseSet', courseName, variant, (error,result) ->
+    exerciseSetId = ExerciseSets.findOne({courseName, variant})?._id
+    Meteor.call 'subscribeToExerciseSet', courseName, variant, exerciseSetId, (error,result) ->
       if not error
         Materialize.toast "You are following #{variant}", 4000
       else
@@ -435,6 +438,21 @@ updateExerciseSetField = (exerciseSet, toSet, thing) ->
 
 
 Template.exerciseSetEdit.events
+  'click #showExerciseSet' : (event, target) ->
+    exerciseSet = ix.getExerciseSet()
+    Meteor.call 'showExerciseSet', exerciseSet._id, (error,result) ->
+      console.log "error"    
+      console.log error        
+      console.log "result"    
+      console.log result        
+    console.log "called"
+  'click #hideExerciseSet' : (event, target) ->
+    exerciseSet = ix.getExerciseSet()
+    Meteor.call 'hideExerciseSet', exerciseSet._id, (error,result) ->
+      console.log "error"    
+      console.log error    
+    console.log "called"
+  
   'click .pasteUnit' : (event, target) ->
     newUnit = ix.clipboard.get('unit')
     unless newUnit?

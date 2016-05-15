@@ -1,241 +1,264 @@
 template(name="exploreZoxiy")
-  h4 Explore zoxiy
-  ol.collection
-    li.collection-item Do some exercises
-      p 
-        span From the 
-        a(href='/') main page
-        span  follow the link to select an exercise set,
-        span  then choose the course ‘UK_W20_PH126’ followed by
-        span ‘
-        a(href='/course/UK_W20_PH126/exerciseSet/normal-normal') normal-normal
-        span ’ as the exercise set.
-      p 
-        span You will see a list of lectures.  Click any lectures to see a list
-        span of exercises to complete.  Click an exercise to complete it.
-      p
-        span To move to the next exercise, use the ‘next exercise’ link at the bottom
-        span of the page; to go back, use the back button on your browser.
-      p
-        span In case you or your students need help in completing exercises, 
-        span they can (i) request help from their tutor using the ‘ASK FOR HELP’ button,
-        span (ii) see a correct answer (where available) after first submitting their own answer
-        span using the ‘SHOW AN ANSWER’ button, and (iii) read the 
-        a(href='https://logic-1.butterfill.com/logic-ex-guide.html', _target='blank') zoxiy guide
-        span  which is linked to from the main page and from each exercise.
-  
-    li.collection-item Review your performance
-      p
-        span If you go back to the list of lectures for the 
-        span ‘
-        a(href='/course/UK_W20_PH126/exerciseSet/normal-normal') normal-normal
-        span ’ exercise set, you can review your performance so far.
-      p
-        span Click the button ‘FOLLOW ‘NORMAL-NORMAL’’.  Following an exercise
-        span adds a link to that exercise set to the
-        a(href='/') main page
-        span and to the grading pages (on which more later).
 
-  
-    li.collection-item Grade some exercises
-      p 
-        span To become a tutor, visit this page:
-        a(href='/iAmATutor') become a tutor
-        span . Then go back to the 
-        a(href='/') main page
-        span  . either by using the ‘back’ command on your browser or 
-        span by clicking
-        span ‘zoxiy’ at the top of any page in header.
-      p
-        span (You can always get back to the main page quickly by clicking
-        span ‘zoxiy’ at the top of any page in header.)
-      p 
-        span From the 
-        a(href='/') main page
-        span  click on ‘ADD TUTOR’ and specify yourself as your tutor.  
-        span (You can have
-        span a actual students add you as a tutor if you like; you can also
-        span create multiple zoxiy accounts for different purposes.)
-      p 
-        span When you visit 
-        a(href='/exercisesToGrade') exercises to grade
-        span , you may not see any exercises to grade.
-        span This is because many exercises are graded automatically.
-      p 
-        span To fix this, complete any exercise which is not
-        span graded automatically, such as
-        a(href='/ex/q/define%20‘logically%20valid%20argument’?variant=normal-normal&courseName=UK_W20_PH126&lectureName=Lecture%2001&unitName=The%20Pigs%20of%20Logic') this one
-        span .
-      p 
-        span Now go back to
-        a(href='/exercisesToGrade') exercises to grade
-        span  and you should see a link to the exercise you just answered
-        span at the bottom of the page.
-      p 
-        span Click 
-        a(href='/ex/q/define%20‘logically%20valid%20argument’/grade') that link
-        span  and grade your answer.
-      p 
-        span (When grading multiple students’ exercises 
-        span you will see a list of all students’ answers for any question 
-        span so that you can mark them all on a single page.)
-      
-    li.collection-item Create new exercises linked to your choice of textbook
-      p
-        span From the 
-        a(href='/') main page
-        span  click on ‘
-        a(href='/courses') ALL EXERCISE SETS
-        span ’ to list courses.  
-      p 
-        span Near the top of the page there is a plus icon 
-        i.material-icons add_circle_outline
-        span .  Click this icon to create a new course.
-      p 
-        span Creating a course takes you directly to the course page.
-        span Click the plus icon 
-        i.material-icons add_circle_outline
-        span  to create a new exercise set.
-      p 
-        span Creating an exercise set takes you directly to the page for that exercise set.
-        span On this page, a black pencil (
-        i.material-icons mode_edit
-        span ) marks text you can edit directly. 
-        span A blue pencil (
-        a
-          i.material-icons mode_edit
-        span ) is a link you can click to change something.
-        span Click the blue pencil (
-        a
-          i.material-icons mode_edit
-        span ) by ‘Dialect’ to select the first-order language and rules of proof 
-        span that most of your exercises will use.
-        span (If you aren’t sure what to choose)
-      p 
-        span An exercise set is a list of ‘lectures’ (or ‘problem sheets’ or whatever you want to call them). 
-        span Click the plus icon 
-        i.material-icons add_circle_outline
-        span  to create a new lecture.
-        span A new lecture called ‘New Lecture’ will appear in the list of lectures.
-      p 
-        span Click on the link New Lecture to go to the page where you can edit it. 
-        span Rename the lecture by replacing ‘New Lecture’ with ‘Problem Set 01’ (or whatever you like).
-      p 
-        span A lecture is a list of ‘units’ (or whatever you want to call them).
-        span Click the plus icon 
-        i.material-icons add_circle_outline
-        span  to create a new unit.
-        span A new unit called ‘New Unit’ will appear in the list of units.
-      p 
-        span Click on the link New Unit to to go to the page for adding some exercises. 
-        span Now click the plus icon 
-        i.material-icons add_circle_outline
-        span  to create a new exercise.
-        span There are many types of exercise you can create; try creating a proof 
-        span exercise to start with. 
-      p 
-        span When typing sentences (or wffs) for the premise and conclusion of an exercise, 
-        span write in the language of the dialact you chose above. 
-        span To save time you can use words in place of symbols; e.g. when using dialect ‘lpl’
-        span the FOL sentence
-        span ‘∀x (¬F(x) ∨ G(x))’ can be written ‘all x (not F(x) or G(x))’.
-        span Likewise, when using dialect ‘teller’, the sentence could be written 
-        span ‘(all x) (not Fx or Gx)’
-      p 
-        span If you see ‘cannot save exercise because there are errors in your input’, 
-        span you probably make a mistake typing a sentence (or wff) in a first-order
-        span language.  
-        
-    li.collection-item Copy and paste others’ exercise sets
-      p 
-        span Sometimes you might want to reuse someone else’s set
-        span of exercises, or a lecture or unit from them. 
-        span For example, view 
-        a(href='/course/UK_W20_PH126/exerciseSet/normal-normal/lecture/Lecture%2014/unit/Two%20Things%20Are%20Broken') this unit called ‘Two Things Are Broken’
-      p
-        span To copy this unit of exercises, click the copy icon (
-        i.material-icons.wide content_copy
-        span ) near the top of the page.
-      p
-        span Navigate back to the page for ‘Problem Set 01’ (or whatever you called the new lecture).
-        span Click the paste icon (
-        i.material-icons content_paste
-        span ) to add this unit to your lecture.
-      p
-        span It is good to re-use exercises because this enables zoxiy
-        span to recycle feedback tutors gave in the past when 
-        span grading that exercise.
-        
-    li.collection-item Set exercises for your students to complete
-      p 
-        span When you want to tell your students which exercises to complete, 
-        span let them have a url (‘link’, ‘web address’) for an exercise set,
-        span or a specific lecture or unit, or even for a specific exercise.
-      p
-        span The link to share is just the link in the address bar of your 
-        span browser when you are looking at the page you want your students to see.
-      p
-        span If you have a course page, you can include links to exercises 
-        span on zoxiy in the same way you include links to handouts and other materials. 
+  p The ‘Explore Zoxiy’ guide for instructors has moved:
+    a(href='https://instructor-guide.zoxiy.xyz/01_doSomeExercises.html.html' target='_blank') https://instructor-guide.zoxiy.xyz
 
-    li.collection-item Get an overview of students’ progress
-      p
-        span You can check your students’ progress by selecting the 
-        a(href='/myTuteesProgress') Tutees’ Progress
-        span  link from the 
-        a(href='/') main page
-        span . 
-        span (Note that you will only see this link from after becoming a tutor.)
-
-    li.collection-item Manage several tutors as an instructor
-      p
-        span An instructor is normally someone who one or more tutors grade for. 
-        span The instructor can see an overview the tutors’ grading.  (She can also
-        span review her tutors’ students’ progress if necessary.)
-      p
-        span To become an instructor, visit this page:
-        a(href='/iAmHonestlyReallyAndTrulyAnInstructor') become an instructor
-        span . Then go back to the 
-        a(href='/') main page
-        span .
-      p 
-        span From the 
-        a(href='/') main page
-        span  click on ‘ADD INSTRUCTOR’ to add yourself as your instructor.  
-        span Note that for now you will have to type your email address exactly,
-        span matching the case, to set the instructor correctly. 
-        span (You can have
-        span an actual tutor add you as an instructor.  If you like, you can also
-        span create multiple zoxiy accounts for different purposes; but this isn’t necessary.)
-      p
-        span Now when you visit the page called ‘
-        a(href='/myTutors') My Tutors
-        span ’, you find links giving you a summary of each tutors’ students’ progress. 
-        span This enables you to quickly check whether 
-        span students are completing exercises are whether tutors are grading exercises.
-
-    li.collection-item Ensure exercises are graded automatically
-      p
-        span Where exercises are not graded automatically, zoxiy will 
-        span can match students’ answers against answers that have been 
-        span graded in the past.  
-        span So if you are setting an exercise involving multiple choices or 
-        span a free text answer, it is usually worth answering your question and 
-        span grading it.
-      p
-        span Navigate back to the page for ‘Problem Set 01’ (or whatever you called the new lecture above).
-        span Go to any unit.
-        span Add an exercise: select ‘answer some true/false multiple choice questions’ as the type of exercise and include three free-text questions.
-      p
-        span After creating the exercise you will see a link to it at the end of the
-        span list of exercises.  Click that link to answer the exercise.
-        span Enter a correct answer and submit it.
-      p
-        span Click the ‘GRADE’ button at the top right of the page on which you just submitted the exercise.
-        span Mark your answer as correct.
-      p
-        span Return to the exercise and submit a different answer.  It will be marked incorrect automatically.
-      p
-        span If you add a comment to any of the answers while grading, all students who subsequently submit that answer will automatically get the same comment from you.
-        
-        
+  //- h4 Explore zoxiy
+  //- ol.collection
+  //-   li.collection-item Do some exercises
+  //-     p
+  //-       span From the
+  //-       a(href='/') main page
+  //-       span  follow the link to select an exercise set,
+  //-       span  then choose the course ‘UK_W20_PH126’ followed by
+  //-       span ‘
+  //-       a(href='/course/UK_W20_PH126/exerciseSet/normal-normal') normal-normal
+  //-       span ’ as the exercise set.
+  //-     p
+  //-       span You will see a list of lectures.  Click any lectures to see a list
+  //-       span of exercises to complete.  Click an exercise to complete it.
+  //-     p
+  //-       span To move to the next exercise, use the ‘next exercise’ link at the bottom
+  //-       span of the page; to go back, use the back button on your browser.
+  //-     p
+  //-       span In case you or your students need help in completing exercises,
+  //-       span they can (i) request help from their tutor using the ‘ASK FOR HELP’ button,
+  //-       span (ii) see a correct answer (where available) after first submitting their own answer
+  //-       span using the ‘SHOW AN ANSWER’ button, and (iii) read the
+  //-       a(href='https://logic-1.butterfill.com/logic-ex-guide.html', _target='blank') zoxiy guide
+  //-       span  which is linked to from the main page and from each exercise.
+  //-     p
+  //-       video(src='https://www.zoxiy.xyz/video/DoAnExercise.mp4', style="max-width:100%", controls='true', autoplay='true', loop='true')
+  //-
+  //-
+  //-   li.collection-item Review your performance
+  //-     p
+  //-       span If you go back to the list of lectures for the
+  //-       span ‘
+  //-       a(href='/course/UK_W20_PH126/exerciseSet/normal-normal') normal-normal
+  //-       span ’ exercise set, you can review your performance so far.
+  //-     p
+  //-       span Click the button ‘FOLLOW ‘NORMAL-NORMAL’’.  Following an exercise
+  //-       span adds a link to that exercise set to the
+  //-       a(href='/') main page
+  //-       span and to the grading pages (on which more later).
+  //-     p
+  //-       video(src='https://www.zoxiy.xyz/video/ReviewProgress.mp4', style="max-width:100%", controls='true', autoplay='true', loop='true')
+  //-
+  //-
+  //-   li.collection-item Grade some exercises
+  //-     p
+  //-       span To become a tutor, visit this page:
+  //-       a(href='/iAmATutor') become a tutor
+  //-       span . Then go back to the
+  //-       a(href='/') main page
+  //-       span  . either by using the ‘back’ command on your browser or
+  //-       span by clicking
+  //-       span ‘zoxiy’ at the top of any page in header.
+  //-     p
+  //-       span (You can always get back to the main page quickly by clicking
+  //-       span ‘zoxiy’ at the top of any page in header.)
+  //-     p
+  //-       span From the
+  //-       a(href='/') main page
+  //-       span  click on ‘ADD TUTOR’ and specify yourself as your tutor.
+  //-       span (You can have
+  //-       span a actual students add you as a tutor if you like; you can also
+  //-       span create multiple zoxiy accounts for different purposes.)
+  //-     p
+  //-       span When you visit
+  //-       a(href='/exercisesToGrade') exercises to grade
+  //-       span , you may not see any exercises to grade.
+  //-       span This is because many exercises are graded automatically.
+  //-     p
+  //-       span To fix this, complete any exercise which is not
+  //-       span graded automatically, such as
+  //-       a(href='/ex/q/define%20‘logically%20valid%20argument’?variant=normal-normal&courseName=UK_W20_PH126&lectureName=Lecture%2001&unitName=The%20Pigs%20of%20Logic') this one
+  //-       span .
+  //-     p
+  //-       span Now go back to
+  //-       a(href='/exercisesToGrade') exercises to grade
+  //-       span  and you should see a link to the exercise you just answered
+  //-       span at the bottom of the page.
+  //-     p
+  //-       span Click
+  //-       a(href='/ex/q/define%20‘logically%20valid%20argument’/grade') that link
+  //-       span  and grade your answer.
+  //-     p
+  //-       span (When grading multiple students’ exercises
+  //-       span you will see a list of all students’ answers for any question
+  //-       span so that you can mark them all on a single page.)
+  //-     p
+  //-       video(src='https://www.zoxiy.xyz/video/GradingExercises.mp4', style="max-width:100%", controls='true', autoplay='true', loop='true')
+  //-
+  //-   li.collection-item Create new exercises linked to your choice of textbook
+  //-     p
+  //-       span From the
+  //-       a(href='/') main page
+  //-       span  click on ‘
+  //-       a(href='/courses') ALL EXERCISE SETS
+  //-       span ’ to list courses.
+  //-     p
+  //-       span Near the top of the page there is a plus icon
+  //-       i.material-icons add_circle_outline
+  //-       span .  Click this icon to create a new course.
+  //-     p
+  //-       span Creating a course takes you directly to the course page.
+  //-       span Click the plus icon
+  //-       i.material-icons add_circle_outline
+  //-       span  to create a new exercise set.
+  //-     p
+  //-       span Creating an exercise set takes you directly to the page for that exercise set.
+  //-       span On this page, a black pencil (
+  //-       i.material-icons mode_edit
+  //-       span ) marks text you can edit directly.
+  //-       span A blue pencil (
+  //-       a
+  //-         i.material-icons mode_edit
+  //-       span ) is a link you can click to change something.
+  //-       span Click the blue pencil (
+  //-       a
+  //-         i.material-icons mode_edit
+  //-       span ) by ‘Dialect’ to select the first-order language and rules of proof
+  //-       span that most of your exercises will use.
+  //-       span (If you aren’t sure what to choose)
+  //-     p
+  //-       span An exercise set is a list of ‘lectures’ (or ‘problem sheets’ or whatever you want to call them).
+  //-       span Click the plus icon
+  //-       i.material-icons add_circle_outline
+  //-       span  to create a new lecture.
+  //-       span A new lecture called ‘New Lecture’ will appear in the list of lectures.
+  //-     p
+  //-       span Click on the link New Lecture to go to the page where you can edit it.
+  //-       span Rename the lecture by replacing ‘New Lecture’ with ‘Problem Set 01’ (or whatever you like).
+  //-     p
+  //-       span A lecture is a list of ‘units’ (or whatever you want to call them).
+  //-       span Click the plus icon
+  //-       i.material-icons add_circle_outline
+  //-       span  to create a new unit.
+  //-       span A new unit called ‘New Unit’ will appear in the list of units.
+  //-     p
+  //-       span Click on the link New Unit to to go to the page for adding some exercises.
+  //-       span Now click the plus icon
+  //-       i.material-icons add_circle_outline
+  //-       span  to create a new exercise.
+  //-       span There are many types of exercise you can create; try creating a proof
+  //-       span exercise to start with.
+  //-     p
+  //-       span When typing sentences (or wffs) for the premise and conclusion of an exercise,
+  //-       span write in the language of the dialact you chose above.
+  //-       span To save time you can use words in place of symbols; e.g. when using dialect ‘lpl’
+  //-       span the FOL sentence
+  //-       span ‘∀x (¬F(x) ∨ G(x))’ can be written ‘all x (not F(x) or G(x))’.
+  //-       span Likewise, when using dialect ‘teller’, the sentence could be written
+  //-       span ‘(all x) (not Fx or Gx)’
+  //-     p
+  //-       span If you see ‘cannot save exercise because there are errors in your input’,
+  //-       span you probably make a mistake typing a sentence (or wff) in a first-order
+  //-       span language.
+  //-     p
+  //-       video(src='https://www.zoxiy.xyz/video/Create an exercise.mp4', style="max-width:100%", controls='true', autoplay='true', loop='true')
+  //-
+  //-   li.collection-item Copy and paste others’ exercise sets
+  //-     p
+  //-       span Sometimes you might want to reuse someone else’s set
+  //-       span of exercises, or a lecture or unit from them.
+  //-       span For example, view
+  //-       a(href='/course/UK_W20_PH126/exerciseSet/normal-normal/lecture/Lecture%2014/unit/Two%20Things%20Are%20Broken') this unit called ‘Two Things Are Broken’
+  //-     p
+  //-       span To copy this unit of exercises, click the copy icon (
+  //-       i.material-icons.wide content_copy
+  //-       span ) near the top of the page.
+  //-     p
+  //-       span Navigate back to the page for ‘Problem Set 01’ (or whatever you called the new lecture).
+  //-       span Click the paste icon (
+  //-       i.material-icons content_paste
+  //-       span ) to add this unit to your lecture.
+  //-     p
+  //-       span It is good to re-use exercises because this enables zoxiy
+  //-       span to recycle feedback tutors gave in the past when
+  //-       span grading that exercise.
+  //-     p
+  //-       video(src='https://www.zoxiy.xyz/video/CopyAndPasteExercises.mp4', style="max-width:100%", controls='true', autoplay='true', loop='true')
+  //-
+  //-   li.collection-item Set exercises for your students to complete
+  //-     p
+  //-       span When you want to tell your students which exercises to complete,
+  //-       span let them have a url (‘link’, ‘web address’) for an exercise set,
+  //-       span or a specific lecture or unit, or even for a specific exercise.
+  //-     p
+  //-       span The link to share is just the link in the address bar of your
+  //-       span browser when you are looking at the page you want your students to see.
+  //-     p
+  //-       span If you have a course page, you can include links to exercises
+  //-       span on zoxiy in the same way you include links to handouts and other materials.
+  //-     p
+  //-       video(src='https://www.zoxiy.xyz/video/URLspecific exercise.mp4', style="max-width:100%", controls='true', autoplay='true', loop='true')
+  //-
+  //-   li.collection-item Get an overview of students’ progress
+  //-     p
+  //-       span You can check your students’ progress by selecting the
+  //-       a(href='/myTuteesProgress') Tutees’ Progress
+  //-       span  link from the
+  //-       a(href='/') main page
+  //-       span .
+  //-       span (Note that you will only see this link from after becoming a tutor.)
+  //-     p
+  //-       video(src='https://www.zoxiy.xyz/video/OverviewOfStudentsProgress.mp4', style="max-width:100%", controls='true', autoplay='true', loop='true')
+  //-
+  //-   li.collection-item Manage several tutors as an instructor
+  //-     p
+  //-       span An instructor is normally someone who one or more tutors grade for.
+  //-       span The instructor can see an overview the tutors’ grading.  (She can also
+  //-       span review her tutors’ students’ progress if necessary.)
+  //-     p
+  //-       span To become an instructor, visit this page:
+  //-       a(href='/iAmHonestlyReallyAndTrulyAnInstructor') become an instructor
+  //-       span . Then go back to the
+  //-       a(href='/') main page
+  //-       span .
+  //-     p
+  //-       span From the
+  //-       a(href='/') main page
+  //-       span  click on ‘ADD INSTRUCTOR’ to add yourself as your instructor.
+  //-       span Note that for now you will have to type your email address exactly,
+  //-       span matching the case, to set the instructor correctly.
+  //-       span (You can have
+  //-       span an actual tutor add you as an instructor.  If you like, you can also
+  //-       span create multiple zoxiy accounts for different purposes; but this isn’t necessary.)
+  //-     p
+  //-       span Now when you visit the page called ‘
+  //-       a(href='/myTutors') My Tutors
+  //-       span ’, you find links giving you a summary of each tutors’ students’ progress.
+  //-       span This enables you to quickly check whether
+  //-       span students are completing exercises are whether tutors are grading exercises.
+  //-     p
+  //-       video(src='https://www.zoxiy.xyz/video/Instructor.mp4', style="max-width:100%", controls='true', autoplay='true', loop='true')
+  //-
+  //-   li.collection-item Ensure exercises are graded automatically
+  //-     p
+  //-       span Where exercises are not graded automatically, zoxiy will
+  //-       span can match students’ answers against answers that have been
+  //-       span graded in the past.
+  //-       span So if you are setting an exercise involving multiple choices or
+  //-       span a free text answer, it is usually worth answering your question and
+  //-       span grading it.
+  //-     p
+  //-       span Navigate back to the page for ‘Problem Set 01’ (or whatever you called the new lecture above).
+  //-       span Go to any unit.
+  //-       span Add an exercise: select ‘answer some true/false multiple choice questions’ as the type of exercise and include three free-text questions.
+  //-     p
+  //-       span After creating the exercise you will see a link to it at the end of the
+  //-       span list of exercises.  Click that link to answer the exercise.
+  //-       span Enter a correct answer and submit it.
+  //-     p
+  //-       span Click the ‘GRADE’ button at the top right of the page on which you just submitted the exercise.
+  //-       span Mark your answer as correct.
+  //-     p
+  //-       span Return to the exercise and submit a different answer.  It will be marked incorrect automatically.
+  //-     p
+  //-       span If you add a comment to any of the answers while grading, all students who subsequently submit that answer will automatically get the same comment from you.
+  //-     p
+  //-       video(src='https://www.zoxiy.xyz/video/AutomaticGrading.mp4', style="max-width:100%", controls='true', autoplay='true', loop='true')
+  //-
+  //-

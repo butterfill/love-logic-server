@@ -32,6 +32,10 @@ setJSONEditor = (editorElement, schemaIdx, data) ->
       
 Template.exerciseBuilder.onRendered () ->
   
+  # For now we can only edit exercises using the awFOL syntax.
+  # (This is because of complications with ExerciseSchema)
+  fol.setDialect('lpl')
+  
   # Configure the typeahead
   # Currently a bit wonky : uses a SearchSource (which is reactive)
   # together with the typeahead.js async method --- doesn’t fit well.
@@ -83,6 +87,7 @@ Template.exerciseBuilder.onRendered () ->
   # Check whether we’ve been sent an exercise to edit
   exerciseText = @data?.exerciseText
   if exerciseText?
+    # console.log exerciseText
     {schemaIdx, data} = exerciseTypes.uriToData(exerciseText)
     setJSONEditor(editorElement, schemaIdx, data)
   else

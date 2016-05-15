@@ -1,21 +1,36 @@
 
+
+
+_showOnlyFollowersKey = () ->
+  FlowRouter.watchPathChange()
+  variant = FlowRouter.getParam('_variant' )
+  courseName = FlowRouter.getParam('_courseName' )
+  userId = ix.getUserId()
+  return "/#{userId}/#{courseName}/#{variant}/showOnlyFollowers"
+isShowOnlyFollowers = () ->
+  stored = Session.get( _showOnlyFollowersKey() )
+  return stored if stored?
+  return false
+setShowOnlyFollowers = (val) ->
+  Session.setPersistent( _showOnlyFollowersKey(), val )
+
 Template.exercisesToGrade.onCreated () ->
   templateInstance = this
   @exercises = new ReactiveVar()
   @autorun () ->
     templateInstance.subscribe('subscriptions')
-    Meteor.call "getExercisesToGrade", (error, result) ->
+    Meteor.call "getExercisesToGrade", undefined, (error, result) ->
       templateInstance.exercises.set(result)
       # Make the user a tutor is she is not a tutor already
       unless Meteor.user().profile?.is_seminar_tutor?
         Meteor.call "makeMeATutor"
 
 Template.exercisesToGrade.helpers
-  'subscriptions' : () -> return Subscriptions.find()
-  'urlQueryPart' : () -> window.location.search
-  'exercises' : () -> Template.instance().exercises?.get?()
-  'gradeURL' : () -> ix.getGradeURL(@exerciseId)
-  'exerciseName' : () -> decodeURIComponent(@exerciseId)
+  subscriptions : () -> return Subscriptions.find()
+  urlQueryPart : () -> window.location.search
+  exercises : () -> Template.instance().exercises?.get?()
+  gradeURL : () -> ix.getGradeURL(@exerciseId)
+  exerciseName : () -> decodeURIComponent(@exerciseId)
 
 
 
@@ -51,7 +66,10 @@ Template.exercisesToGradeForExerciseSet.onCreated () ->
   # This autorun shouldn’t re-run when the url changes
   @exercises = new ReactiveVar()
   @autorun () ->
-    Meteor.call "getExercisesToGrade", (error, result) ->
+    limitToSubscribersToThisExerciseSet = undefined
+    if isShowOnlyFollowers()
+      limitToSubscribersToThisExerciseSet = {courseName:FlowRouter.getParam('_courseName' ), variant:FlowRouter.getParam('_variant' )}
+    Meteor.call "getExercisesToGrade", limitToSubscribersToThisExerciseSet, (error, result) ->
       templateInstance.exercises.set( result )
       
   # This autorun should re-run when the url changes
@@ -71,6 +89,7 @@ Template.exercisesToGradeForExerciseSet.helpers
   paramsSpecifyUnit : () -> FlowRouter.getParam('_unit' )?
   variant : () -> FlowRouter.getParam('_variant' )
   courseName : () -> FlowRouter.getParam('_courseName' )
+  isShowOnlyFollowers : isShowOnlyFollowers
   'exerciseSetURLQuery' : () -> 
     courseName = FlowRouter.getParam('_courseName' )
     variant = FlowRouter.getParam('_variant' )
@@ -81,3 +100,8 @@ Template.exercisesToGradeForExerciseSet.helpers
   lectureNameOfUnit : () ->
     lecture = Template.parentData()
     return lecture.name
+
+Template.exercisesToGradeForExerciseSet.events
+  'click #showOnlyFollowers' : (event, target) ->
+    setShowOnlyFollowers( $('#showOnlyFollowers').prop('checked') )
+    
