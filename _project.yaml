@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=http://localhost:8080/schema-project.json
+
+id: lp83px3XHTSxSfSwbOYkn
+title: "zoxiy (Love Logic Server)"
+url:
+  - 
+git-remote:
+  - git@github.com:butterfill/love-logic-server
+type: programming
+location: 
+authors: 
+  - Stephen A. Butterfill
+status: complete
+subprojects:
+  - leqPA8DoNutmQ0hczSozI
+  - 7A-_jwumOtNNDXx10QuPb
