@@ -81,7 +81,7 @@ mkdir -p var/mongodb
 run:
 
 ```
-./mongodb-osx-x86_64-3.2.22/bin/mongod --dbpath var/mongodb --logpath var/log/mongodb/mongo.log --fork
+./mongodb-osx-x86_64-3.2.22/bin/mongod --dbpath var/mongodb --logpath var/log/mongodb/mongo.log  # add --fork
 ```
 
 This generates a security error. You have to open `system settings/security and privacy` and click allow.
