@@ -13,8 +13,6 @@ There are other notes on how to configure them*
 
 # todo
 
-1. [ ] delete all arubacloud VPS
-
 1. [ ] check meteor apps can still find the mongodb database without 10.0.0.1 etc
        * I think this will probably be ok because some of the mup config specifies `10.0.0.21,10.0.0.32` in the mongo url.
        * did reboot one and it seemed ok (system stopped for a bit, but it worked eventually)
@@ -45,6 +43,8 @@ There are other notes on how to configure them*
 
 1. [x] last aruba zoxiy server is `logic-a-uk5`. Can I just remove this?
    * yes, apparently (done)
+
+1. [x] delete all arubacloud VPS
 
 
 # log
