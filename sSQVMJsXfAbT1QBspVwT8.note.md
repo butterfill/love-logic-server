@@ -31,6 +31,8 @@ There are other notes on how to configure them*
    * currently configured not to start yyrama on boot (because pm2 forks 100s of processes and server hangs)
    * but it runs yyrama so I probably do not want to simply wipe it
 
+1. [ ] when reboot `logic-vu-uk4`, a fucked up `pm2` tries to run gazillion yyrama instances killing the server
+
 1. [x] get backups working again
 
 1. [x] check I can deploy yyrama to a fresh server
