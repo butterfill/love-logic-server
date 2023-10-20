@@ -114,13 +114,15 @@ There are other notes on how to configure them*
 
 ## vultr
 
-* logic-vu-de1 = 45.32.157.98    — mongodb
-* logic-vu-uk1 = 45.32.180.114   — zoxiy
-* logic-vu-uk2 = 45.32.181.24    — mongodb
-* logic-vu-uk3 = 108.61.196.248  — zoxiy
-* logic-vu-uk4 = 78.141.224.145  — mongodb and yyrama (yyrama is not being used, just for my reference; start yyrama with `su yyrama;pm2 etc` if rebooting, see  \ref{note:yyrama_deploy_notes-l7-dBMW75FzAnzYzjBbO3})
-* logic-vu-uk5 = 192.248.166.158 — mongodb and backups (yyrama not backed up (not in use), only zoxiy)
-* logic-vu-uk6 = 45.76.129.106   — mongodb (also 20.04 LTS lynchpin of tinc network)
+| | name        | ip | tinc ip | description | 
+|-| -------------|-----------------|---------|-- | 
+| | logic-vu-de1 | 45.32.157.98    | 10.0.0.21 | mongodb | 
+| | logic-vu-uk1 | 45.32.180.114   | 10.0.0.31 | zoxiy | 
+| | logic-vu-uk2 | 45.32.181.24    | 10.0.0.32 | mongodb | 
+| | logic-vu-uk3 | 108.61.196.248  | 10.0.0.33 | zoxiy | 
+| | logic-vu-uk4 | 78.141.224.145  | 10.0.0.34 | mongodb and yyrama (yyrama  is not being used, just for my reference; start yyrama with `su yyrama;pm2 etc` if rebooting, see  \ref{note:yyrama_deploy_notes-l7-dBMW75FzAnzYzjBbO3}) |
+| | logic-vu-uk5 | 192.248.166.158 | 10.0.0.35 | mongodb and backups (yyrama not backed up (not in use), only zoxiy) |
+| | logic-vu-uk6 | 45.76.129.106  | 10.0.0.36  | mongodb (also 20.04 LTS lynchpin of tinc network) |
 
 ## aruba
 
@@ -183,3 +185,7 @@ There are other notes on how to configure them*
     * 185.58.225.8 — logic-a-uk5
 
 
+
+## monitoring
+
+Is done via \ref{url:https://uptimerobot.com} (user is stephen@butterfill.com)
