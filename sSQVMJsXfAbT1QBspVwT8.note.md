@@ -74,7 +74,7 @@ There are other notes on how to configure them*
 
 * created logic-vu-uk5 = 192.248.166.158
   * installed mongodb 3.2 (see \ref{note:MRw-zw0NGqmpeErI1blGt})
-  * added to the replica set (see \ref{note:})
+  * added to the replica set
 
 * created logic-vu-uk6 
   * initially with ubuntu 22.10 (not LTS)
