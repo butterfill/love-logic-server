@@ -1,5 +1,5 @@
 ---
-title: number of submitted_exercises on zoxiy per year
+title: number of submitted_exercises on zoxiy per year and how to remove old exercises
 created: 5/27/2025
 tags:
   -
@@ -8,8 +8,9 @@ projects:
 ---
 This is as at `5/27/2025`. 
 
-I decided to free some space by deleting submitted exercises that are older.
+I decided to free some space by deleting submitted exercises that are older (everything pre-2020).
 
+Here are the counts of exercises per year before I did this:
 
 ```json
 { "_id" : 2015, "count" : 697 }
@@ -26,7 +27,7 @@ I decided to free some space by deleting submitted exercises that are older.
 ```
 
 
-
+To get the counts:
 
 ```js
 rs.slaveOk()
@@ -47,4 +48,33 @@ db.submitted_exercises.aggregate([
     $sort: { _id: 1 }  // Sort by year ascending
   }
 ])
+```
+
+To delete all exercises from a year
+
+```js
+use love-logic
+yearToCount = 2019;
+startDateCount = new Date(Date.UTC(yearToCount, 0, 1, 0, 0, 0, 0));
+endDateCount = new Date(Date.UTC(yearToCount + 1, 0, 1, 0, 0, 0, 0));
+
+// First count documents that would be deleted 
+db.submitted_exercises.find({
+  "created": {
+    $gte: startDateCount,
+    $lt: endDateCount
+  }
+}).count();
+```
+
+Once you are happy, you can go ahead and delete:
+
+```js
+// Execute the remove operation
+db.submitted_exercises.remove({
+  "created": {
+    $gte: startDateCount,
+    $lt: endDateCount
+  }
+});
 ```
