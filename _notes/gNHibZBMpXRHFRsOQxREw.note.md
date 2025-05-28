@@ -105,7 +105,7 @@ Explanation of `limit_req` parameters[2][3]:
 
 You can have multiple `limit_req` directives if needed, for instance, to apply different limits or to limit based on both IP address and server name[2].
 
-### 3. Customize Error Responses (Optional)
+### 3. [no—can ignore] Customize Error Responses (Optional)
 By default, Nginx returns a 503 (Service Unavailable) error when a request is rejected due to rate limiting[2][4]. You can change this status code or provide a custom error page[3].
 
 To change the status code to 429 (Too Many Requests):
@@ -137,7 +137,7 @@ server {
 ```
 This example defines a named location `@ratelimit` that returns a 429 status code with a custom message when the original 503 error (due to rate limiting) occurs[3].
 
-### 4. Adjust Logging (Optional)
+### 4. [no—can ignore]  Adjust Logging (Optional)
 You can control the logging level for rate-limited requests using `limit_req_log_level`. The default is `error`[2].
 ```nginx
 http {
@@ -328,24 +328,6 @@ maxretry = 10
     * `logpath`: Specifies the location of Nginx error logs. Ensure this path is correct for your Nginx setup[^3].
     * `findtime`, `bantime`, `maxretry`: These can be adjusted. Smaller `findtime` and `maxretry` values will lead to IPs being banned more frequently[^3].
 
-The search results also mention other Nginx-related filters like `nginx-http-auth` (for failed HTTP authentication attempts) and `nginx-noproxy` (to block attempts to use your server as a proxy)[^5][^7]. If you need these, you would create similar filter files and add corresponding jail sections to `jail.local`. For example, for `nginx-http-auth`, the filter might look like[^7]:
-
-```ini
-# /etc/fail2ban/filter.d/nginx-http-auth.conf
-[Definition]
-failregex = ^ \[error\] \d+#\d+: \*\d+ user "(?:[^"]+|.*?)":? (?:password mismatch|was not found in "[^\"]*"), client: <HOST>, server: \S*, request: "\S+ \S+ HTTP/\d+\.\d+", host: "\S+"(?:, referrer: "\S+")?\s*$
-ignoreregex =
-datepattern = {^LN-BEG}
-```
-
-And the jail in `jail.local`:
-
-```ini
-[nginx-http-auth]
-enabled  = true
-port     = http,https
-logpath  = %(nginx_error_log)s # Assumes nginx_error_log is defined in paths-common.conf or similar
-```
 
 
 ### Restart and Verify Fail2ban
