@@ -65,7 +65,16 @@ db.courses.find({})
 
 download version 3.2 binaries from \ref{url:https://www.mongodb.com/try/download/community}
 
+UPDATE: use 3.6 binaries now (updated on the server)
+
 instructions: \ref{url:https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-os-x-tarball/}
+
+already installed on eleven mac:
+```
+mongod --dbpath /usr/local/var/mongodb
+```
+
+If you need to install:
 
 setup:
 

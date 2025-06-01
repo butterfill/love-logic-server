@@ -26,7 +26,7 @@ build environment:
 
 NB: meteor 1.2 will probably not work with mongodb 3.6 on. (I think
 I once tried with mongodb 3.6 and it would not work. Will eventually
-have to upgrade to more recent meteor etc.)
+have to upgrade to more recent meteor etc.) UPDATE: currently running mongodb 3.6 on the servers, works fine.
 
 Manual install seems fine (adding repositories did not work):
 
