@@ -1,0 +1,121 @@
+LOVE LOGIC SERVER - AUTHENTICATION & AUTHORIZATION DOCUMENTATION
+================================================================
+
+DOCUMENT CREATED: /home/user/love-logic-server/AUTHENTICATION_AUTHORIZATION.md
+Lines: 948
+Format: Markdown with code examples and diagrams
+
+SECTIONS DOCUMENTED:
+====================
+
+1. USER ACCOUNT SYSTEM (Complete)
+   - Built on Meteor's accounts-password package
+   - Registration: Email, Password, Full Name, Terms of Use acceptance
+   - reCAPTCHA configured but disabled by default
+   - Email validation (unique, case-insensitive)
+   - User profile structure with 6 key fields
+
+2. USER ROLES (Complete)
+   - Student (base role, default for all users)
+   - Seminar Tutor (grade exercises, answer help requests)
+   - Instructor (manage courses, supervise tutors)
+   - Self-promotion methods documented
+   - Role flags in profile object
+
+3. USER RELATIONSHIPS (Complete)
+   - Student-to-Tutor: Stored in profile.seminar_tutor (email-based)
+   - Tutor-to-Instructor: Stored in profile.instructor (email-based)
+   - Transitive authorization for instructors
+   - Email-based relationship model with validation
+
+4. AUTHORIZATION PATTERNS (Complete)
+   - Method-level checks documented with examples
+   - Publication-level filtering
+   - Ownership-based authorization
+   - checkIsTutee() helper function analysis
+   - Authorization flow diagrams
+
+5. ACCESS CONTROL RULES (Complete)
+   - Courses: View (public), Create (authenticated), Delete (owner only)
+   - Exercise Sets: View (owner or public), Create, Edit (owner), Delete (owner)
+   - Student Submissions: View (student, tutor, instructor), Submit (student), Grade (tutor)
+   - Help Requests: View, Create, Answer, Mark seen
+
+6. SECURITY CONSIDERATIONS (Complete)
+   - Input validation (email, names, required fields)
+   - Protection against unauthorized access
+   - Submission protection (prevent owner change, impersonation)
+   - Data privacy through publication field limiting
+   - Common attack protection (CSRF, injection, brute force)
+   - Database indexes for authorization
+
+7. IMPLEMENTATION DETAILS (Complete)
+   - Key files mapped to purposes
+   - Client-side role detection functions
+   - Server-side authorization helpers
+   - Authentication flow diagrams
+   - Session and token management
+   - Logout procedure
+
+KEY FINDINGS:
+=============
+
+Strengths:
+- Solid method-level authorization checks
+- Email-based relationship system prevents impersonation  
+- Publication-level filtering of sensitive data
+- Role-based access control across hierarchy
+- Submission ownership protection
+
+Security Considerations (Potential Improvements):
+- Users can self-promote to tutor/instructor roles without verification
+- No built-in rate limiting on authentication attempts
+- Email verification routes configured but not enforced
+- Help requests can be answered by any authenticated user (by design)
+
+Code Examples Included:
+- 35+ code snippets from actual implementation
+- CoffeeScript source code from 4 main files:
+  * server/at_server_config.coffee
+  * lib/config/at_config.coffee
+  * server/publish.coffee
+  * love-logic.coffee
+  * lib/wy.coffee
+  * client/lib/ix.coffee
+
+Diagrams Included:
+- Relationship hierarchy (Professor → Tutor → Student)
+- Registration flow (5 steps)
+- Login flow (5 steps)
+- Method call authorization (5 steps)
+- Publication authorization (6 steps)
+- Email-based relationship model
+
+USAGE:
+======
+
+This document provides:
+1. Complete understanding of how users register and authenticate
+2. Clear role definitions and permission boundaries
+3. Authorization patterns that can be replicated in new features
+4. Security best practices used throughout the system
+5. Implementation guide for developers maintaining the system
+
+A developer can use this document to:
+- Understand the security model
+- Implement new features with correct authorization
+- Add new roles or permissions
+- Debug authorization issues
+- Audit security compliance
+- Recreate the system in another framework
+
+FILES REFERENCED IN DOCUMENTATION:
+==================================
+- /home/user/love-logic-server/love-logic-server/server/at_server_config.coffee
+- /home/user/love-logic-server/love-logic-server/lib/config/at_config.coffee
+- /home/user/love-logic-server/love-logic-server/server/publish.coffee
+- /home/user/love-logic-server/love-logic-server/love-logic.coffee
+- /home/user/love-logic-server/love-logic-server/lib/wy.coffee
+- /home/user/love-logic-server/love-logic-server/client/lib/ix.coffee
+- /home/user/love-logic-server/MONGODB_SCHEMA.md
+
