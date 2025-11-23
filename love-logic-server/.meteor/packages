@@ -13,7 +13,6 @@ reactive-var
 tracker
 standard-minifier-css
 standard-minifier-js
-es5-shim
 ecmascript
 shell-server
 typescript
@@ -45,12 +44,11 @@ ejson
 spacebars
 check
 http
-jquery
+fetch
 
-# Third-party packages
+# Third-party packages (Meteor 3.x compatible)
 meteorhacks:aggregate
 u2622:persistent-session
-east5th:package-scan
 kadira:debug
 meteorhacks:search-source
 meteorstuff:materialize-modal
