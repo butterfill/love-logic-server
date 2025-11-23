@@ -1,0 +1,23 @@
+{
+  "name": "love-logic-server",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Server and web UI for setting logic exercises",
+  "scripts": {
+    "start": "meteor run",
+    "test": "meteor test --once --driver-package meteortesting:mocha",
+    "visualize": "meteor --production --extra-packages bundle-visualizer"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.12.0",
+    "meteor-node-stubs": "^1.0.1"
+  },
+  "devDependencies": {},
+  "meteor": {
+    "mainModule": {
+      "client": "client/main.coffee",
+      "server": "love-logic.coffee"
+    },
+    "testModule": "tests/main.js"
+  }
+}
