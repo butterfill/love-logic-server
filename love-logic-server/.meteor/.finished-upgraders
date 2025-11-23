@@ -17,3 +17,5 @@ notices-for-facebook-graph-api-2
 1.5-add-dynamic-import-package
 1.7-split-underscore-from-meteor-base
 1.8.3-split-jquery-from-blaze
+2.0.0-resolve-meteor-package-from-cache
+2.7.0-non-core-package-json
