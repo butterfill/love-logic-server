@@ -1,6 +1,6 @@
 # Love Logic Server - API Methods, Routes, and Publications
 
-**Last Updated:** 2025-11-14  
+**Last Updated:** 2025-11-23
 **Project:** love-logic-server (Meteor.js + FlowRouter)
 
 This document provides a comprehensive reference for all Meteor Methods (API endpoints), FlowRouter Routes (client-side navigation), and Meteor Publications (subscription channels) in the love-logic-server project.
@@ -553,7 +553,11 @@ Meteor Methods are the equivalent of API endpoints in this application. They are
 **Parameters:**
 - `exercise` (Object): Exercise submission object containing:
   - `exerciseId` (String): ID of the exercise
-  - Other exercise data (answer, etc.)
+  - `answer` (Object): The student's answer structure
+    - `content` (Mixed): The actual answer data (string, object, etc.)
+    - `dialectName` (String, Optional): The logic dialect (e.g., 'lpl') injected by the client
+    - `dialectVersion` (String, Optional): Version of the dialect
+  - `machineFeedback` (Object, Optional): Pre-calculated machine grading results
   - Must NOT contain `userId` field
 
 **Authorization:** Requires authenticated user
@@ -583,6 +587,7 @@ Meteor Methods are the equivalent of API endpoints in this application. They are
 **Notes:** 
 - If an exercise has already been graded by a human, it won't be updated
 - This allows students to improve answers before human grading
+- The client injects dialect information into the answer object; this is critical for the logic engine to parse the answer correctly later.
 
 ---
 
@@ -689,8 +694,8 @@ Meteor Methods are the equivalent of API endpoints in this application. They are
 - `isCorrect` (Boolean): Whether the answer is correct
 - `comment` (String): Optional grading comment
 - `answerPNFsimplifiedSorted` (String): Optional processed answer representation
-- `dialectName` (String): Optional dialect information
-- `dialectVersion` (String): Optional dialect version
+- `dialectName` (String, Optional): Logic dialect used
+- `dialectVersion` (String, Optional): Dialect version
 
 **Authorization:** Requires authenticated user
 

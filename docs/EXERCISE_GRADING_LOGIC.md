@@ -1,6 +1,6 @@
 # Love-Logic-Server: Exercise Grading Logic & Core Algorithms
 
-**Document Version:** 1.0  
+**Document Version:** 1.1 (Updated for Recreation)
 **Date:** November 14, 2025  
 **Classification:** Core Intellectual Property - Automated Grading System
 
@@ -9,6 +9,8 @@
 ## Executive Summary
 
 This document provides a comprehensive technical specification of the love-logic-server's exercise grading system. The automated grading logic is the core intellectual property of this application, enabling instant feedback on student logic exercises. The system uses a combination of client-side machine grading, server-side validation, and human grading caching through the GradedAnswers system.
+
+**CRITICAL RECREATION NOTE:** The hashing algorithm used for answer caching depends on specific initialization vectors (seeds) and normalization rules. Failing to replicate these exactly will render the existing database of graded answers unusable. See [GradedAnswers Cache System](#gradedanswers-cache-system) for details.
 
 ---
 
@@ -64,7 +66,7 @@ Student Submits Answer
     ↓
 Client: Generate Machine Feedback (if possible)
     ↓
-Client: Calculate Answer Hash
+Client: Calculate Answer Hash (CRITICAL STEP)
     ↓
 Client: Check GradedAnswers for identical answer
     ↓
@@ -1190,8 +1192,19 @@ Enables automatic grading of answers previously graded by human instructors. Avo
 
 **Location:** `client/lib/ix.coffee`, lines 191-218
 
+### **CRITICAL IMPLEMENTATION DETAIL: HASH SEED**
+> **WARNING:** The caching system relies on a specific **XXHash seed** (`0xFFFA`) configured in the client. Any re-implementation of this system MUST use this exact seed. Failing to do so will result in different hash values, breaking backward compatibility with the existing database of graded answers.
+
+**Normalization Rules:**
+Before hashing, text answers must be normalized to ensure identical answers produce identical hashes:
+1.  **Lowercase:** Convert the entire string to lowercase.
+2.  **Collapse Spaces:** Replace all sequences of whitespace (newlines, tabs, multiple spaces) with a single space character.
+3.  **Trim:** Remove all leading and trailing whitespace.
+
+**Code Reference:**
 ```coffeescript
 ix.hash = (text) ->
+  # CRITICAL: Seed must be 0xFFFA for DB compatibility
   return XXH(text, 0xFFFA).toString(36)
 
 ix.hashAnswer = (answerDoc) ->
@@ -1565,21 +1578,23 @@ Step 5: Evaluate sentence
   situation = {domain, predicates, names}
   result = sentence.evaluate(situation)
   return result
-
-Binary Predicate Tests:
-  LeftOf(a,b) = a.x + a.width ≤ b.x
-  RightOf(a,b) = a.x ≥ b.x + b.width
-  Above(a,b) = a.y + a.height ≤ b.y
-  Below(a,b) = a.y ≥ b.y + b.height
-  Adjacent(a,b) = HorizontallyAdjacent(a,b) OR VerticallyAdjacent(a,b)
-  HorizontallyAdjacent(a,b) = x-edges align AND y-ranges overlap
-  VerticallyAdjacent(a,b) = y-edges align AND x-ranges overlap
-  WiderThan(a,b) = a.width > b.width
-  TallerThan(a,b) = a.height > b.height
-  SameShape(a,b) = a.height/a.width = b.height/b.width
-  LargerThan(a,b) = a.area > b.area
-  SameSize(a,b) = a.area = b.area
 ```
+
+**Binary Predicate Tests:**
+The evaluation relies on the following precise mathematical definitions of spatial relationships. Any recreation of the logic engine must implement these exact tests to ensure compatibility with existing exercises.
+
+*   `LeftOf(a,b)`: `a.x + a.width <= b.x`
+*   `RightOf(a,b)`: `a.x >= b.x + b.width`
+*   `Above(a,b)`: `a.y + a.height <= b.y` (Implies Y coordinate grows downwards in visual representation)
+*   `Below(a,b)`: `a.y >= b.y + b.height`
+*   `Adjacent(a,b)`: `HorizontallyAdjacent(a,b)` OR `VerticallyAdjacent(a,b)`
+    *   `HorizontallyAdjacent(a,b)`: X-edges align (`LeftOf` or `RightOf` strictly) AND Y-ranges overlap (`a.y < b.y + b.height` AND `b.y < a.y + a.height`)
+    *   `VerticallyAdjacent(a,b)`: Y-edges align (`Above` or `Below` strictly) AND X-ranges overlap (`a.x < b.x + b.width` AND `b.x < a.x + a.width`)
+*   `WiderThan(a,b)`: `a.width > b.width`
+*   `TallerThan(a,b)`: `a.height > b.height`
+*   `SameShape(a,b)`: `a.height / a.width == b.height / b.width`
+*   `LargerThan(a,b)`: `a.area > b.area` (where area = width * height)
+*   `SameSize(a,b)`: `a.area == b.area`
 
 ### Scope Depth Calculation
 

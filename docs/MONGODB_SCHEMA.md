@@ -217,7 +217,8 @@ The love-logic-server application uses **6 custom MongoDB collections** plus the
 ```
 
 **Constraints:**
-- Only one submission per (owner, exerciseId) pair active at a time (upserted, not inserted)
+- Only one submission per (owner, exerciseId) pair active at a time.
+- **Implementation Detail:** Uses raw MongoDB `findAndModify` (via `rawCollection()`) rather than standard Meteor `upsert` to ensure atomic locking and prevent race conditions.
 - `humanFeedback` cannot be added to submissions created by other users (authorization check)
 - If a submission has human feedback, only tutors can add/modify it
 
@@ -336,7 +337,8 @@ The love-logic-server application uses **6 custom MongoDB collections** plus the
 
 **Constraints:**
 - Unique constraint on (exerciseId, ownerIdHash, answerHash) - can only have one graded version of each unique answer
-- Should only be updated/uperted, not deleted (supports auto-grading feature)
+- Should only be updated/upserted, not deleted (supports auto-grading feature)
+- **Implementation Detail:** Uses raw MongoDB `findAndModify` (via `rawCollection()`) with `upsert: true` to ensure atomicity.
 
 **Indexes:**
 - `exerciseId` (ascending) - for retrieving graded answers for an exercise
@@ -869,4 +871,3 @@ Expected growth drivers:
 - **Courses & ExerciseSets:** Controlled by instructors (slow growth)
 
 Recommendation: Create regular indexes and consider archiving old submissions after course completion.
-
