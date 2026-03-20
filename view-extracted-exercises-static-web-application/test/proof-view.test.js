@@ -81,4 +81,31 @@ describe("ProofView", () => {
     );
     expect(wrapper.get('[data-proof-row="2"]').classes()).toContain("bg-white/[0.035]");
   });
+
+  it("renders boxed assumption markers with spacing before the sentence", () => {
+    const wrapper = mount(ProofView, {
+      props: {
+        view: {
+          kind: "proof",
+          maxDepth: 1,
+          rows: [
+            {
+              type: "line",
+              number: "1",
+              depth: 1,
+              boxLabel: "a",
+              sentence: "F(a)",
+              justification: "Premise",
+              citations: "",
+              rails: [true]
+            }
+          ]
+        }
+      }
+    });
+
+    expect(wrapper.get('[data-proof-box="1"]').text()).toBe("a");
+    expect(wrapper.get('[data-proof-cell="sentence-1"]').text()).toContain("aF(a)");
+    expect(wrapper.get('[data-proof-cell="sentence-1"]').html()).toContain('w-[1em]');
+  });
 });

@@ -83,6 +83,26 @@ describe("renderAnswerSummary", () => {
     });
   });
 
+  it("extracts boxed assumption markers from proof sentences", () => {
+    const rendered = createRenderedAnswerView(
+      {
+        answer: {
+          content: {
+            proof: "| [a] Premise\n|| F(a) Premise"
+          }
+        }
+      },
+      "/ex/proof/from/-/to/exists x F(x)"
+    );
+
+    expect(rendered.rows[0]).toMatchObject({
+      number: "1",
+      boxLabel: "a",
+      sentence: "",
+      justification: "Premise"
+    });
+  });
+
   it("renders truth-value answers against their question sentences", () => {
     expect(
       createRenderedAnswerView(

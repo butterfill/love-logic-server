@@ -12,7 +12,9 @@ const railSpacingRem = 1.1;
 
 const sentenceColumnWidth = computed(() => {
   const maxSentenceLength = Math.max(
-    ...props.view.rows.map((row) => (row.type === "line" ? row.sentence.length : 6)),
+    ...props.view.rows.map((row) =>
+      row.type === "line" ? row.sentence.length + (row.boxLabel ? row.boxLabel.length + 4 : 0) : 6
+    ),
     0
   );
   return `calc(${maxSentenceLength + 2}ch + ${(props.view.maxDepth + 1) * railSpacingRem}rem)`;
@@ -59,11 +61,19 @@ const sentenceColumnWidth = computed(() => {
           </div>
           <div
             v-else
-            class="formula pt-1 text-stone-50"
+            class="formula flex items-center pt-1 text-stone-50"
             :data-proof-cell="`sentence-${row.number}`"
             :style="{ paddingInlineStart: `${row.depth * railSpacingRem}rem` }"
           >
-            {{ row.sentence }}
+            <span
+              v-if="row.boxLabel"
+              class="inline-flex min-w-[1.6em] items-center justify-center rounded border border-stone-300/80 bg-stone-900 px-1 text-[0.95em] leading-tight text-stone-100"
+              :data-proof-box="row.number"
+            >
+              {{ row.boxLabel }}
+            </span>
+            <span v-if="row.boxLabel && row.sentence" class="inline-block w-[1em]" />
+            <span>{{ row.sentence }}</span>
           </div>
         </div>
 

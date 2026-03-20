@@ -393,6 +393,21 @@ function normalizeProofCitations(citations) {
     .join(", ");
 }
 
+function extractProofBoxLabel(sentence) {
+  const match = String(sentence ?? "").match(/^\[([^\]]+)\](?:\s+(.*))?$/);
+  if (!match) {
+    return {
+      boxLabel: "",
+      sentence: sentence ?? ""
+    };
+  }
+
+  return {
+    boxLabel: match[1],
+    sentence: match[2] ?? ""
+  };
+}
+
 function formatProofCitations(line) {
   if (!line.justification) {
     return "";
@@ -459,11 +474,13 @@ function createProofRow(item) {
   }
 
   const { sentence, justification, citations } = splitProofLineContent(item);
+  const { boxLabel, sentence: unboxedSentence } = extractProofBoxLabel(sentence);
   return {
     type: "line",
     number: item.number ?? "",
     depth,
-    sentence,
+    boxLabel,
+    sentence: unboxedSentence,
     justification,
     citations
   };
@@ -499,11 +516,15 @@ function buildProofRowsFromRawText(proofText) {
       }
 
       const splitMatch = content.match(PROOF_RULE_SPLIT);
+      const { boxLabel, sentence } = extractProofBoxLabel(
+        formatProofSentence(splitMatch ? splitMatch[1] : content)
+      );
       return {
         type: "line",
         number: String(index + 1),
         depth,
-        sentence: formatProofSentence(splitMatch ? splitMatch[1] : content),
+        boxLabel,
+        sentence,
         justification: normalizeProofRuleLabel(splitMatch ? splitMatch[2] : ""),
         citations: normalizeProofCitations(splitMatch?.[3] ?? "")
       };
