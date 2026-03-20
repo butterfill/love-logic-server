@@ -8,6 +8,22 @@ import LecturePage from "./views/LecturePage.vue";
 import SectionPage from "./views/SectionPage.vue";
 import UploadPage from "./views/UploadPage.vue";
 
+export function getRedirectForStoreState(store, to) {
+  if (!store.isReady.value) {
+    return null;
+  }
+
+  if (!store.hasData.value && to.name !== "upload") {
+    return { name: "upload" };
+  }
+
+  if (store.hasData.value && to.name === "upload") {
+    return { name: "courses" };
+  }
+
+  return null;
+}
+
 export function createAppRouter(store) {
   const router = createRouter({
     history: createWebHashHistory(),
@@ -42,19 +58,7 @@ export function createAppRouter(store) {
   });
 
   router.beforeEach((to) => {
-    if (!store.isReady.value) {
-      return true;
-    }
-
-    if (!store.hasData.value && to.name !== "upload") {
-      return { name: "upload" };
-    }
-
-    if (store.hasData.value && to.name === "upload") {
-      return { name: "courses" };
-    }
-
-    return true;
+    return getRedirectForStoreState(store, to) ?? true;
   });
 
   return router;

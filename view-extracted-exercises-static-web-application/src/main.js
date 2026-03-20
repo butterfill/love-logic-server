@@ -1,7 +1,7 @@
 import { createApp } from "vue";
 
 import App from "./App.vue";
-import { createAppRouter } from "./router.js";
+import { createAppRouter, getRedirectForStoreState } from "./router.js";
 import { createExtractedDataRepository } from "./domain/storage.js";
 import { createExtractedDataStore } from "./stores/extracted-data.js";
 import "./style.css";
@@ -16,5 +16,8 @@ app.use(router);
 app.mount("#app");
 
 store.initialize().then(() => {
-  router.replace(router.currentRoute.value.fullPath);
+  const redirect = getRedirectForStoreState(store, router.currentRoute.value);
+  if (redirect) {
+    router.replace(redirect);
+  }
 });
