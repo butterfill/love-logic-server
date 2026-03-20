@@ -8,17 +8,49 @@ const props = defineProps({
   }
 });
 
-const decoratedHtml = computed(() => {
-  if (!props.sentence.selection?.symbolNum) {
-    return props.sentence.html;
+function highlightSelectedSymbol(html, selection) {
+  if (!selection?.symbolNum) {
+    return html;
   }
 
-  const symbolNum = String(props.sentence.selection.symbolNum).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(
-    `(<span[^>]*class="[^"]*_symbolWrap[^"]*"[^>]*data-symbolNum="${symbolNum}"[^>]*>)([\\s\\S]*?)(</span>)`,
-    "i"
-  );
-  return props.sentence.html.replace(pattern, '$1<span class="scope-answer-highlight">$2</span>$3');
+  const parser = new DOMParser();
+  const document = parser.parseFromString(`<div>${html}</div>`, "text/html");
+  const root = document.body.firstElementChild;
+  const wrappers = Array.from(root.querySelectorAll(`._symbolWrap[data-symbolNum="${selection.symbolNum}"]`));
+
+  if (wrappers.length === 0) {
+    return html;
+  }
+
+  const targetDepth = Number(selection.scopeDepth ?? 0);
+  const target =
+    wrappers.find((wrapper) => countExpressionDepth(wrapper) === targetDepth) ??
+    wrappers[0];
+
+  const highlight = document.createElement("span");
+  highlight.className = "scope-answer-highlight";
+  highlight.innerHTML = target.innerHTML;
+  target.replaceChildren(highlight);
+
+  return root.innerHTML;
+}
+
+function countExpressionDepth(element) {
+  let depth = 0;
+  let current = element.parentElement;
+
+  while (current) {
+    if (current.classList.contains("_expressionWrap")) {
+      depth += 1;
+    }
+    current = current.parentElement;
+  }
+
+  return depth;
+}
+
+const decoratedHtml = computed(() => {
+  return highlightSelectedSymbol(props.sentence.html, props.sentence.selection);
 });
 </script>
 
