@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(180, 134, 87, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(15, 76, 92, 0.14), transparent 26%),
+    linear-gradient(180deg, #f8f3ea 0%, #f2ede2 46%, #ebe4d7 100%);
+}
+
+.panel {
+  @apply rounded-3xl border border-stone-300/70 bg-white/80 shadow-[0_16px_60px_-24px_rgba(41,37,36,0.45)] backdrop-blur;
+}
+
+.chip {
+  @apply inline-flex items-center rounded-full border border-stone-300 bg-stone-100 px-3 py-1 text-xs font-medium tracking-wide text-stone-700;
+}
+
+.table-head {
+  @apply text-left text-xs uppercase tracking-[0.22em] text-stone-500;
+}
+
+.formula {
+  @apply font-["Times_New_Roman","Cambria_Math","STIX_Two_Text",serif] text-[1.05rem];
+}
