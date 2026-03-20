@@ -42,4 +42,43 @@ describe("ProofView", () => {
     expect(justification.text()).toContain("1, 1");
     expect(justification.text()).not.toContain("A ∧ B");
   });
+
+  it("indents nested proof lines and alternates row backgrounds", () => {
+    const wrapper = mount(ProofView, {
+      props: {
+        view: {
+          kind: "proof",
+          maxDepth: 2,
+          rows: [
+            {
+              type: "line",
+              number: "1",
+              depth: 1,
+              sentence: "A",
+              justification: "Premise",
+              citations: "",
+              rails: [true, false]
+            },
+            {
+              type: "line",
+              number: "2",
+              depth: 2,
+              sentence: "B",
+              justification: "Premise",
+              citations: "",
+              rails: [true, true]
+            }
+          ]
+        }
+      }
+    });
+
+    expect(wrapper.get('[data-proof-cell="sentence-1"]').attributes("style")).toContain(
+      "padding-inline-start: 1.1rem"
+    );
+    expect(wrapper.get('[data-proof-cell="sentence-2"]').attributes("style")).toContain(
+      "padding-inline-start: 2.2rem"
+    );
+    expect(wrapper.get('[data-proof-row="2"]').classes()).toContain("bg-white/[0.035]");
+  });
 });

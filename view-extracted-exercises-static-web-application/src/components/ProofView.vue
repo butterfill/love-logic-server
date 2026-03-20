@@ -1,10 +1,23 @@
 <script setup>
-defineProps({
+import { computed } from "vue";
+
+const props = defineProps({
   view: {
     type: Object,
     required: true
   }
 });
+
+const railSpacingRem = 1.1;
+
+const sentenceColumnWidth = computed(() => {
+  const maxSentenceLength = Math.max(
+    ...props.view.rows.map((row) => (row.type === "line" ? row.sentence.length : 6)),
+    0
+  );
+  return `calc(${maxSentenceLength + 2}ch + ${(props.view.maxDepth + 1) * railSpacingRem}rem)`;
+});
+
 </script>
 
 <template>
@@ -13,9 +26,11 @@ defineProps({
       <div
         v-for="(row, index) in view.rows"
         :key="`${row.number}-${index}`"
-        class="grid items-stretch gap-x-3"
+        class="grid items-stretch gap-x-[3ch] rounded-lg px-2"
+        :class="index % 2 === 0 ? 'bg-white/0' : 'bg-white/[0.035]'"
+        :data-proof-row="row.number"
         :style="{
-          gridTemplateColumns: `4rem ${Math.max(view.maxDepth, 1) * 1.1}rem minmax(18rem, 1fr) minmax(12rem, auto)`
+          gridTemplateColumns: `4rem ${sentenceColumnWidth} max-content`
         }"
       >
         <div class="pt-1 text-right text-stone-400">
@@ -23,34 +38,33 @@ defineProps({
         </div>
 
         <div
-          class="grid"
-          :style="{ gridTemplateColumns: `repeat(${Math.max(view.maxDepth, 1)}, minmax(0, 1fr))` }"
+          class="relative min-h-7"
+          :style="{ width: sentenceColumnWidth }"
         >
-          <div
+          <span
             v-for="(active, railIndex) in row.rails"
             :key="railIndex"
-            class="relative min-h-7"
-          >
-            <span
-              v-if="active"
-              class="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-stone-500"
-            />
-          </div>
-        </div>
+            v-show="active"
+            class="absolute inset-y-0 w-px bg-stone-500"
+            :style="{ left: `${railIndex * railSpacingRem}rem` }"
+          />
 
-        <div
-          v-if="row.type === 'divider'"
-          class="flex items-center"
-          :data-proof-cell="`sentence-${row.number}`"
-        >
-          <div class="w-full border-t border-stone-400/80" />
-        </div>
-        <div
-          v-else
-          class="formula pt-1 text-stone-50"
-          :data-proof-cell="`sentence-${row.number}`"
-        >
-          {{ row.sentence }}
+          <div
+            v-if="row.type === 'divider'"
+            class="flex items-center pt-3"
+            :data-proof-cell="`sentence-${row.number}`"
+            :style="{ marginInlineStart: `${Math.max(row.depth - 1, 0) * railSpacingRem}rem` }"
+          >
+            <div class="w-full border-t border-stone-400/80" />
+          </div>
+          <div
+            v-else
+            class="formula pt-1 text-stone-50"
+            :data-proof-cell="`sentence-${row.number}`"
+            :style="{ paddingInlineStart: `${row.depth * railSpacingRem}rem` }"
+          >
+            {{ row.sentence }}
+          </div>
         </div>
 
         <div
