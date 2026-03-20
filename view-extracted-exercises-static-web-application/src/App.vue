@@ -19,8 +19,8 @@ function cancelClear() {
   showClearModal.value = false;
 }
 
-function confirmClear() {
-  store.clear();
+async function confirmClear() {
+  await store.clear();
   showClearModal.value = false;
   router.push({ name: "upload" });
 }
@@ -60,7 +60,7 @@ function confirmClear() {
       <div class="panel w-full max-w-md p-6">
         <h2 class="text-xl font-semibold text-stone-900">Remove stored data?</h2>
         <p class="mt-3 text-sm leading-6 text-stone-600">
-          This clears the uploaded JSON from browser storage. You will need to upload a file again before
+          This clears the uploaded JSON from IndexedDB in this browser. You will need to upload a file again before
           using the viewer.
         </p>
         <div class="mt-6 flex justify-end gap-3">

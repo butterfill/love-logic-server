@@ -8,6 +8,7 @@ const errorMessage = ref("");
 const isLoading = ref(false);
 
 const summary = computed(() => store.normalized.value);
+const migrationNotice = computed(() => store.migrationNotice.value);
 
 async function onFileChange(event) {
   const file = event.target.files?.[0];
@@ -21,7 +22,7 @@ async function onFileChange(event) {
   try {
     const raw = await file.text();
     const parsed = JSON.parse(raw);
-    store.importDocument(parsed);
+    await store.importDocument(parsed);
     router.push({ name: "courses" });
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Failed to read the JSON file.";
@@ -39,7 +40,8 @@ async function onFileChange(event) {
       <h2 class="mt-2 text-3xl font-semibold text-stone-900">Load an extracted JSON archive</h2>
       <p class="mt-4 max-w-2xl text-sm leading-7 text-stone-600">
         Choose a file produced by the `extract-exercises-for-instructor` CLI. The archive is stored in this
-        browser only, so you do not need to upload it again on the next visit unless you clear the saved data.
+        browser only using IndexedDB, so you do not need to upload it again on the next visit unless you clear
+        the saved data.
       </p>
 
       <label class="mt-8 flex cursor-pointer flex-col items-center justify-center rounded-[2rem] border border-dashed border-stone-400 bg-stone-50 px-6 py-14 text-center transition hover:border-stone-700 hover:bg-white">
@@ -49,6 +51,9 @@ async function onFileChange(event) {
         <input class="sr-only" type="file" accept=".json,application/json" @change="onFileChange" />
       </label>
 
+      <p v-if="migrationNotice" class="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        {{ migrationNotice }}
+      </p>
       <p v-if="errorMessage" class="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{{ errorMessage }}</p>
       <p v-if="isLoading" class="mt-4 text-sm text-stone-500">Reading file…</p>
     </div>

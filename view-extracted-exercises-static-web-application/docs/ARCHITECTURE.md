@@ -29,15 +29,16 @@ The answer cards always expose two views:
 
 That keeps the new renderer safe to evolve while preserving direct access to the source data.
 
-### 3. Use browser-local persistence only
+### 3. Use IndexedDB for browser-local persistence
 
-The uploaded archive is stored in `localStorage` through `src/domain/storage.js`.
+The uploaded archive is stored in IndexedDB through `src/domain/storage.js`. On startup, the app also checks for the old `localStorage` archive key, deletes it if present, and exposes a notice that the user must re-upload.
 
 Why:
 
 - The app is static and has no backend.
 - The archive is instructor-private and remains on the instructor's device.
-- The clear-data flow has a single responsibility and can fully reset the app to the upload state.
+- IndexedDB can handle large instructor archives that exceed `localStorage` quotas.
+- The clear-data flow still has a single responsibility and can fully reset the app to the upload state.
 
 ### 4. Hash-based routing for static hosting
 
