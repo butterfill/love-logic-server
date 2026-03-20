@@ -1,16 +1,15 @@
 <script setup>
 import { computed, inject, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 
 const store = inject("extractedDataStore");
 const router = useRouter();
-const route = useRoute();
 const showClearModal = ref(false);
 
 const instructorLabel = computed(
   () => store.normalized.value?.instructor?.emailAddress ?? "No data loaded"
 );
-const showClearButton = computed(() => store.hasData.value && route.name === "exercise");
+const showClearButton = computed(() => store.hasData.value);
 
 function openClearModal() {
   showClearModal.value = true;
@@ -43,7 +42,7 @@ function confirmClear() {
             class="rounded-full border border-stone-50/40 px-4 py-2 text-sm font-medium text-stone-50 transition hover:bg-stone-50/10"
             @click="openClearModal"
           >
-            Clear data
+            clear all data
           </button>
         </div>
       </div>
@@ -72,7 +71,7 @@ function confirmClear() {
             class="rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700"
             @click="confirmClear"
           >
-            Clear data
+            clear all data
           </button>
         </div>
       </div>
