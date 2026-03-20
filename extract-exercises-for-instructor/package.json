@@ -1,0 +1,24 @@
+{
+  "name": "extract-exercises-for-instructor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "extract-exercises-for-instructor": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "@inquirer/confirm": "^6.0.10",
+    "commander": "^14.0.3",
+    "mongodb": "^7.1.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.0"
+  }
+}
