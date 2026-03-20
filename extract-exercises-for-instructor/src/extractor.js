@@ -30,18 +30,20 @@ export function buildInstructorExport({ instructor, courses, exerciseSets, submi
   const ownedCourses = courses.filter((course) => courseNames.includes(course.name));
   const submissionMap = new Map();
   const exerciseIdSet = new Set();
+  const ownedSubmissions = submissions.filter((submission) => idsEqual(submission.owner, instructor._id));
 
-  for (const submission of submissions) {
-    const existing = submissionMap.get(submission.exerciseId) ?? [];
+  for (const submission of ownedSubmissions) {
+    const normalizedExerciseId = normalizeExerciseId(submission.exerciseId);
+    const existing = submissionMap.get(normalizedExerciseId) ?? [];
     existing.push(cloneForJson(submission));
-    submissionMap.set(submission.exerciseId, existing);
+    submissionMap.set(normalizedExerciseId, existing);
   }
 
   for (const exerciseSet of ownedExerciseSets) {
     for (const lecture of exerciseSet.lectures ?? []) {
       for (const unit of lecture.units ?? []) {
         for (const exerciseId of unit.rawExercises ?? []) {
-          exerciseIdSet.add(exerciseId);
+          exerciseIdSet.add(normalizeExerciseId(exerciseId));
         }
       }
     }
@@ -65,10 +67,10 @@ export function buildInstructorExport({ instructor, courses, exerciseSets, submi
             lectures: (exerciseSet.lectures ?? []).map((lecture) => ({
               ...cloneForJson(lecture),
               units: (lecture.units ?? []).map((unit) => ({
-                ...cloneForJson(unit),
-                exercises: (unit.rawExercises ?? []).map((exerciseId) => ({
-                  exerciseId,
-                  answers: submissionMap.get(exerciseId) ?? []
+              ...cloneForJson(unit),
+              exercises: (unit.rawExercises ?? []).map((exerciseId) => ({
+                  exerciseId: normalizeExerciseId(exerciseId),
+                  answers: submissionMap.get(normalizeExerciseId(exerciseId)) ?? []
                 }))
               }))
             }))
@@ -121,7 +123,7 @@ export async function extractInstructorData(emailAddress, options = {}) {
       courses.find({ name: { $in: ownedCourseNames } }).toArray(),
       ownedExerciseIds.length === 0
         ? []
-        : submissions.find({ exerciseId: { $in: ownedExerciseIds } }).toArray()
+        : submissions.find({ exerciseId: { $in: ownedExerciseIds }, owner: instructor._id }).toArray()
     ]);
 
     return buildInstructorExport({
@@ -141,6 +143,14 @@ function idsEqual(left, right) {
   return left?.toString?.() === right?.toString?.();
 }
 
+export function normalizeExerciseId(exerciseLink) {
+  const trimmedExerciseLink = String(exerciseLink).replace(/\/?$/, "");
+  return trimmedExerciseLink
+    .split("/")
+    .map((part) => encodeURIComponent(decodeURIComponent(part)))
+    .join("/");
+}
+
 function collectExerciseIds(exerciseSets) {
   const exerciseIds = new Set();
 
@@ -148,7 +158,7 @@ function collectExerciseIds(exerciseSets) {
     for (const lecture of exerciseSet.lectures ?? []) {
       for (const unit of lecture.units ?? []) {
         for (const exerciseId of unit.rawExercises ?? []) {
-          exerciseIds.add(exerciseId);
+          exerciseIds.add(normalizeExerciseId(exerciseId));
         }
       }
     }
