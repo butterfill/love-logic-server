@@ -103,6 +103,26 @@ describe("renderAnswerSummary", () => {
     });
   });
 
+  it("extracts boxed assumption markers when the sentence starts immediately after the box", () => {
+    const rendered = createRenderedAnswerView(
+      {
+        answer: {
+          content: {
+            proof: "| [a](F(a) -> G(a)) Premise"
+          }
+        }
+      },
+      "/ex/proof/from/-/to/exists x G(x)"
+    );
+
+    expect(rendered.rows[0]).toMatchObject({
+      number: "1",
+      boxLabel: "a",
+      sentence: "(F(a) → G(a))",
+      justification: "Premise"
+    });
+  });
+
   it("renders truth-value answers against their question sentences", () => {
     expect(
       createRenderedAnswerView(

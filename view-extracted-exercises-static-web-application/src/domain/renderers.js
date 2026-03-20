@@ -394,7 +394,7 @@ function normalizeProofCitations(citations) {
 }
 
 function extractProofBoxLabel(sentence) {
-  const match = String(sentence ?? "").match(/^\[([^\]]+)\](?:\s+(.*))?$/);
+  const match = String(sentence ?? "").match(/^\[([^\]]+)\](?:\s*(.*))?$/);
   if (!match) {
     return {
       boxLabel: "",
