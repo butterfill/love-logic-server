@@ -25,14 +25,13 @@ export function findUserByEmailAddress(users, emailAddress) {
 }
 
 export function buildInstructorExport({ instructor, courses, exerciseSets, submissions }) {
-  const ownedExerciseSets = exerciseSets.filter((exerciseSet) => exerciseSet.owner === instructor._id);
+  const ownedExerciseSets = exerciseSets.filter((exerciseSet) => idsEqual(exerciseSet.owner, instructor._id));
   const courseNames = [...new Set(ownedExerciseSets.map((exerciseSet) => exerciseSet.courseName))];
   const ownedCourses = courses.filter((course) => courseNames.includes(course.name));
   const submissionMap = new Map();
   const exerciseIdSet = new Set();
-  const ownedSubmissions = submissions.filter((submission) => submission.owner === instructor._id);
 
-  for (const submission of ownedSubmissions) {
+  for (const submission of submissions) {
     const existing = submissionMap.get(submission.exerciseId) ?? [];
     existing.push(cloneForJson(submission));
     submissionMap.set(submission.exerciseId, existing);
@@ -122,7 +121,7 @@ export async function extractInstructorData(emailAddress, options = {}) {
       courses.find({ name: { $in: ownedCourseNames } }).toArray(),
       ownedExerciseIds.length === 0
         ? []
-        : submissions.find({ exerciseId: { $in: ownedExerciseIds }, owner: instructor._id }).toArray()
+        : submissions.find({ exerciseId: { $in: ownedExerciseIds } }).toArray()
     ]);
 
     return buildInstructorExport({
@@ -136,6 +135,10 @@ export async function extractInstructorData(emailAddress, options = {}) {
       await client.close();
     }
   }
+}
+
+function idsEqual(left, right) {
+  return left?.toString?.() === right?.toString?.();
 }
 
 function collectExerciseIds(exerciseSets) {

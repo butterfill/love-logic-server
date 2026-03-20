@@ -22,7 +22,7 @@ describe("findUserByEmailAddress", () => {
 });
 
 describe("buildInstructorExport", () => {
-  it("includes only courses, exercise sets, and answers owned by the requested instructor", () => {
+  it("includes only courses and exercise sets owned by the requested instructor", () => {
     const exportData = buildInstructorExport({
       instructor: {
         _id: "instructor-1",
@@ -70,7 +70,7 @@ describe("buildInstructorExport", () => {
       submissions: [
         {
           _id: "submission-1",
-          owner: "instructor-1",
+          owner: "student-1",
           exerciseId: "/ex/proof/1",
           answer: { content: { proof: "A" } }
         },
@@ -99,7 +99,7 @@ describe("buildInstructorExport", () => {
         answers: [
           {
             _id: "submission-1",
-            owner: "instructor-1",
+            owner: "student-1",
             exerciseId: "/ex/proof/1",
             answer: { content: { proof: "A" } }
           }
@@ -107,12 +107,19 @@ describe("buildInstructorExport", () => {
       },
       {
         exerciseId: "/ex/proof/2",
-        answers: []
+        answers: [
+          {
+            _id: "submission-2",
+            owner: "student-2",
+            exerciseId: "/ex/proof/2",
+            answer: { content: { proof: "B" } }
+          }
+        ]
       }
     ]);
   });
 
-  it("does not include answers owned by other users even when the exercise is owned by the instructor", () => {
+  it("does not include answers for exercises the instructor does not own", () => {
     const exportData = buildInstructorExport({
       instructor: {
         _id: "instructor-1",
@@ -141,7 +148,43 @@ describe("buildInstructorExport", () => {
     });
 
     expect(exportData.exerciseIds).toEqual(["/ex/proof/1"]);
-    expect(exportData.courses[0].exerciseSets[0].lectures[0].units[0].exercises[0].answers).toEqual([]);
+    expect(exportData.courses[0].exerciseSets[0].lectures[0].units[0].exercises[0].answers).toEqual([
+      { _id: "submission-1", owner: "other-user", exerciseId: "/ex/proof/1" }
+    ]);
+  });
+
+  it("includes all submissions to an owned exercise, regardless of who submitted them", () => {
+    const exportData = buildInstructorExport({
+      instructor: {
+        _id: "instructor-1",
+        emails: [{ address: "teacher@example.com" }]
+      },
+      courses: [{ _id: "course-1", name: "logic-101", description: "Logic 101" }],
+      exerciseSets: [
+        {
+          _id: "set-1",
+          owner: "instructor-1",
+          courseName: "logic-101",
+          variant: "normal",
+          description: "Main set",
+          lectures: [
+            {
+              name: "lecture_01",
+              units: [{ name: "unit-1", rawExercises: ["/ex/proof/1"] }]
+            }
+          ]
+        }
+      ],
+      submissions: [
+        { _id: "submission-1", owner: "student-1", exerciseId: "/ex/proof/1" },
+        { _id: "submission-2", owner: "student-2", exerciseId: "/ex/proof/1" }
+      ]
+    });
+
+    expect(exportData.courses[0].exerciseSets[0].lectures[0].units[0].exercises[0].answers).toEqual([
+      { _id: "submission-1", owner: "student-1", exerciseId: "/ex/proof/1" },
+      { _id: "submission-2", owner: "student-2", exerciseId: "/ex/proof/1" }
+    ]);
   });
 });
 
