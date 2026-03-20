@@ -79,12 +79,18 @@ export function buildInstructorExport({ instructor, courses, exerciseSets, submi
 }
 
 export async function extractInstructorData(emailAddress, options = {}) {
-  const mongoUrl =
+  const mongoUrl = normalizeMongoUrl(
     options.mongoUrl ??
-    process.env.EXTRACTOR_MONGODB_URL ??
-    process.env.MONGODB_URL ??
-    process.env.MONGO_URL ??
-    DEFAULT_MONGODB_URL;
+      process.env.EXTRACTOR_MONGODB_URL ??
+      process.env.MONGODB_URL ??
+      process.env.MONGO_URL ??
+      DEFAULT_MONGODB_URL,
+    {
+      directConnection:
+        options.directConnection ??
+        parseOptionalBoolean(process.env.EXTRACTOR_MONGODB_DIRECT_CONNECTION)
+    }
+  );
 
   const client = options.client ?? new MongoClient(mongoUrl);
   const shouldCloseClient = !options.client;
@@ -149,4 +155,55 @@ function collectExerciseIds(exerciseSets) {
 
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function normalizeMongoUrl(mongoUrl, options = {}) {
+  const directConnection = options.directConnection;
+
+  if (mongoUrl.includes("directConnection=")) {
+    return mongoUrl;
+  }
+
+  if (directConnection === true) {
+    return appendQueryParam(mongoUrl, "directConnection=true");
+  }
+
+  if (directConnection === false) {
+    return mongoUrl;
+  }
+
+  if (isSingleLoopbackMongoUrl(mongoUrl)) {
+    return appendQueryParam(mongoUrl, "directConnection=true");
+  }
+
+  return mongoUrl;
+}
+
+function appendQueryParam(url, queryParam) {
+  return `${url}${url.includes("?") ? "&" : "?"}${queryParam}`;
+}
+
+function isSingleLoopbackMongoUrl(url) {
+  if (!url.startsWith("mongodb://")) {
+    return false;
+  }
+
+  if (url.includes(",")) {
+    return false;
+  }
+
+  const withoutScheme = url.slice("mongodb://".length);
+  const authority = withoutScheme.split("/")[0] ?? "";
+  const hostPort = authority.includes("@") ? authority.split("@").at(-1) : authority;
+  const hostname = hostPort.replace(/:\d+$/, "");
+
+  return hostname === "127.0.0.1" || hostname === "localhost" || hostname === "[::1]";
+}
+
+function parseOptionalBoolean(value) {
+  if (value == null || value === "") {
+    return undefined;
+  }
+
+  return String(value).toLowerCase() === "true";
 }

@@ -48,11 +48,38 @@ MONGODB_URL=...
 MONGO_URL=...
 ```
 
+Optional connection override:
+
+```bash
+EXTRACTOR_MONGODB_DIRECT_CONNECTION=true|false
+```
+
 Example:
 
 ```bash
 EXTRACTOR_MONGODB_URL=mongodb://localhost:27017/love-logic \
   pnpm exec extract-exercises-for-instructor extract teacher@example.com
+```
+
+### SSH Tunnel / Replica Set Note
+
+If you connect through a local SSH port forward to a single replica-set member, the MongoDB driver can otherwise time out during topology discovery because the replica-set config advertises other hosts your machine cannot reach directly.
+
+This tool now auto-enables `directConnection=true` for single-host loopback URLs such as `127.0.0.1` or `localhost`.
+
+For your case, this is the right shape:
+
+```bash
+MONGODB_URL='mongodb://root:logic-vu-uk5@127.0.0.1:27018/db?authSource=admin&directConnection=true' \
+  pnpm exec extract-exercises-for-instructor extract teacher@example.com
+```
+
+If needed, you can force the same behavior without editing the URI:
+
+```bash
+EXTRACTOR_MONGODB_DIRECT_CONNECTION=true \
+MONGODB_URL='mongodb://root:logic-vu-uk5@127.0.0.1:27018/db?authSource=admin' \
+pnpm exec extract-exercises-for-instructor extract teacher@example.com
 ```
 
 This writes:

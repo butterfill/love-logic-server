@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { buildInstructorExport, findUserByEmailAddress } from "../src/extractor.js";
+import {
+  buildInstructorExport,
+  findUserByEmailAddress,
+  normalizeMongoUrl
+} from "../src/extractor.js";
 
 describe("findUserByEmailAddress", () => {
   it("matches an email address case-insensitively", () => {
@@ -147,5 +151,25 @@ describe("buildInstructorExport", () => {
     expect(exportData.courses[0].exerciseSets[0].lectures[0].units[0].exercises[0].answers).toEqual([
       { _id: "submission-1", exerciseId: "/ex/proof/1" }
     ]);
+  });
+});
+
+describe("normalizeMongoUrl", () => {
+  it("forces directConnection for a single loopback SSH-forwarded host", () => {
+    expect(
+      normalizeMongoUrl("mongodb://root:pw@127.0.0.1:27018/db?authSource=admin")
+    ).toBe("mongodb://root:pw@127.0.0.1:27018/db?authSource=admin&directConnection=true");
+  });
+
+  it("does not change a URL that already specifies directConnection", () => {
+    expect(
+      normalizeMongoUrl("mongodb://root:pw@127.0.0.1:27018/db?authSource=admin&directConnection=false")
+    ).toBe("mongodb://root:pw@127.0.0.1:27018/db?authSource=admin&directConnection=false");
+  });
+
+  it("can be controlled explicitly through an option", () => {
+    expect(
+      normalizeMongoUrl("mongodb://db.example.com:27017/love-logic", { directConnection: true })
+    ).toBe("mongodb://db.example.com:27017/love-logic?directConnection=true");
   });
 });
