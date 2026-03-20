@@ -65,12 +65,14 @@ EXTRACTOR_MONGODB_URL=mongodb://localhost:27017/love-logic \
 
 If you connect through a local SSH port forward to a single replica-set member, the MongoDB driver can otherwise time out during topology discovery because the replica-set config advertises other hosts your machine cannot reach directly.
 
+(Btw: `ssh -L 27018:localhost:27017  root@logic-vu-uk5` to set up SSH local port forwarding)
+
 This tool now auto-enables `directConnection=true` for single-host loopback URLs such as `127.0.0.1` or `localhost`.
 
 For your case, this is the right shape:
 
 ```bash
-MONGODB_URL='mongodb://root:logic-vu-uk5@127.0.0.1:27018/db?authSource=admin&directConnection=true' \
+MONGODB_URL='mongodb://127.0.0.1:27018/love-logic?directConnection=true' \
   pnpm exec extract-exercises-for-instructor extract teacher@example.com
 ```
 
@@ -78,7 +80,7 @@ If needed, you can force the same behavior without editing the URI:
 
 ```bash
 EXTRACTOR_MONGODB_DIRECT_CONNECTION=true \
-MONGODB_URL='mongodb://root:logic-vu-uk5@127.0.0.1:27018/db?authSource=admin' \
+MONGODB_URL='mongodb://127.0.0.1:27018/love-logic?directConnection=true' \
 pnpm exec extract-exercises-for-instructor extract teacher@example.com
 ```
 
