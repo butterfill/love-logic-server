@@ -22,6 +22,13 @@ Why:
 - Question-type rendering can be extended without touching route or view components.
 - Vitest can lock in behavior for each exercise type without component brittleness.
 
+The answer cards always expose two views:
+
+- `Rendered`: the best approximation of the original Meteor presentation
+- `Raw`: the underlying stored answer document
+
+That keeps the new renderer safe to evolve while preserving direct access to the source data.
+
 ### 3. Use browser-local persistence only
 
 The uploaded archive is stored in `localStorage` through `src/domain/storage.js`.

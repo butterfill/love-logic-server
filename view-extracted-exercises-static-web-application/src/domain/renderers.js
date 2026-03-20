@@ -1,4 +1,4 @@
-import { fol } from "@butterfill/awfol/browser";
+import { fol, parseProof } from "@butterfill/awfol/browser";
 
 function safeDecode(value) {
   try {
@@ -32,6 +32,19 @@ function parseSegmentedExerciseId(exerciseId) {
 
 function parseSentenceList(raw) {
   return raw.split("|").map(toReadableSentence);
+}
+
+function parseFormulaObjectsFromText(raw) {
+  return safeDecode(raw)
+    .split("|")
+    .map((text) => {
+      try {
+        return fol.parseUsingSystemParser(text);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
 }
 
 function buildProofQuestion(parts) {
@@ -232,56 +245,311 @@ export function parseExerciseQuestion(exerciseId) {
   }
 }
 
-function formatBoolArray(values) {
-  return values.map((value, index) => `#${index + 1}: ${String(value)}`);
+function getExerciseFormulaContext(exerciseId) {
+  const { parts, type } = parseSegmentedExerciseId(exerciseId);
+  const qqIndex = parts.indexOf("qq");
+  const fromIndex = parts.indexOf("from");
+  const toIndex = parts.indexOf("to");
+
+  if (type === "tt" || type === "TorF" || type === "scope" || type === "create" || type === "counter") {
+    if (qqIndex >= 0) {
+      return {
+        sentences: parseFormulaObjectsFromText(parts[qqIndex + 1] ?? ""),
+        labels: parseSentenceList(parts[qqIndex + 1] ?? "")
+      };
+    }
+  }
+
+  if (fromIndex >= 0 && toIndex >= 0) {
+    const premises = parseFormulaObjectsFromText(parts[fromIndex + 1] ?? "");
+    const conclusion = parseFormulaObjectsFromText(parts[toIndex + 1] ?? "")[0];
+    const labels = [
+      ...parseSentenceList(parts[fromIndex + 1] ?? ""),
+      toReadableSentence(parts[toIndex + 1] ?? "")
+    ];
+    return {
+      premises,
+      conclusion,
+      sentences: conclusion ? [...premises, conclusion] : premises,
+      labels
+    };
+  }
+
+  return { sentences: [], labels: [] };
 }
 
-export function renderAnswerSummary(answerDocument) {
-  const content = answerDocument?.answer?.content ?? {};
-
-  if (typeof content.proof === "string") {
-    return {
-      title: "Proof",
-      code: content.proof
-    };
+function getTruthTableLetters(formulaObjects) {
+  const letters = new Set();
+  for (const sentence of formulaObjects) {
+    for (const letter of sentence.getSentenceLetters()) {
+      letters.add(letter);
+    }
   }
+  return [...letters];
+}
 
-  if (typeof content.sentence === "string") {
-    return {
-      title: "Sentence",
-      prose: content.sentence
-    };
+function formatTruthValue(value) {
+  if (value === true) {
+    return "T";
   }
+  if (value === false) {
+    return "F";
+  }
+  return "";
+}
 
-  if (Array.isArray(content.TorF)) {
-    return {
-      title: "Truth Values",
-      items: formatBoolArray(content.TorF)
-    };
-  }
-
-  if (content.counterexample || content.world) {
-    return {
-      title: "Possible Situation",
-      code: JSON.stringify(content.counterexample ?? content.world, null, 2)
-    };
-  }
-
-  if (content.tree) {
-    return {
-      title: "Tree",
-      code: JSON.stringify(content.tree, null, 2)
-    };
-  }
+function renderTruthValues(answerDocument, exerciseId) {
+  const values = answerDocument?.answer?.content?.TorF ?? [];
+  const context = getExerciseFormulaContext(exerciseId);
+  const labels =
+    context.labels.length > 0
+      ? context.labels
+      : values.map((_, index) => `Statement ${index + 1}`);
 
   return {
-    title: "Answer Data",
-    code: JSON.stringify(content, null, 2)
+    kind: "truth-values",
+    title: "Truth values",
+    items: values.map((value, index) => ({
+      label: labels[index] ?? `Statement ${index + 1}`,
+      value: String(value)
+    }))
   };
 }
 
+function renderTruthTable(answerDocument, exerciseId) {
+  const rows = answerDocument?.answer?.content?.tt ?? [];
+  const context = getExerciseFormulaContext(exerciseId);
+  const letters = getTruthTableLetters(context.sentences);
+  return {
+    kind: "truth-table",
+    title: "Truth table",
+    headers: [...letters, ...context.labels],
+    rows: rows.map((row) => row.map(formatTruthValue))
+  };
+}
+
+function renderProof(answerDocument) {
+  const proofText = answerDocument?.answer?.content?.proof ?? "";
+  const dialectName = answerDocument?.answer?.content?.dialectName;
+  const dialectVersion = answerDocument?.answer?.content?.dialectVersion;
+  const dialectLabel =
+    dialectName || dialectVersion ? `${dialectName ?? "[unspecified]"} (version ${dialectVersion ?? "?"})` : null;
+
+  try {
+    const parsed = parseProof(proofText);
+    if (typeof parsed === "string") {
+      throw new Error(parsed);
+    }
+
+    return {
+      kind: "proof",
+      title: "Proof",
+      dialectLabel,
+      lines: parsed.toString({ numberLines: true }).split("\n")
+    };
+  } catch {
+    return {
+      kind: "proof",
+      title: "Proof",
+      dialectLabel,
+      lines: proofText.split("\n")
+    };
+  }
+}
+
+function renderSentence(answerDocument) {
+  const sentence = answerDocument?.answer?.content?.sentence ?? "";
+  const dialectName = answerDocument?.answer?.content?.dialectName;
+  const dialectVersion = answerDocument?.answer?.content?.dialectVersion;
+  return {
+    kind: "sentence",
+    title: "Sentence",
+    dialectLabel:
+      dialectName || dialectVersion ? `${dialectName ?? "[unspecified]"} (version ${dialectVersion ?? "?"})` : null,
+    sentence,
+    normalizedSentence: safeParseFormula(sentence)
+  };
+}
+
+const POSSIBLE_WORLD_MOUTHS = [
+  { symbol: ")", predicates: ["Happy", "Smiling"] },
+  { symbol: "|", predicates: ["Neutral"] },
+  { symbol: "(", predicates: ["Sad"] },
+  { symbol: "D", predicates: ["Laughing", "Happy"] },
+  { symbol: "()", predicates: ["Surprised"] },
+  { symbol: "{}", predicates: ["Angry"] }
+];
+
+const POSSIBLE_WORLD_EYES = [
+  { symbol: ":", predicates: [] },
+  { symbol: "}:", predicates: ["Frowning"] },
+  { symbol: ";", predicates: ["Winking"] },
+  { symbol: ":'", predicates: ["Crying"] },
+  { symbol: "|%", predicates: ["Confused"] }
+];
+
+const POSSIBLE_WORLD_NOSE = [
+  { symbol: "-", predicates: [] },
+  { symbol: ">", predicates: ["HasLargeNose"] },
+  { symbol: "^", predicates: [] }
+];
+
+const POSSIBLE_WORLD_ABBREVIATIONS = {
+  w: "width",
+  h: "height",
+  n: "name",
+  c: "colour",
+  f: "face"
+};
+
+function unabbreviateWorldNode(node) {
+  const normalized = {};
+  for (const [key, value] of Object.entries(node)) {
+    normalized[POSSIBLE_WORLD_ABBREVIATIONS[key] ?? key] = value;
+  }
+  return normalized;
+}
+
+function getPredicatesForFace(symbol, catalogue) {
+  return catalogue.find((item) => item.symbol === symbol)?.predicates ?? [];
+}
+
+function getPossibleWorldDescriptors(node) {
+  const [eyesSymbol, noseSymbol, mouthSymbol] = node.face ?? [":", "-", "|"];
+  const facialPredicates = [
+    ...getPredicatesForFace(mouthSymbol, POSSIBLE_WORLD_MOUTHS),
+    ...getPredicatesForFace(eyesSymbol, POSSIBLE_WORLD_EYES),
+    ...getPredicatesForFace(noseSymbol, POSSIBLE_WORLD_NOSE)
+  ];
+
+  const colour = node.colour ? node.colour[0].toUpperCase() + node.colour.slice(1) : "White";
+  const shape = node.height === 3 ? "Tall" : "Short";
+  const width = node.width === 3 ? "Wide" : "Narrow";
+
+  return [colour, shape, width, ...facialPredicates].filter(Boolean);
+}
+
+function renderPossibleWorld(answerDocument) {
+  const world = answerDocument?.answer?.content?.world ?? [];
+  const objects = world.map((rawNode, index) => {
+    const node = unabbreviateWorldNode(rawNode);
+    return {
+      id: `object-${index}`,
+      x: node.x ?? 0,
+      y: node.y ?? 0,
+      width: node.width ?? 2,
+      height: node.height ?? 2,
+      name: node.name ?? "",
+      colour: node.colour ?? "white",
+      face: node.face ?? [":", "-", "|"],
+      descriptors: getPossibleWorldDescriptors(node)
+    };
+  });
+
+  const maxX = Math.max(...objects.map((object) => object.x + object.width), 0);
+  const maxY = Math.max(...objects.map((object) => object.y + object.height), 0);
+
+  return {
+    kind: "possible-world",
+    title: "Possible situation",
+    columns: Math.max(maxX, 6),
+    rows: Math.max(maxY, 4),
+    objects
+  };
+}
+
+function renderCounterexample(answerDocument) {
+  const counterexample = answerDocument?.answer?.content?.counterexample;
+  return {
+    kind: "counterexample",
+    title: "Counterexample",
+    domain: counterexample?.domain ?? [],
+    names: Object.entries(counterexample?.names ?? {}),
+    predicates: Object.entries(counterexample?.predicates ?? {}).map(([name, extension]) => ({
+      name,
+      extension: JSON.stringify(extension).replace(/^\[/, "{ ").replace(/\]$/, " }")
+    }))
+  };
+}
+
+function renderScope(answerDocument, exerciseId) {
+  const answers = answerDocument?.answer?.content?.scope ?? [];
+  const context = getExerciseFormulaContext(exerciseId);
+  const renderedSentences = context.sentences.map((sentence, index) => ({
+    html: sentence.toString({ replaceSymbols: true, wrapWithDivs: true }),
+    selection: answers[index] ?? null
+  }));
+
+  return {
+    kind: "scope",
+    title: "Scope selections",
+    sentences: renderedSentences
+  };
+}
+
+function renderTree(answerDocument) {
+  return {
+    kind: "tree",
+    title: "Tree proof",
+    code: JSON.stringify(answerDocument?.answer?.content?.tree ?? {}, null, 2)
+  };
+}
+
+function renderFallback(answerDocument) {
+  return {
+    kind: "fallback",
+    title: "Answer data",
+    code: JSON.stringify(answerDocument?.answer?.content ?? {}, null, 2)
+  };
+}
+
+export function createRawAnswerView(answerDocument) {
+  return {
+    kind: "raw",
+    title: "Raw data",
+    code: JSON.stringify(answerDocument, null, 2)
+  };
+}
+
+export function createRenderedAnswerView(answerDocument, exerciseId) {
+  const content = answerDocument?.answer?.content ?? {};
+
+  if (Array.isArray(content.tt)) {
+    return renderTruthTable(answerDocument, exerciseId);
+  }
+
+  if (typeof content.proof === "string") {
+    return renderProof(answerDocument);
+  }
+
+  if (typeof content.sentence === "string") {
+    return renderSentence(answerDocument);
+  }
+
+  if (Array.isArray(content.TorF)) {
+    return renderTruthValues(answerDocument, exerciseId);
+  }
+
+  if (Array.isArray(content.world)) {
+    return renderPossibleWorld(answerDocument);
+  }
+
+  if (content.counterexample) {
+    return renderCounterexample(answerDocument);
+  }
+
+  if (Array.isArray(content.scope)) {
+    return renderScope(answerDocument, exerciseId);
+  }
+
+  if (content.tree) {
+    return renderTree(answerDocument);
+  }
+
+  return renderFallback(answerDocument);
+}
+
 export function createExerciseRecord({ course, exerciseSet, lecture, unit, exercise }) {
-  const question = parseExerciseQuestion(exercise.exerciseId);
   return {
     slug: encodeURIComponent(exercise.exerciseId),
     exerciseId: exercise.exerciseId,
@@ -292,10 +560,11 @@ export function createExerciseRecord({ course, exerciseSet, lecture, unit, exerc
     lectureName: lecture.name,
     unitName: unit.name,
     answerCount: exercise.answers?.length ?? 0,
-    question,
+    question: parseExerciseQuestion(exercise.exerciseId),
     answers: (exercise.answers ?? []).map((answer) => ({
       ...answer,
-      rendered: renderAnswerSummary(answer)
+      rendered: createRenderedAnswerView(answer, exercise.exerciseId),
+      raw: createRawAnswerView(answer)
     }))
   };
 }

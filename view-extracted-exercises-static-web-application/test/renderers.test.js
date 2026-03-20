@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { parseExerciseQuestion, renderAnswerSummary } from "../src/domain/renderers.js";
+import {
+  createRenderedAnswerView,
+  parseExerciseQuestion
+} from "../src/domain/renderers.js";
 
 describe("parseExerciseQuestion", () => {
   it("renders proof exercises into premises and conclusion blocks", () => {
@@ -25,25 +28,64 @@ describe("parseExerciseQuestion", () => {
 });
 
 describe("renderAnswerSummary", () => {
-  it("renders proof answers as code blocks", () => {
-    expect(
-      renderAnswerSummary({
+  it("renders proof answers as numbered proof lines", () => {
+    const rendered = createRenderedAnswerView(
+        {
         answer: { content: { proof: "| A\n|---\n| A" } }
-      })
+        },
+        "/ex/proof/from/A/to/A"
+      );
+
+    expect(rendered.title).toBe("Proof");
+    expect(rendered.kind).toBe("proof");
+    expect(rendered.dialectLabel).toBeNull();
+    expect(rendered.lines[0]).toContain("| A");
+    expect(rendered.lines[0]).toContain("Premise");
+    expect(rendered.lines[2]).toContain("| A");
+  });
+
+  it("renders truth-value answers against their question sentences", () => {
+    expect(
+      createRenderedAnswerView(
+        {
+        answer: { content: { TorF: [true, false] } }
+        },
+        "/ex/TorF/qq/A and B|B"
+      )
     ).toEqual({
-      title: "Proof",
-      code: "| A\n|---\n| A"
+      title: "Truth values",
+      kind: "truth-values",
+      items: [
+        { label: "A ∧ B", value: "true" },
+        { label: "B", value: "false" }
+      ]
     });
   });
 
-  it("renders truth-value answers as item lists", () => {
-    expect(
-      renderAnswerSummary({
-        answer: { content: { TorF: [true, false] } }
-      })
-    ).toEqual({
-      title: "Truth Values",
-      items: ["#1: true", "#2: false"]
+  it("renders possible situations as positioned world objects with recovered descriptors", () => {
+    const view = createRenderedAnswerView(
+      {
+        answer: {
+          content: {
+            world: [{ x: 0, y: 1, w: 2, h: 3, n: "a", c: "red", f: [":", ">", ")"] }]
+          }
+        }
+      },
+      "/ex/create/qq/Red(a)"
+    );
+
+    expect(view.kind).toBe("possible-world");
+    expect(view.objects[0]).toMatchObject({
+      x: 0,
+      y: 1,
+      width: 2,
+      height: 3,
+      colour: "red",
+      name: "a",
+      face: [":", ">", ")"]
     });
+    expect(view.objects[0].descriptors).toEqual(
+      expect.arrayContaining(["Red", "Tall", "Narrow", "HasLargeNose", "Happy", "Smiling"])
+    );
   });
 });

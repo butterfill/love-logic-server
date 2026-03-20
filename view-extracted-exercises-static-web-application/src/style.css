@@ -28,3 +28,55 @@ body {
 .formula {
   @apply font-["Times_New_Roman","Cambria_Math","STIX_Two_Text",serif] text-[1.05rem];
 }
+
+.scope-answer-highlight {
+  @apply rounded-full bg-stone-900 px-1.5 py-0.5 text-stone-50;
+}
+
+.world-color-white {
+  background: linear-gradient(180deg, #ffffff 0%, #f4f4f5 100%);
+}
+
+.world-color-yellow {
+  background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.world-color-red {
+  background: linear-gradient(180deg, #fecaca 0%, #fca5a5 100%);
+}
+
+.world-color-pink {
+  background: linear-gradient(180deg, #fbcfe8 0%, #f9a8d4 100%);
+}
+
+.world-color-purple {
+  background: linear-gradient(180deg, #e9d5ff 0%, #d8b4fe 100%);
+}
+
+.world-color-green {
+  background: linear-gradient(180deg, #d1fae5 0%, #86efac 100%);
+}
+
+.world-color-blue {
+  background: linear-gradient(180deg, #bfdbfe 0%, #93c5fd 100%);
+}
+
+.world-color-indigo {
+  background: linear-gradient(180deg, #c7d2fe 0%, #a5b4fc 100%);
+}
+
+.world-color-cyan {
+  background: linear-gradient(180deg, #cffafe 0%, #a5f3fc 100%);
+}
+
+.world-color-teal {
+  background: linear-gradient(180deg, #ccfbf1 0%, #99f6e4 100%);
+}
+
+.world-color-lime {
+  background: linear-gradient(180deg, #ecfccb 0%, #d9f99d 100%);
+}
+
+.world-color-orange {
+  background: linear-gradient(180deg, #fed7aa 0%, #fdba74 100%);
+}

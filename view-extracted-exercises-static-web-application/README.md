@@ -47,7 +47,8 @@ The production files are written to `dist/`.
 4. Browse searchable courses on the home page.
 5. Open a course to browse searchable exercises.
 6. Open an exercise to view the rendered question and stored answers.
-7. Use `Clear data` to remove the saved archive and return to the upload screen.
+7. Each answer has `Rendered` and `Raw` tabs.
+8. Use `Clear data` to remove the saved archive and return to the upload screen.
 
 Routes are bookmarkable through hash routing:
 
@@ -97,4 +98,5 @@ Because the app uses hash routing, no extra redirect or SPA fallback rule is req
 
 - Data is stored locally in the browser only.
 - The question-rendering logic is isolated in `src/domain/renderers.js`.
+- The answer renderer keeps both a polished approximation of the Meteor output and a raw-data fallback.
 - Key architectural decisions are documented in [docs/ARCHITECTURE.md](/home/steve/Documents/programming/git/love-logic-server/view-extracted-exercises-static-web-application/docs/ARCHITECTURE.md).

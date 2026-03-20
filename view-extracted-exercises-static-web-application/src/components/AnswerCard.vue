@@ -1,10 +1,16 @@
 <script setup>
+import { ref } from "vue";
+
+import RenderedAnswerView from "./RenderedAnswerView.vue";
+
 defineProps({
   answer: {
     type: Object,
     required: true
   }
 });
+
+const activeTab = ref("rendered");
 </script>
 
 <template>
@@ -20,22 +26,29 @@ defineProps({
       </div>
     </div>
 
-    <p v-if="answer.rendered.prose" class="formula mt-4 text-stone-700">{{ answer.rendered.prose }}</p>
-
-    <ul v-if="answer.rendered.items" class="mt-4 space-y-2">
-      <li
-        v-for="item in answer.rendered.items"
-        :key="item"
-        class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 formula text-stone-800"
+    <div class="mt-4 inline-flex rounded-full border border-stone-300 bg-stone-100 p-1">
+      <button
+        class="rounded-full px-4 py-2 text-sm font-medium transition"
+        :class="activeTab === 'rendered' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-600'"
+        @click="activeTab = 'rendered'"
       >
-        {{ item }}
-      </li>
-    </ul>
+        Rendered
+      </button>
+      <button
+        class="rounded-full px-4 py-2 text-sm font-medium transition"
+        :class="activeTab === 'raw' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-600'"
+        @click="activeTab = 'raw'"
+      >
+        Raw
+      </button>
+    </div>
+
+    <RenderedAnswerView v-if="activeTab === 'rendered'" :view="answer.rendered" />
 
     <pre
-      v-if="answer.rendered.code"
+      v-else
       class="mt-4 overflow-x-auto rounded-2xl bg-stone-950 px-4 py-4 text-sm leading-6 text-stone-100"
-    ><code>{{ answer.rendered.code }}</code></pre>
+    ><code>{{ answer.raw.code }}</code></pre>
 
     <div class="mt-4 grid gap-3 text-sm text-stone-600 sm:grid-cols-2">
       <div v-if="answer.machineFeedback" class="rounded-2xl border border-stone-200 bg-white px-4 py-3">
