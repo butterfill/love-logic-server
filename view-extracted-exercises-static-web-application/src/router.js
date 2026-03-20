@@ -42,6 +42,10 @@ export function createAppRouter(store) {
   });
 
   router.beforeEach((to) => {
+    if (!store.isReady.value) {
+      return true;
+    }
+
     if (!store.hasData.value && to.name !== "upload") {
       return { name: "upload" };
     }

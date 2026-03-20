@@ -33,22 +33,25 @@ describe("storage helpers", () => {
     });
   }
 
-  it("stores and loads extracted documents in IndexedDB", async () => {
+  it("stores and loads extracted snapshots in IndexedDB", async () => {
     const repository = createRepository();
-    const document = { instructor: { emailAddress: "teacher@example.com" } };
+    const snapshot = {
+      document: { instructor: { emailAddress: "teacher@example.com" } },
+      normalized: { instructor: { emailAddress: "teacher@example.com" }, courses: [] }
+    };
 
-    await repository.saveDocument(document);
+    await repository.saveSnapshot(snapshot);
 
-    await expect(repository.loadDocument()).resolves.toEqual(document);
+    await expect(repository.loadSnapshot()).resolves.toEqual(snapshot);
   });
 
-  it("clears the saved document from IndexedDB", async () => {
+  it("clears the saved snapshot from IndexedDB", async () => {
     const repository = createRepository();
 
-    await repository.saveDocument({ ok: true });
-    await repository.clearDocument();
+    await repository.saveSnapshot({ document: { ok: true }, normalized: { ok: true } });
+    await repository.clearSnapshot();
 
-    await expect(repository.loadDocument()).resolves.toBeNull();
+    await expect(repository.loadSnapshot()).resolves.toBeNull();
   });
 
   it("detects and wipes the legacy localStorage archive", () => {

@@ -2,6 +2,8 @@
 import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
 
+import LoadingIndicator from "./components/LoadingIndicator.vue";
+
 const store = inject("extractedDataStore");
 const router = useRouter();
 const showClearModal = ref(false);
@@ -49,7 +51,13 @@ async function confirmClear() {
     </header>
 
     <main class="flex-1">
-      <RouterView />
+      <LoadingIndicator
+        v-if="!store.isReady.value"
+        :label="store.activity.value.label || 'Loading saved archive'"
+        :detail="store.activity.value.detail || 'Preparing your locally stored archive.'"
+        :progress="store.activity.value.progress"
+      />
+      <RouterView v-else />
     </main>
 
     <div

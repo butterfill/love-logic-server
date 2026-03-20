@@ -33,6 +33,15 @@ body {
   @apply rounded-full bg-stone-900 px-1.5 py-0.5 text-stone-50;
 }
 
+@keyframes loading-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
 .world-color-white {
   background: linear-gradient(180deg, #ffffff 0%, #f4f4f5 100%);
 }

@@ -2,9 +2,9 @@ import { openDB } from "idb";
 
 const LEGACY_STORAGE_KEY = "view-extracted-exercises-static-web-application:data";
 const DATABASE_NAME = "view-extracted-exercises-static-web-application";
-const DATABASE_VERSION = 1;
-const DOCUMENT_STORE = "documents";
-const CURRENT_DOCUMENT_KEY = "current";
+const DATABASE_VERSION = 2;
+const SNAPSHOT_STORE = "snapshots";
+const CURRENT_SNAPSHOT_KEY = "current";
 
 export function createExtractedDataRepository({ databaseName = DATABASE_NAME } = {}) {
   let databasePromise;
@@ -12,9 +12,15 @@ export function createExtractedDataRepository({ databaseName = DATABASE_NAME } =
   function getDatabase() {
     if (!databasePromise) {
       databasePromise = openDB(databaseName, DATABASE_VERSION, {
-        upgrade(database) {
-          if (!database.objectStoreNames.contains(DOCUMENT_STORE)) {
-            database.createObjectStore(DOCUMENT_STORE);
+        upgrade(database, oldVersion) {
+          if (oldVersion < 1 && !database.objectStoreNames.contains(SNAPSHOT_STORE)) {
+            database.createObjectStore(SNAPSHOT_STORE);
+          }
+
+          if (oldVersion === 1) {
+            if (!database.objectStoreNames.contains(SNAPSHOT_STORE)) {
+              database.createObjectStore(SNAPSHOT_STORE);
+            }
           }
         }
       });
@@ -24,17 +30,17 @@ export function createExtractedDataRepository({ databaseName = DATABASE_NAME } =
   }
 
   return {
-    async loadDocument() {
+    async loadSnapshot() {
       const database = await getDatabase();
-      return (await database.get(DOCUMENT_STORE, CURRENT_DOCUMENT_KEY)) ?? null;
+      return (await database.get(SNAPSHOT_STORE, CURRENT_SNAPSHOT_KEY)) ?? null;
     },
-    async saveDocument(document) {
+    async saveSnapshot(snapshot) {
       const database = await getDatabase();
-      await database.put(DOCUMENT_STORE, document, CURRENT_DOCUMENT_KEY);
+      await database.put(SNAPSHOT_STORE, snapshot, CURRENT_SNAPSHOT_KEY);
     },
-    async clearDocument() {
+    async clearSnapshot() {
       const database = await getDatabase();
-      await database.delete(DOCUMENT_STORE, CURRENT_DOCUMENT_KEY);
+      await database.delete(SNAPSHOT_STORE, CURRENT_SNAPSHOT_KEY);
     }
   };
 }

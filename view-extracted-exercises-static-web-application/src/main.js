@@ -8,12 +8,13 @@ import "./style.css";
 
 const repository = createExtractedDataRepository();
 const store = createExtractedDataStore({ repository, legacyStorage: window.localStorage });
-
-await store.initialize();
-
 const router = createAppRouter(store);
 const app = createApp(App);
 
 app.provide("extractedDataStore", store);
 app.use(router);
 app.mount("#app");
+
+store.initialize().then(() => {
+  router.replace(router.currentRoute.value.fullPath);
+});

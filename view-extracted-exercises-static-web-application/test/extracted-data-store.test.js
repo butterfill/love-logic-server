@@ -2,17 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import { createExtractedDataStore } from "../src/stores/extracted-data.js";
 
-function createRepository(initialDocument = null) {
-  let saved = initialDocument;
+function createRepository(initialSnapshot = null) {
+  let saved = initialSnapshot;
 
   return {
-    async loadDocument() {
+    async loadSnapshot() {
       return saved;
     },
-    async saveDocument(document) {
-      saved = document;
+    async saveSnapshot(snapshot) {
+      saved = snapshot;
     },
-    async clearDocument() {
+    async clearSnapshot() {
       saved = null;
     }
   };
@@ -37,8 +37,18 @@ function createLegacyStorage(initialValue = null) {
 describe("createExtractedDataStore", () => {
   it("initializes from persisted documents and clears them", async () => {
     const repository = createRepository({
-      instructor: { emailAddress: "teacher@example.com" },
-      courses: []
+      document: {
+        instructor: { emailAddress: "teacher@example.com" },
+        courses: []
+      },
+      normalized: {
+        instructor: { emailAddress: "teacher@example.com" },
+        courses: [],
+        exercisesBySlug: {},
+        uploadedAt: null,
+        courseCount: 0,
+        exerciseCount: 0
+      }
     });
     const store = createExtractedDataStore({ repository, legacyStorage: createLegacyStorage() });
 
@@ -63,5 +73,26 @@ describe("createExtractedDataStore", () => {
 
     expect(store.hasData.value).toBe(false);
     expect(store.migrationNotice.value).toContain("re-upload");
+  });
+
+  it("normalizes documents once on import and persists the normalized snapshot", async () => {
+    const repository = createRepository();
+    const store = createExtractedDataStore({ repository, legacyStorage: createLegacyStorage() });
+
+    await store.initialize();
+    await store.importDocument({
+      instructor: { emailAddress: "teacher@example.com" },
+      courses: []
+    });
+
+    expect(store.normalized.value.instructor.emailAddress).toBe("teacher@example.com");
+    await expect(repository.loadSnapshot()).resolves.toMatchObject({
+      document: {
+        instructor: { emailAddress: "teacher@example.com" }
+      },
+      normalized: {
+        instructor: { emailAddress: "teacher@example.com" }
+      }
+    });
   });
 });

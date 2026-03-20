@@ -2,13 +2,16 @@
 import { computed, inject, ref } from "vue";
 import { useRouter } from "vue-router";
 
+import LoadingIndicator from "../components/LoadingIndicator.vue";
+
 const store = inject("extractedDataStore");
 const router = useRouter();
 const errorMessage = ref("");
-const isLoading = ref(false);
+const uploadStage = ref({ label: "", detail: "", progress: null });
 
 const summary = computed(() => store.normalized.value);
 const migrationNotice = computed(() => store.migrationNotice.value);
+const isLoading = computed(() => store.isBusy.value && store.activity.value.mode === "import");
 
 async function onFileChange(event) {
   const file = event.target.files?.[0];
@@ -16,18 +19,37 @@ async function onFileChange(event) {
     return;
   }
 
-  isLoading.value = true;
   errorMessage.value = "";
+  uploadStage.value = {
+    label: "Importing archive",
+    detail: "Reading JSON file",
+    progress: 12
+  };
 
   try {
     const raw = await file.text();
+    uploadStage.value = {
+      label: "Importing archive",
+      detail: "Parsing JSON archive",
+      progress: 34
+    };
     const parsed = JSON.parse(raw);
+    uploadStage.value = {
+      label: "Importing archive",
+      detail: "Preparing archive for storage",
+      progress: 56
+    };
     await store.importDocument(parsed);
+    uploadStage.value = {
+      label: "Importing archive",
+      detail: "Opening saved archive",
+      progress: 100
+    };
     router.push({ name: "courses" });
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Failed to read the JSON file.";
   } finally {
-    isLoading.value = false;
+    uploadStage.value = { label: "", detail: "", progress: null };
     event.target.value = "";
   }
 }
@@ -55,7 +77,13 @@ async function onFileChange(event) {
         {{ migrationNotice }}
       </p>
       <p v-if="errorMessage" class="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{{ errorMessage }}</p>
-      <p v-if="isLoading" class="mt-4 text-sm text-stone-500">Reading file…</p>
+      <div v-if="isLoading" class="mt-4">
+        <LoadingIndicator
+          :label="store.activity.value.label || uploadStage.label"
+          :detail="store.activity.value.detail || uploadStage.detail"
+          :progress="store.activity.value.progress ?? uploadStage.progress"
+        />
+      </div>
     </div>
 
     <aside class="panel p-6">
