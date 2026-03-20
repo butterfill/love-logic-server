@@ -28,20 +28,59 @@ describe("parseExerciseQuestion", () => {
 });
 
 describe("renderAnswerSummary", () => {
-  it("renders proof answers as numbered proof lines", () => {
+  it("renders proof answers as structured rows with separated justification", () => {
     const rendered = createRenderedAnswerView(
-        {
+      {
         answer: { content: { proof: "| A\n|---\n| A" } }
-        },
-        "/ex/proof/from/A/to/A"
-      );
+      },
+      "/ex/proof/from/A/to/A"
+    );
 
     expect(rendered.title).toBe("Proof");
     expect(rendered.kind).toBe("proof");
     expect(rendered.dialectLabel).toBeNull();
-    expect(rendered.lines[0]).toContain("| A");
-    expect(rendered.lines[0]).toContain("Premise");
-    expect(rendered.lines[2]).toContain("| A");
+    expect(rendered.maxDepth).toBe(1);
+    expect(rendered.rows[0]).toMatchObject({
+      type: "line",
+      number: "1",
+      depth: 1,
+      sentence: "A",
+      justification: "Premise"
+    });
+    expect(rendered.rows[1]).toMatchObject({
+      type: "divider",
+      number: "2x",
+      depth: 1
+    });
+    expect(rendered.rows[2]).toMatchObject({
+      type: "line",
+      number: "3",
+      depth: 1,
+      sentence: "A",
+      justification: ""
+    });
+  });
+
+  it("renders proof citations separately from the rule name", () => {
+    const rendered = createRenderedAnswerView(
+      {
+        answer: {
+          content: {
+            proof: "| A premise\n|| B premise\n||---\n|| A and B and intro 1,2"
+          }
+        }
+      },
+      "/ex/proof/from/A|B/to/A and B"
+    );
+
+    expect(rendered.rows[3]).toMatchObject({
+      type: "line",
+      number: "4",
+      depth: 2,
+      sentence: "A ∧ B",
+      justification: "∧ Intro",
+      citations: "1, 2"
+    });
   });
 
   it("renders truth-value answers against their question sentences", () => {

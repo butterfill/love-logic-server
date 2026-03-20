@@ -363,6 +363,153 @@ function renderTruthTable(answerDocument, exerciseId) {
   };
 }
 
+const PROOF_CITATION_PATTERN = "\\d+x?(?:\\s*-\\s*\\d+x?)?(?:\\s*,\\s*\\d+x?(?:\\s*-\\s*\\d+x?)?)*";
+const PROOF_RULE_SPLIT = new RegExp(
+  `^(.*?)(?:\\s+)((?:[^\\s]+\\s+)?(?:Intro|Elim|Premise))(?:\\s+(${PROOF_CITATION_PATTERN}))?$`,
+  "i"
+);
+
+function formatProofSentence(text) {
+  return safeParseFormula(text.trim());
+}
+
+function normalizeProofRuleLabel(label) {
+  return String(label ?? "")
+    .trim()
+    .replace(/\band\b/gi, "∧")
+    .replace(/\bor\b/gi, "∨")
+    .replace(/\bnot\b/gi, "¬")
+    .replace(/\bintro\b/gi, "Intro")
+    .replace(/\belim\b/gi, "Elim")
+    .replace(/\bpremise\b/gi, "Premise")
+    .replace(/\s+/g, " ");
+}
+
+function normalizeProofCitations(citations) {
+  return String(citations ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join(", ");
+}
+
+function formatProofCitations(line) {
+  if (!line.justification) {
+    return "";
+  }
+
+  const citedLineNumbers = line.getCitedLines().map((item) => item.number);
+  const citedBlockNumbers = line.getCitedBlocks().map((item) => item.number);
+  return normalizeProofCitations([...citedLineNumbers, ...citedBlockNumbers].join(", "));
+}
+
+function splitProofLineContent(line) {
+  const rawContent = String(line.content ?? line.sentenceText ?? "").trim();
+
+  if (!rawContent) {
+    return {
+      sentence: "",
+      justification: line.getRuleName?.() ?? "",
+      citations: formatProofCitations(line)
+    };
+  }
+
+  if (line.justification && line.sentence?.toString) {
+    return {
+      sentence: line.sentence.toString({ replaceSymbols: true }),
+      justification: normalizeProofRuleLabel(line.getRuleName?.() ?? ""),
+      citations: formatProofCitations(line)
+    };
+  }
+
+  const premiseMatch = rawContent.match(/^(.*?)(?:\s+premise)$/i);
+  if (premiseMatch) {
+    return {
+      sentence: formatProofSentence(premiseMatch[1]),
+      justification: "Premise",
+      citations: ""
+    };
+  }
+
+  const splitMatch = rawContent.match(PROOF_RULE_SPLIT);
+  if (splitMatch) {
+    return {
+      sentence: formatProofSentence(splitMatch[1]),
+      justification: normalizeProofRuleLabel(splitMatch[2]),
+      citations: normalizeProofCitations(splitMatch[3] ?? "")
+    };
+  }
+
+  return {
+    sentence: formatProofSentence(rawContent),
+    justification: normalizeProofRuleLabel(line.getRuleName?.() ?? ""),
+    citations: formatProofCitations(line)
+  };
+}
+
+function createProofRow(item) {
+  const depth = String(item.indentation ?? "").length;
+
+  if (item.type === "divider") {
+    return {
+      type: "divider",
+      number: item.number ?? "",
+      depth
+    };
+  }
+
+  const { sentence, justification, citations } = splitProofLineContent(item);
+  return {
+    type: "line",
+    number: item.number ?? "",
+    depth,
+    sentence,
+    justification,
+    citations
+  };
+}
+
+function flattenProofItems(items, rows = []) {
+  for (const item of items) {
+    if (item.type === "block") {
+      flattenProofItems(item.content ?? [], rows);
+      continue;
+    }
+
+    rows.push(createProofRow(item));
+  }
+
+  return rows;
+}
+
+function buildProofRowsFromRawText(proofText) {
+  return proofText
+    .split("\n")
+    .filter((line) => line.length > 0)
+    .map((line, index) => {
+      const indentationMatch = line.match(/^(\|+)/);
+      const depth = indentationMatch ? indentationMatch[1].length : 0;
+      const content = line.slice(indentationMatch?.[1]?.length ?? 0).trim();
+      if (/^-{3,}$/.test(content)) {
+        return {
+          type: "divider",
+          number: `${index + 1}x`,
+          depth
+        };
+      }
+
+      const splitMatch = content.match(PROOF_RULE_SPLIT);
+      return {
+        type: "line",
+        number: String(index + 1),
+        depth,
+        sentence: formatProofSentence(splitMatch ? splitMatch[1] : content),
+        justification: normalizeProofRuleLabel(splitMatch ? splitMatch[2] : ""),
+        citations: normalizeProofCitations(splitMatch?.[3] ?? "")
+      };
+    });
+}
+
 function renderProof(answerDocument) {
   const proofText = answerDocument?.answer?.content?.proof ?? "";
   const dialectName = answerDocument?.answer?.content?.dialectName;
@@ -376,18 +523,32 @@ function renderProof(answerDocument) {
       throw new Error(parsed);
     }
 
+    const rows = flattenProofItems(parsed.content ?? []);
+    const maxDepth = Math.max(...rows.map((row) => row.depth), 0);
+
     return {
       kind: "proof",
       title: "Proof",
       dialectLabel,
-      lines: parsed.toString({ numberLines: true }).split("\n")
+      maxDepth,
+      rows: rows.map((row) => ({
+        ...row,
+        rails: Array.from({ length: maxDepth }, (_, index) => index < row.depth)
+      }))
     };
   } catch {
+    const rows = buildProofRowsFromRawText(proofText);
+    const maxDepth = Math.max(...rows.map((row) => row.depth), 0);
+
     return {
       kind: "proof",
       title: "Proof",
       dialectLabel,
-      lines: proofText.split("\n")
+      maxDepth,
+      rows: rows.map((row) => ({
+        ...row,
+        rails: Array.from({ length: maxDepth }, (_, index) => index < row.depth)
+      }))
     };
   }
 }

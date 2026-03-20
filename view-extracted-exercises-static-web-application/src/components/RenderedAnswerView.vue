@@ -1,4 +1,5 @@
 <script setup>
+import ProofView from "./ProofView.vue";
 import ScopeSentenceView from "./ScopeSentenceView.vue";
 
 defineProps({
@@ -23,9 +24,7 @@ function gridRow(start, span) {
       {{ view.dialectLabel }}
     </p>
 
-    <div v-if="view.kind === 'proof'" class="overflow-x-auto rounded-2xl bg-stone-950 px-4 py-4 text-sm leading-7 text-stone-100">
-      <div v-for="line in view.lines" :key="line" class="font-mono">{{ line }}</div>
-    </div>
+    <ProofView v-if="view.kind === 'proof'" :view="view" />
 
     <div v-else-if="view.kind === 'sentence'" class="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-4">
       <p class="formula text-stone-900">{{ view.normalizedSentence }}</p>
