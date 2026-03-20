@@ -11,10 +11,27 @@ export function normalizeExtractedDocument(document) {
   for (const course of document.courses ?? []) {
     const normalizedExerciseSetEntries = [];
     const exerciseEntries = [];
+    const lecturesById = {};
+    const lectureOrder = [];
 
     for (const exerciseSet of course.exerciseSets ?? []) {
       for (const lecture of exerciseSet.lectures ?? []) {
+        const lectureId = encodeURIComponent(lecture.name);
+        if (!lecturesById[lectureId]) {
+          lecturesById[lectureId] = {
+            id: lectureId,
+            name: lecture.name,
+            displayName: humanizeLectureName(lecture.name),
+            exerciseSetVariant: exerciseSet.variant,
+            sections: []
+          };
+          lectureOrder.push(lectureId);
+        }
+
         for (const unit of lecture.units ?? []) {
+          const sectionId = encodeURIComponent(unit.name);
+          const sectionExercises = [];
+
           for (const exercise of unit.exercises ?? []) {
             const slug = makeExerciseSlug(exercise.exerciseId);
             const exerciseRecord = createExerciseRecord({
@@ -26,8 +43,17 @@ export function normalizeExtractedDocument(document) {
             });
 
             exerciseEntries.push(exerciseRecord);
+            sectionExercises.push(exerciseRecord);
             exercisesBySlug[slug] = exerciseRecord;
           }
+
+          lecturesById[lectureId].sections.push({
+            id: sectionId,
+            name: unit.name,
+            displayName: unit.name,
+            exerciseCount: sectionExercises.length,
+            exercises: sectionExercises
+          });
         }
       }
 
@@ -45,6 +71,14 @@ export function normalizeExtractedDocument(document) {
       description: course.description,
       exerciseCount: exerciseEntries.length,
       exerciseSets: normalizedExerciseSetEntries,
+      lectures: lectureOrder.map((lectureId) => ({
+        ...lecturesById[lectureId],
+        sectionCount: lecturesById[lectureId].sections.length,
+        exerciseCount: lecturesById[lectureId].sections.reduce(
+          (count, section) => count + section.exerciseCount,
+          0
+        )
+      })),
       exercises: exerciseEntries
     });
   }
@@ -57,4 +91,12 @@ export function normalizeExtractedDocument(document) {
     courses,
     exercisesBySlug
   };
+}
+
+function humanizeLectureName(name) {
+  const match = String(name).match(/^lecture[_\-\s]?0*([0-9]+)$/i);
+  if (match) {
+    return `Lecture ${match[1]}`;
+  }
+  return String(name).replace(/_/g, " ");
 }

@@ -14,6 +14,18 @@ const exercise = computed(
   () => store.normalized.value?.exercisesBySlug[route.params.exerciseSlug] ?? null
 );
 
+const course = computed(() =>
+  store.normalized.value?.courses.find((item) => item.id === route.params.courseId) ?? null
+);
+
+const lecture = computed(() =>
+  course.value?.lectures.find((item) => item.id === route.params.lectureId) ?? null
+);
+
+const section = computed(() =>
+  lecture.value?.sections.find((item) => item.id === route.params.sectionId) ?? null
+);
+
 const filteredAnswers = computed(() => {
   const answers = exercise.value?.answers ?? [];
   const needle = search.value.trim().toLowerCase();
@@ -29,16 +41,25 @@ const filteredAnswers = computed(() => {
 </script>
 
 <template>
-  <section v-if="exercise" class="space-y-6">
+  <section v-if="exercise && course && lecture && section" class="space-y-6">
     <div class="panel p-6">
       <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <RouterLink
-            :to="{ name: 'course', params: { courseId: exercise.courseId } }"
-            class="text-xs uppercase tracking-[0.22em] text-stone-500 underline decoration-stone-300 underline-offset-4"
-          >
-            Back to {{ exercise.courseName }}
-          </RouterLink>
+          <div class="text-xs uppercase tracking-[0.22em] text-stone-500">
+            <RouterLink :to="{ name: 'courses' }" class="underline decoration-stone-300 underline-offset-4">Home</RouterLink>
+            <span> / </span>
+            <RouterLink :to="{ name: 'course', params: { courseId: course.id } }" class="underline decoration-stone-300 underline-offset-4">{{ course.name }}</RouterLink>
+            <span> / </span>
+            <RouterLink :to="{ name: 'lecture', params: { courseId: course.id, lectureId: lecture.id } }" class="underline decoration-stone-300 underline-offset-4">{{ lecture.displayName }}</RouterLink>
+            <span> / </span>
+            <RouterLink
+              :to="{ name: 'section', params: { courseId: course.id, lectureId: lecture.id, sectionId: section.id } }"
+              class="underline decoration-stone-300 underline-offset-4"
+            >
+              {{ section.displayName }}
+            </RouterLink>
+            <span> / questions / question</span>
+          </div>
           <h2 class="mt-2 break-all text-3xl font-semibold text-stone-900">{{ exercise.exerciseId }}</h2>
           <div class="mt-3 flex flex-wrap gap-2">
             <span class="chip">{{ exercise.type }}</span>

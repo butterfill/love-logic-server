@@ -72,12 +72,12 @@ function toggleBadge(label) {
       <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <RouterLink
-            :to="{ name: 'courses' }"
+            :to="{ name: 'course', params: { courseId: course.id } }"
             class="text-xs uppercase tracking-[0.22em] text-stone-500 underline decoration-stone-300 underline-offset-4"
           >
-            All courses
+            {{ course?.name }}
           </RouterLink>
-          <h2 class="mt-2 text-3xl font-semibold text-stone-900">{{ course.name }}</h2>
+          <h2 class="mt-2 text-3xl font-semibold text-stone-900">all exercises for this course</h2>
           <p class="mt-3 max-w-3xl text-sm leading-7 text-stone-600">{{ course.description }}</p>
         </div>
         <div class="sm:w-96">
@@ -125,7 +125,15 @@ function toggleBadge(label) {
             </div>
             <h3 class="mt-4 text-xl font-semibold text-stone-900">
               <RouterLink
-                :to="{ name: 'exercise', params: { courseId: course.id, exerciseSlug: exercise.slug } }"
+                :to="{
+                  name: 'exercise',
+                  params: {
+                    courseId: course.id,
+                    lectureId: encodeURIComponent(exercise.lectureName),
+                    sectionId: encodeURIComponent(exercise.unitName),
+                    exerciseSlug: exercise.slug
+                  }
+                }"
                 class="underline decoration-stone-300 underline-offset-4 hover:decoration-stone-900"
               >
                 {{ exercise.question.title }}

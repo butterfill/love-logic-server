@@ -46,6 +46,9 @@ describe("normalizeExtractedDocument", () => {
     expect(normalized.courses[0].exercises[0].badges).toEqual(
       expect.arrayContaining(["Question", "normal", "Lecture 1", "unit-1"])
     );
+    expect(normalized.courses[0].lectures).toHaveLength(1);
+    expect(normalized.courses[0].lectures[0].displayName).toBe("Lecture 1");
+    expect(normalized.courses[0].lectures[0].sections[0].displayName).toBe("unit-1");
     expect(normalized.exercisesBySlug[encodeURIComponent("/ex/q/Define%20logical%20validity")].answers).toHaveLength(1);
   });
 });

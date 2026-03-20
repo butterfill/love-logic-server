@@ -45,16 +45,20 @@ The production files are written to `dist/`.
 2. Upload a `.json` file created by `extract-exercises-for-instructor`.
 3. The file is saved in browser storage.
 4. Browse searchable courses on the home page.
-5. Open a course to browse searchable exercises.
-6. Open an exercise to view the rendered question and stored answers.
-7. Each answer has `Rendered` and `Raw` tabs.
-8. Use `Clear data` to remove the saved archive and return to the upload screen.
+5. Open a course to browse a lecture-and-section table of contents.
+6. Open a lecture, then a section, then a question.
+7. Open `/course/<course-id>/all` for the flat list labelled `all exercises for this course`.
+8. Each answer has `Rendered` and `Raw` tabs.
+9. Use `Clear data` to remove the saved archive and return to the upload screen.
 
 Routes are bookmarkable through hash routing:
 
 - `#/`
-- `#/courses/<course-id>`
-- `#/courses/<course-id>/exercises/<exercise-slug>`
+- `#/course/<course-id>`
+- `#/course/<course-id>/all`
+- `#/course/<course-id>/lecture/<lecture-id>`
+- `#/course/<course-id>/lecture/<lecture-id>/section/<section-id>`
+- `#/course/<course-id>/lecture/<lecture-id>/section/<section-id>/question/<exercise-slug>`
 
 ## Deployment
 
