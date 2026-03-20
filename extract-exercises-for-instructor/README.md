@@ -2,6 +2,10 @@
 
 Standalone Node CLI for exporting all instructor-owned courses, exercise sets, exercises, and submitted answers from the Love Logic MongoDB database.
 
+## MongoDB Compatibility
+
+This project intentionally uses the official MongoDB Node driver `4.1.x` rather than a newer major release. That is to preserve compatibility with older MongoDB servers used by the Meteor app, including deployments that report an older wire protocol version.
+
 ## Install
 
 From this directory:
