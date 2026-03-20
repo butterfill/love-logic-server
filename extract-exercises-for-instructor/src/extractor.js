@@ -30,8 +30,9 @@ export function buildInstructorExport({ instructor, courses, exerciseSets, submi
   const ownedCourses = courses.filter((course) => courseNames.includes(course.name));
   const submissionMap = new Map();
   const exerciseIdSet = new Set();
+  const ownedSubmissions = submissions.filter((submission) => submission.owner === instructor._id);
 
-  for (const submission of submissions) {
+  for (const submission of ownedSubmissions) {
     const existing = submissionMap.get(submission.exerciseId) ?? [];
     existing.push(cloneForJson(submission));
     submissionMap.set(submission.exerciseId, existing);
@@ -121,7 +122,7 @@ export async function extractInstructorData(emailAddress, options = {}) {
       courses.find({ name: { $in: ownedCourseNames } }).toArray(),
       ownedExerciseIds.length === 0
         ? []
-        : submissions.find({ exerciseId: { $in: ownedExerciseIds } }).toArray()
+        : submissions.find({ exerciseId: { $in: ownedExerciseIds }, owner: instructor._id }).toArray()
     ]);
 
     return buildInstructorExport({

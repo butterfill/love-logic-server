@@ -103,6 +103,6 @@ The JSON output includes:
 - `instructor`: the matched Mongo user with primary email and profile data
 - `exerciseIds`: the distinct exercise ids found in the instructor's owned exercise sets
 - `courses`: instructor-owned course content grouped as `course -> exerciseSets -> lectures -> units -> exercises`
-- `answers`: stored under each exercise entry as the matching `submitted_exercises` documents for that exercise id
+- `answers`: stored under each exercise entry as the matching `submitted_exercises` documents for that exercise id, but only where `owner` is the specified user
 
-Only exercise sets with `owner === instructor._id` are exported, and only submissions whose `exerciseId` appears in those owned exercise sets are included.
+Only exercise sets with `owner === instructor._id` are exported, and only submissions whose `exerciseId` appears in those owned exercise sets and whose `owner === instructor._id` are included.
