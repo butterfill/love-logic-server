@@ -218,6 +218,41 @@ function buildFallbackQuestion(parts) {
   };
 }
 
+function humanizeType(type) {
+  const labels = {
+    TorF: "TorF",
+    tt: "Truth Table",
+    q: "Question",
+    trans: "Translation",
+    create: "Create",
+    counter: "Counterexample",
+    proof: "Proof",
+    tree: "Tree",
+    scope: "Scope"
+  };
+  return labels[type] ?? type;
+}
+
+function humanizeLectureName(name) {
+  if (!name) {
+    return null;
+  }
+  const match = String(name).match(/^lecture[_\-\s]?0*([0-9]+)$/i);
+  if (match) {
+    return `Lecture ${match[1]}`;
+  }
+  return String(name).replace(/_/g, " ");
+}
+
+function humanizeSubtype(subtype) {
+  const labels = {
+    orValid: "Logically Valid Arguments",
+    orInconsistent: "Logically Inconsistent Sentences",
+    orInvalid: "Invalidity Check"
+  };
+  return labels[subtype] ?? null;
+}
+
 export function parseExerciseQuestion(exerciseId) {
   const parsed = parseSegmentedExerciseId(exerciseId);
 
@@ -550,10 +585,20 @@ export function createRenderedAnswerView(answerDocument, exerciseId) {
 }
 
 export function createExerciseRecord({ course, exerciseSet, lecture, unit, exercise }) {
+  const parsed = parseSegmentedExerciseId(exercise.exerciseId);
+  const badges = [
+    humanizeType(parsed.type),
+    exerciseSet.variant,
+    humanizeLectureName(lecture.name),
+    unit.name,
+    humanizeSubtype(parsed.subtype)
+  ].filter(Boolean);
+
   return {
     slug: encodeURIComponent(exercise.exerciseId),
     exerciseId: exercise.exerciseId,
-    type: parseSegmentedExerciseId(exercise.exerciseId).type,
+    type: parsed.type,
+    badges,
     courseName: course.name,
     courseId: encodeURIComponent(course.name),
     exerciseSetVariant: exerciseSet.variant,
