@@ -7,6 +7,8 @@ projects:
   - lp83px3XHTSxSfSwbOYkn
 ---
 
+UPDATE 2026-09-17: created deploy kit for new meteor VPS in `/Users/pysdag/syncthing/philosophy warwick/zoxiy-misc/zoxiy-new-vultr-vps/`
+
 *These were written a long time after initial deploy and I forgot a lot.*
 
 # mongo
